@@ -102,7 +102,7 @@ Install and verify every machine tool before creating the repository.
 
 #### P1.0.1 — Install Git
 
-**Action:** Install [Git for Windows](https://git-scm.com/download/win). Open Git Bash.
+**Action:** Install [Git for Windows](https://git-scm.com/install/windows). Open Git Bash.
 
 **Verify:**
 
