@@ -1,6 +1,203 @@
+# =============================================================================
+# 🙈 .gitignore — paths Git must not track
+# =============================================================================
+# 📌 Purpose: keep install trees, build output, secrets, and editor junk
+#    out of commits. Source, configs, .github/, .husky/, and .devenv/ stay tracked.
+# ⚠️ Path is REQUIRED: repo-root `.gitignore`.
+# ▶️ Example: `npm run tsc:build` writes dist/, and `git status` does not list it.
+# =============================================================================
+
+# 📦 node_modules/: npm install tree (recreated by npm ci)
 node_modules/
-dist/
+
+# 📦 jspm_packages/: jspm dependency directory
+jspm_packages/
+
+# 📦 web_modules/: Snowpack dependency directory
+web_modules/
+
+# 📦 bower_components/: Bower dependency directory
+bower_components/
+
+# 🏗️ /dist/: repository-root tsc output. The leading slash keeps .devenv/_/tools/dist tracked.
+/dist/
+
+# 🏗️ build/Release: compiled Node native addons
+build/Release
+
+# 🏗️ out/: generic build output (Next and similar tools)
+out/
+
+# 🏗️ .next/: Next.js build output
+.next/
+
+# 🏗️ .nuxt/: Nuxt build output
+.nuxt/
+
+# 🏗️ .vuepress/dist: VuePress build output
+.vuepress/dist
+
+# 🏗️ .svelte-kit/: SvelteKit cache and build
+.svelte-kit/
+
+# 🏗️ **/.vitepress/dist: VitePress build output
+**/.vitepress/dist
+
+# 🏗️ .fusebox/: FuseBox cache
+.fusebox/
+
+# 🧾 *.tsbuildinfo: TypeScript incremental cache
+*.tsbuildinfo
+
+# 🗄️ .npm: optional npm cache directory
+.npm
+
+# 🗄️ .eslintcache: ESLint cache
+.eslintcache
+
+# 🗄️ .stylelintcache: Stylelint cache
+.stylelintcache
+
+# 🗄️ .cache/: shared tool cache (Parcel, Gatsby, VuePress)
+.cache/
+
+# 🗄️ .parcel-cache/: Parcel bundler cache
+.parcel-cache/
+
+# 🗄️ .grunt: Grunt intermediate storage
+.grunt
+
+# 🗄️ .nyc_output: nyc coverage cache
+.nyc_output
+
+# 🗄️ **/.vitepress/cache: VitePress cache
+**/.vitepress/cache
+
+# 🗄️ .docusaurus: Docusaurus cache and generated files
+.docusaurus
+
+# 🗄️ .serverless/: Serverless Framework local directory
+.serverless/
+
+# 🗄️ .firebase/: Firebase cache
+.firebase/
+
+# 🗄️ .temp: VuePress v2 temp directory
+.temp
+
+# 📊 coverage/: Vitest, Istanbul, and similar coverage reports
 coverage/
-docs/api/
+
+# 📊 *.lcov: LCOV coverage data files
+*.lcov
+
+# 📊 lib-cov: instrumented libraries from jscoverage or JSCover
+lib-cov
+
+# 📚 docs/: TypeDoc output (regenerated, not hand-edited)
+docs/
+
+# 🔐 .env: local environment file with secrets
+.env
+
+# 🔐 .env.*: local overrides such as .env.local
+.env.*
+
+# ✅ !.env.example: allow a committed sample env file
+!.env.example
+
+# 📝 *.log: npm, Yarn, pnpm, and Lerna logs
 *.log
+
+# 📝 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json: Node diagnostic reports
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# 🔢 pids: runtime pid directory
+pids
+
+# 🔢 *.pid: process id files
+*.pid
+
+# 🔢 *.seed: runtime seed files
+*.seed
+
+# 🔢 *.pid.lock: pid lock files
+*.pid.lock
+
+# 📦 *.tgz: output of npm pack
+*.tgz
+
+# 🧶 .yarn-integrity: Yarn v1 integrity file
+.yarn-integrity
+
+# 🧶 .pnp.*: Yarn Plug'n'Play metadata
+.pnp.*
+
+# 🧶 .yarn/*: Yarn Berry cache and state
+.yarn/*
+
+# ✅ !.yarn/patches: keep Yarn patches in git
+!.yarn/patches
+
+# ✅ !.yarn/plugins: keep Yarn plugins in git
+!.yarn/plugins
+
+# ✅ !.yarn/releases: keep the checked-in Yarn release in git
+!.yarn/releases
+
+# ✅ !.yarn/sdks: keep Yarn editor SDKs in git
+!.yarn/sdks
+
+# ✅ !.yarn/versions: keep Yarn version pins in git
+!.yarn/versions
+
+# ⚡ vite.config.js.timestamp-*: Vite temp config logs
+vite.config.js.timestamp-*
+
+# ⚡ vite.config.ts.timestamp-*: Vite temp config logs for TypeScript
+vite.config.ts.timestamp-*
+
+# 🍎 .DS_Store: macOS folder metadata
 .DS_Store
+
+# 🪟 Thumbs.db: Windows thumbnail cache
+Thumbs.db
+
+# 🪟 Desktop.ini: Windows folder settings
+Desktop.ini
+
+# 💡 .idea/: JetBrains IDE project directory
+.idea/
+
+# ✏️ *.swp: Vim swap file
+*.swp
+
+# ✏️ *.swo: Vim swap file (alternate)
+*.swo
+
+# 🔌 .tern-port: TernJS port file
+.tern-port
+
+# 🧪 .vscode-test: VS Code versions downloaded to test extensions
+.vscode-test
+
+# 🔒 .lock-wscript: node-waf configuration
+.lock-wscript
+
+# 💬 .node_repl_history: Node REPL history
+.node_repl_history
+
+# 🗃️ .dynamodb/: DynamoDB Local files
+.dynamodb/
+
+# 🗃️ data/: local database data directory
+data/
+
+# 🗒️ rough.txt: local scratch notes
+rough.txt
+
+# 🗒️ prompt.txt: local prompt drafts
+prompt.txt
+
+# 📌 .devenv/ is committed setup code. Do not ignore it.
+#    Also leave .vscode/, .github/, .husky/, src/, configs/, and public tracked.

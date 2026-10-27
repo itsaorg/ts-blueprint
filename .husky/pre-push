@@ -1,0 +1,56 @@
+#!/usr/bin/env sh
+# ==============================================================
+# 🚀 pre-push
+# ---------------------------------------------------------------
+# Run the full CI gate before refs leave the machine.
+#
+# HOW TO RUN:
+#   git push
+#
+# ---------------------------------------------------------------
+# Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
+# Author: Astitv Singh <https://github.com/astitvsingh>
+# SPDX-License-Identifier: Apache-2.0
+# ==============================================================
+# =============================================================================
+# 🚀 pre-push — run the full CI gate before refs leave the machine
+# =============================================================================
+# 📌 Purpose: block `git push` unless `npm run check` passes.
+#    Gate order: tsc:typecheck → prettier:check → eslint:lint → layout:check →
+#    vitest:run → tsc:build. Does NOT run vitest:coverage (no coverage/ writes).
+# ▶️ Skip once: HUSKY=0 git push …
+# ⚠️ Do NOT source .husky/_/husky.sh (deprecated in Husky v9+, fails in v10).
+# =============================================================================
+
+# 📁 HUSKY_DIR: absolute path to this `.husky/` directory
+# 🔤 CDPATH=: clear CDPATH so `cd` never jumps via a CDPATH hit
+# 🔤 cd --: change directory; `--` ends option parsing
+# 🔤 dirname "$0": directory of this hook script
+# 🔤 pwd: print the absolute path after cd
+HUSKY_DIR="$(CDPATH= cd -- "$(dirname "$0")" && pwd)"
+
+# 📥 source: load REPO_ROOT, PKG_*, and log_* helpers from common.sh
+# 🔤 .: POSIX synonym for `source` — run the file in the current shell
+. "$HUSKY_DIR/common.sh"
+
+# 🏷️ print hook banner with dynamic package identity
+log_hook_banner "pre-push"
+
+# ▶️ announce the full CI gate (same as Actions `npm run check`)
+log_go "npm run check"
+
+# 🧪 if: check success → allow push; else fall through to failure
+# 🔤 npm run check: package.scripts → node .devenv/_/tools/check/run.mjs
+if npm run check; then
+  # ✅ full gate passed for this package@version
+  log_ok "pre-push passed for ${PKG_NAME}@${PKG_VERSION}"
+  # 🚪 exit 0: allow the push to proceed
+  exit 0
+# 🔚 fi closes after the failure path below
+fi
+
+# ❌ check failed — push is blocked until the gate is green
+log_err "pre-push failed (check)"
+
+# 🚪 exit 1: abort the push
+exit 1

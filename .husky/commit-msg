@@ -1,0 +1,61 @@
+#!/usr/bin/env sh
+# ==============================================================
+# 💬 commit-msg
+# ---------------------------------------------------------------
+# Validate the commit message via Commitlint.
+#
+# HOW TO RUN:
+#   git commit
+#
+# ---------------------------------------------------------------
+# Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
+# Author: Astitv Singh <https://github.com/astitvsingh>
+# SPDX-License-Identifier: Apache-2.0
+# ==============================================================
+# =============================================================================
+# 💬 commit-msg — validate the commit message via Commitlint
+# =============================================================================
+# 📌 Purpose: block non-Conventional Commits before the commit object is created.
+# ▶️ Runs: `npm run commitlint -- --edit "$1"`
+#    `$1` is the path Git passes to the temporary commit message file.
+# 📋 Format: type(scope): subject — e.g. feat(storage): add page address type
+#    Allowed types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+# ▶️ Skip once: HUSKY=0 git commit …
+# ⚠️ Do NOT source .husky/_/husky.sh (deprecated in Husky v9+, fails in v10).
+# =============================================================================
+
+# 📁 HUSKY_DIR: absolute path to this `.husky/` directory
+# 🔤 CDPATH=: clear CDPATH so `cd` never jumps via a CDPATH hit
+# 🔤 cd --: change directory; `--` ends option parsing
+# 🔤 dirname "$0": directory of this hook script
+# 🔤 pwd: print the absolute path after cd
+HUSKY_DIR="$(CDPATH= cd -- "$(dirname "$0")" && pwd)"
+
+# 📥 source: load REPO_ROOT, PKG_*, and log_* helpers from common.sh
+# 🔤 .: POSIX synonym for `source` — run the file in the current shell
+. "$HUSKY_DIR/common.sh"
+
+# 🏷️ print hook banner with dynamic package identity
+log_hook_banner "commit-msg"
+
+# ▶️ announce the upcoming npm script
+log_go "npm run commitlint"
+
+# 🧪 if: run Commitlint; then-branch on exit 0, else-branch on failure
+# 🔤 npm run commitlint: package.scripts → node .devenv/_/tools/commitlint/lint.mjs
+# 🔤 --: end of npm args; remaining argv are forwarded to the script
+# 🔤 --edit: Commitlint reads/validates the file path that follows
+# 🔤 "$1": Git-provided path to the commit message file for this commit
+if npm run commitlint -- --edit "$1"; then
+  # ✅ message matches Conventional Commits policy
+  log_ok "commit-msg passed for ${PKG_NAME}@${PKG_VERSION}"
+  # 🚪 exit 0: allow the commit to proceed
+  exit 0
+# 🔚 fi closes after the failure path below
+fi
+
+# ❌ Commitlint rejected the message — hint the expected format
+log_err "commit-msg failed (Commitlint). Use Conventional Commits."
+
+# 🚪 exit 1: abort the commit (Git treats non-zero as hook failure)
+exit 1

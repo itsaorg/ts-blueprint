@@ -1,0 +1,72 @@
+#!/usr/bin/env sh
+# ==============================================================
+# 🔒 pre-commit
+# ---------------------------------------------------------------
+# Autofix staged files, then run the full CI gate.
+#
+# HOW TO RUN:
+#   git commit
+#
+# ---------------------------------------------------------------
+# Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
+# Author: Astitv Singh <https://github.com/astitvsingh>
+# SPDX-License-Identifier: Apache-2.0
+# ==============================================================
+# =============================================================================
+# 🔒 pre-commit — autofix staged files, then run the full CI gate
+# =============================================================================
+# 📌 Purpose: before a commit is created, (1) lint-staged on the index, then
+#    (2) `npm run check` (tsc:typecheck → prettier:check → eslint:lint →
+#    layout:check → vitest:run → tsc:build). Does NOT run vitest:coverage.
+# ▶️ Skip once: HUSKY=0 git commit …
+# ⚠️ Do NOT source .husky/_/husky.sh (deprecated in Husky v9+, fails in v10).
+# =============================================================================
+
+# 📁 HUSKY_DIR: absolute path to this `.husky/` directory
+# 🔤 CDPATH=: clear CDPATH so `cd` never jumps via a CDPATH hit
+# 🔤 cd --: change directory; `--` ends option parsing
+# 🔤 dirname "$0": directory of this hook script
+# 🔤 pwd: print the absolute path after cd
+HUSKY_DIR="$(CDPATH= cd -- "$(dirname "$0")" && pwd)"
+
+# 📥 source: load REPO_ROOT, PKG_*, and log_* helpers from common.sh
+# 🔤 .: POSIX synonym for `source` — run the file in the current shell
+. "$HUSKY_DIR/common.sh"
+
+# 🏷️ print hook banner with dynamic package identity
+log_hook_banner "pre-commit"
+
+# ▶️ announce lint-staged (Prettier/ESLint on staged globs from package.json)
+log_go "npm run lint-staged"
+
+# 🧪 if: lint-staged success → log ok; else → fail the hook immediately
+# 🔤 npm run lint-staged: package.scripts → node .devenv/_/tools/lint-staged/run.mjs
+if npm run lint-staged; then
+  # ✅ staged-file autofix / checks succeeded
+  log_ok "lint-staged"
+else
+  # ❌ lint-staged failed — do not continue to check
+  log_err "lint-staged failed"
+  # 🚪 exit 1: abort the commit
+  exit 1
+# 🔚 fi: end lint-staged branch
+fi
+
+# ▶️ announce the full CI gate (same gate as pre-push / Actions ci.yml)
+log_go "npm run check"
+
+# 🧪 if: check success → allow commit; else fall through to failure
+# 🔤 npm run check: package.scripts → node .devenv/_/tools/check/run.mjs
+if npm run check; then
+  # ✅ full gate passed for this package@version
+  log_ok "pre-commit passed for ${PKG_NAME}@${PKG_VERSION}"
+  # 🚪 exit 0: allow the commit to proceed
+  exit 0
+# 🔚 fi closes after the failure path below
+fi
+
+# ❌ check failed (typecheck, format, lint, layout, tests, or build)
+log_err "pre-commit failed (check)"
+
+# 🚪 exit 1: abort the commit
+exit 1

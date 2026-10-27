@@ -1,0 +1,124 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/dependabot-2.0.json
+# =============================================================================
+# 🤖 Dependabot — automated dependency update PRs
+# =============================================================================
+# 📐 Schema: GitHub accepts prefix, max-length, word-separator, branch-name-case,
+#    and template under pull-request-branch-name (since 2026-08-04). The editor
+#    schema cached on 2026-10-16 only allows separator, so this modeline binds
+#    the current SchemaStore file instead of that cache.
+# =============================================================================
+# 📌 Purpose: weekly PRs for npm deps and GitHub Actions versions.
+# ⚠️ Path is REQUIRED: `.github/dependabot.yml` (or `.yaml`).
+#    Do NOT move this under `.github/workflows/` — GitHub will ignore it there.
+# ▶️ Example: Dependabot opens a PR bumping eslint; CI runs on that PR.
+# 🌿 Branch example: dependabot/npm-and-yarn/eslint-9.0.0
+# =============================================================================
+# 🚫 Keys left unset, and why:
+#    allow — would hide any dependency that is not listed. ignore is the only filter.
+#    assignees, reviewers, milestone — need people or milestone ids. This file
+#      is copied into other repos and names none.
+#    cooldown — version updates already wait 3 days. Security updates ignore it.
+#    directories, exclude-paths, top-level registries — one directory: / covers
+#      the root manifest and the workflows.
+#    groups, multi-ecosystem-groups — would invalidate the solo branch template
+#      and mix unrelated bumps into one pull request.
+#    insecure-external-code-execution, per-ecosystem registries — private
+#      registries only. This repo uses the public npm registry.
+#    rebase-strategy — the default already rebases. disabled is the only
+#      override, and it is not wanted.
+#    target-branch — the default branch receives version and security updates.
+#      Setting this key would drop labels and commit-message from security PRs.
+#    vendor — bundler and gomod only.
+#    enable-beta-ecosystems — unused by GitHub.
+# =============================================================================
+
+# 🔢 version: Dependabot config schema version (always 2 today)
+version: 2
+
+# 📦 updates: list of ecosystems to monitor. Shared keys are repeated because
+#    this file has no shared block.
+updates:
+  # 📗 npm ecosystem (package.json / package-lock.json)
+  - package-ecosystem: npm
+    # 📁 directory: repo-relative path containing the manifest ("/" = root)
+    directory: /
+    # 🗓️ schedule: how often Dependabot checks
+    schedule:
+      # ⏱️ interval: weekly | daily | monthly | quarterly | semiannually | yearly | cron
+      interval: weekly
+      # 📅 day: weekday for a weekly interval
+      day: "monday"
+      # 🕐 time: hh:mm, interpreted in timezone
+      time: "09:00"
+      # 🌍 timezone: IANA name. Etc/UTC stays portable when this file is copied.
+      timezone: "Etc/UTC"
+    # 🚫 ignore: skip noisy major bumps for selected packages
+    ignore:
+      - dependency-name: typescript
+        # 🔢 update-types: which semver classes to skip
+        update-types: ["version-update:semver-major"]
+      - dependency-name: vitest
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitest/coverage-v8"
+        update-types: ["version-update:semver-major"]
+    # 🏷️ labels: replaces the default "dependencies" label and the ecosystem
+    #    label "npm". Semver labels are not added; this repo has no major,
+    #    minor, or patch labels. The name must already exist on the repository.
+    labels:
+      - "🔗 Dependencies"
+    # 🌿 pull-request-branch-name: solo updates only. No {group_name}.
+    #    prefix, max-length, word-separator, branch-name-case, and template are
+    #    valid. A schema that only lists separator is the 2026-10-16 cache.
+    pull-request-branch-name:
+      # ➗ separator: character between segments. "/" stays off Git Flow prefixes.
+      separator: "/"
+      # 🏷️ prefix: first segment. Must not be feature, bugfix, hotfix, release, or support.
+      prefix: "dependabot"
+      # 📏 max-length: 20–244. Extra characters are truncated with a hash suffix.
+      max-length: 100
+      # ➖ word-separator: replaces "_" after the prefix. Quote the hyphen.
+      word-separator: "-"
+      # 🔤 branch-name-case: lowercase | uppercase, applied after the prefix
+      branch-name-case: "lowercase"
+      # 🧩 template: placeholders allowed for solo updates
+      template: "{prefix}/{package_manager}/{dependency}-{version}"
+    # 💬 commit-message: also becomes the pull request title
+    commit-message:
+      # 🏷️ prefix: conventional type. A colon is inserted after a letter.
+      prefix: "chore"
+      # 🧪 prefix-development: npm devDependencies. github-actions cannot set this.
+      prefix-development: "chore"
+      # 🎯 include: "scope" adds (deps) or (deps-dev)
+      include: "scope"
+    # 🔢 open-pull-requests-limit: cap on open version-update PRs.
+    #    Security updates have a separate fixed cap of 10 that this key cannot change.
+    open-pull-requests-limit: 5
+    # 📐 versioning-strategy: auto widens ranges for a library. npm only.
+    versioning-strategy: "auto"
+  # ⚙️ github-actions ecosystem (uses: actions/* in workflows)
+  - package-ecosystem: github-actions
+    # 📁 directory: "/" scans all workflow files under .github/workflows
+    directory: /
+    # 🗓️ schedule: same weekly slot as npm
+    schedule:
+      interval: weekly
+      day: "monday"
+      time: "09:00"
+      timezone: "Etc/UTC"
+    # 🏷️ labels: replaces the default "dependencies" label and "github_actions"
+    labels:
+      - "🔗 Dependencies"
+    # 🌿 pull-request-branch-name: same solo template as npm
+    pull-request-branch-name:
+      separator: "/"
+      prefix: "dependabot"
+      max-length: 100
+      word-separator: "-"
+      branch-name-case: "lowercase"
+      template: "{prefix}/{package_manager}/{dependency}-{version}"
+    # 💬 commit-message: github-actions has no devDependency prefix
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    # 🔢 open-pull-requests-limit: version-update cap. Security cap stays 10.
+    open-pull-requests-limit: 5

@@ -1,0 +1,52 @@
+# =============================================================================
+# 🚀 release — publish to npm + GitHub Release on version tags
+# =============================================================================
+# 📌 Purpose: on `v*` tag push, `npm run check`, then `npm run npm:release`
+#    (tsc:build + npm:publish:worker with OIDC provenance), then
+#    `gh release create` with generated notes.
+# 🔐 Trusted Publishing binds to THIS filename (`release.yml`).
+# ▶️ Example trigger: `git push origin v0.1.0` after git-flow release finish.
+# =============================================================================
+
+# 🏷️ name: workflow display name
+name: release
+
+# 🔔 on: events that start this workflow
+on:
+  # 📤 push: run when refs are pushed
+  push:
+    # 🏷️ tags: only tags matching the glob
+    tags:
+      # ✅ "v*": e.g. v0.1.0
+      - "v*"
+
+# 🔐 permissions: token scopes for this workflow
+permissions:
+  # 📝 contents: write — create GitHub Releases
+  contents: write
+  # 🪪 id-token: write — npm Trusted Publishing (OIDC)
+  id-token: write
+
+# 🧩 jobs: named work units
+jobs:
+  # 🆔 release: single publish job
+  release:
+    # 🖥️ runs-on: GitHub-hosted runner image
+    runs-on: ubuntu-latest
+    # 📋 steps
+    steps:
+      # ⬇️ checkout: clone at the pushed tag
+      - uses: actions/checkout@v7
+      # 🧰 setup: Node from .nvmrc + npm ci
+      - uses: ./.github/actions/setup
+      # ✅ check: full CI gate
+      - run: npm run check
+      # 🚢 npm:release: build + publish worker
+      - run: npm run npm:release
+      # 📢 Create GitHub Release from the tag
+      - name: Create GitHub Release
+        # 🔑 env: GH_TOKEN for gh CLI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # 🏷️ GITHUB_REF_NAME: tag name
+        run: gh release create "${GITHUB_REF_NAME}" --generate-notes --verify-tag

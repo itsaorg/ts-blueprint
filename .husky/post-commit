@@ -1,0 +1,48 @@
+#!/usr/bin/env sh
+# ==============================================================
+# 🎉 post-commit
+# ---------------------------------------------------------------
+# Local success notice after a commit lands.
+#
+# HOW TO RUN:
+#   git commit
+#
+# ---------------------------------------------------------------
+# Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
+# Author: Astitv Singh <https://github.com/astitvsingh>
+# SPDX-License-Identifier: Apache-2.0
+# ==============================================================
+# =============================================================================
+# 🎉 post-commit — local success notice after a commit lands
+# =============================================================================
+# 📌 Purpose: reserved follow-up hook; logs package identity + short SHA only.
+#    No network side effects. Never blocks the commit (always exit 0).
+# ▶️ Skip once: HUSKY=0 git commit … (skips all husky hooks for that command)
+# ⚠️ Do NOT source .husky/_/husky.sh (deprecated in Husky v9+, fails in v10).
+# =============================================================================
+
+# 📁 HUSKY_DIR: absolute path to this `.husky/` directory
+# 🔤 CDPATH=: clear CDPATH so `cd` never jumps via a CDPATH hit
+# 🔤 cd --: change directory; `--` ends option parsing
+# 🔤 dirname "$0": directory of this hook script
+# 🔤 pwd: print the absolute path after cd
+HUSKY_DIR="$(CDPATH= cd -- "$(dirname "$0")" && pwd)"
+
+# 📥 source: load REPO_ROOT, PKG_*, and log_* helpers from common.sh
+# 🔤 .: POSIX synonym for `source` — run the file in the current shell
+. "$HUSKY_DIR/common.sh"
+
+# 🏷️ print hook banner with dynamic package identity
+log_hook_banner "post-commit"
+
+# 🔖 _short_sha: abbreviated HEAD commit hash (or "?" if git fails)
+# 🔤 git rev-parse --short HEAD: short SHA of the commit that just landed
+# 🔤 2>/dev/null: discard git stderr if rev-parse fails
+# 🔤 || printf '%s' '?': fallback placeholder when git is unavailable
+_short_sha="$(git rev-parse --short HEAD 2>/dev/null || printf '%s' '?')"
+
+# ✅ success line with SHA and package identity
+log_ok "Committed ${_short_sha} — ${PKG_NAME}@${PKG_VERSION}"
+
+# 🚪 exit 0: post-commit never blocks (even if logging helpers misbehave later)
+exit 0

@@ -1,0 +1,31 @@
+# =============================================================================
+# 📝 .github/release.yml — GitHub Release NOTES categories (NOT a workflow)
+# =============================================================================
+# 📌 Purpose: tells GitHub how to group commits/PRs when generating release
+#    notes (`gh release create --generate-notes` / Releases UI).
+# ⚠️ This is NOT Actions. The publish workflow lives at
+#    `.github/workflows/release.yml`. npm Trusted Publishing must reference
+#    the workflow filename `release.yml` (under workflows/), not this file.
+# ▶️ Example: tag v0.1.0 → release workflow runs → notes use these categories.
+# =============================================================================
+
+# 📚 changelog: root key for auto-generated release-note configuration
+changelog:
+  # 🗂️ categories: ordered sections in the generated notes
+  categories:
+    # ✨ Features section
+    - title: Features
+      # 🏷️ labels: PR/issue labels that land in this section
+      labels:
+        - "✨ Feature Request"
+        - "🌟 Git Flow: Feature"
+    # 🐛 Fixes section
+    - title: Fixes
+      labels:
+        - "🐛 Git Flow: Bugfix"
+        - "🐞 Bug Report"
+    # 🔧 Chores section
+    - title: Chores
+      labels:
+        - "🧹 Chore"
+        - "📚 Documentation"

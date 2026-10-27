@@ -1,0 +1,87 @@
+# =============================================================================
+# 🧹 Chore or docs — GitHub issue form for maintenance
+# =============================================================================
+# 📌 Purpose: tooling, docs, or maintenance that does not change public contracts.
+# ⚠️ Keep label text identical to chore_docs.md headings.
+# ▶️ Example: a reporter fills Change and Motivation, then submits.
+# =============================================================================
+
+# 🏷️ name: chooser card title
+name: Chore or docs
+# 📄 description: one-line card subtitle
+description: Tooling, docs, or maintenance
+# 🏷️ title: default issue title; replace <slug> before submitting
+title: "🧹 CHORE: <slug>"
+# 🏷️ labels: labels applied when the issue is opened
+labels: ["🧹 Chore"]
+# 📋 body: ordered form elements
+body:
+  # 📝 markdown: static intro, not a submitted field
+  - type: markdown
+    # ⚙️ attributes: element settings
+    attributes:
+      # 📃 value: intro shown above the fields
+      value: |
+        Use this for tooling, docs, or maintenance that does not change the public storage contracts.
+        This form applies the 🧹 Chore label. See CONTRIBUTING.md for the label guide.
+        Contract changes belong on a feature request.
+  # 📝 textarea: the update itself
+  - type: textarea
+    # 🆔 id: change
+    id: change
+    attributes:
+      # 🏷️ label: Change
+      label: Change
+      # 💬 description: files, scripts, workflows, or docs
+      description: What you want updated (files, scripts, workflows, or docs).
+      # ✏️ placeholder: example docs change
+      placeholder: Document `npm run check` in CONTRIBUTING and …
+    validations:
+      # 🔒 required: reporter must fill this in
+      required: true
+  # 📝 textarea: why now
+  - type: textarea
+    # 🆔 id: motivation
+    id: motivation
+    attributes:
+      # 🏷️ label: Motivation
+      label: Motivation
+      # 💬 description: why this maintenance matters
+      description: Why this maintenance matters now.
+      # ✏️ placeholder: example reason
+      placeholder: Contributors hit … because the docs still name the old script.
+    validations:
+      # 🔒 required: reporter must fill this in
+      required: true
+  # 📝 textarea: boundaries
+  - type: textarea
+    # 🆔 id: scope
+    id: scope
+    attributes:
+      # 🏷️ label: Scope / out of scope
+      label: Scope / out of scope
+      # 💬 description: what is in and what is left alone
+      description: What this issue includes, and what it deliberately leaves alone. Optional.
+      # ✏️ placeholder: in and out lines
+      placeholder: |
+        In: …
+        Out: product types under src/
+    validations:
+      # 🔓 required: false allows an empty box
+      required: false
+  # 📝 textarea: how to verify
+  - type: textarea
+    # 🆔 id: checklist
+    id: checklist
+    attributes:
+      # 🏷️ label: Checklist notes
+      label: Checklist notes
+      # 💬 description: commands or review notes
+      description: Verification you expect (for example `npm run check`, docs-only review). Optional.
+      # ✏️ placeholder: checklist the reporter can edit
+      placeholder: |
+        - [ ] `npm run check`
+        - [ ] No publish or version bump
+    validations:
+      # 🔓 required: false allows an empty box
+      required: false

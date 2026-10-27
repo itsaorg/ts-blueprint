@@ -2,7 +2,7 @@
 
 Itsa TypeScript library blueprint and **GitHub template** for all platform repositories.
 
-This repository is currently at **seed stage**: only this guide, `LICENSE`, and `.gitignore`. Follow **Part 1** below to rebuild the full toolchain. Once complete, **Part 2** is the guide for anyone creating their own library from the template.
+The toolchain (`.devenv/`, configs, hooks, and GitHub community files) was copied from `@itsaorg/storage-base` and retargeted to this blueprint. Part 1 records how that baseline was built. Part 2 is the guide for anyone creating a library from this template.
 
 ---
 
@@ -14,7 +14,7 @@ This repository is currently at **seed stage**: only this guide, `LICENSE`, and 
   - [Part 1 — How we built this template repository](#part-1--how-we-built-this-template-repository)
     - [P1.0 Prerequisites](#p10-prerequisites)
       - [P1.0.1 — Install Git](#p101--install-git)
-      - [P1.0.2 — Install Node.js 24.21.0](#p102--install-nodejs-24210)
+      - [P1.0.2 — Install Node.js 26](#p102--install-nodejs-26)
       - [P1.0.3 — Install git-flow AVH](#p103--install-git-flow-avh)
     - [P1.1 GitHub — org and base repo](#p11-github--org-and-base-repo)
     - [P1.2 GitHub — template readiness](#p12-github--template-readiness)
@@ -67,12 +67,12 @@ This repository is currently at **seed stage**: only this guide, `LICENSE`, and 
 
 These versions were verified on **Windows Git Bash (MINGW64)**. Install at least these versions before starting either part.
 
-| Tool | Verified version | Minimum | Verify command | Pass condition |
-| --- | --- | --- | --- | --- |
-| Node.js | **v24.21.0** | >= 24.21.0 | `node -v` | Prints `v24.21.0` or newer |
-| npm | **11.9.0** | >= 11.9.0 | `npm -v` | Prints `11.9.0` or newer |
-| Git | **2.55.0.windows.5** | >= 2.55.0 | `git -v` | Prints `git version 2.55.0` or newer |
-| git-flow AVH | **1.12.4-dev0 (AVH Edition)** | AVH installed | `git flow version` | Reports AVH Edition |
+| Tool         | Verified version              | Minimum       | Verify command     | Pass condition                       |
+| ------------ | ----------------------------- | ------------- | ------------------ | ------------------------------------ |
+| Node.js      | **v26**                       | >= 26         | `node -v`          | Prints `v26` or newer                |
+| npm          | **11.9.0**                    | >= 11.9.0     | `npm -v`           | Prints `11.9.0` or newer             |
+| Git          | **2.55.0.windows.5**          | >= 2.55.0     | `git -v`           | Prints `git version 2.55.0` or newer |
+| git-flow AVH | **1.12.4-dev0 (AVH Edition)** | AVH installed | `git flow version` | Reports AVH Edition                  |
 
 > **Windows notes**
 >
@@ -82,8 +82,8 @@ These versions were verified on **Windows Git Bash (MINGW64)**. Install at least
 >
 > **Not required:** GitHub CLI (`gh`). All GitHub and npm Trusted Publisher steps in this guide use the **web UI**.
 >
-> **README images:** Static screenshots live in [`assets/readme/`](assets/readme/). TypeDoc API output goes to `docs/api/` only (gitignored) — never store README images under `docs/`.
->
+> **Docs output:** TypeDoc API output goes to `docs/` (gitignored). Do not commit generated docs.
+
 ---
 
 ## Part 1 — How we built this template repository
@@ -118,9 +118,9 @@ git version 2.55.0.windows.5
 
 (or newer)
 
-#### P1.0.2 — Install Node.js 24.21.0
+#### P1.0.2 — Install Node.js 26
 
-**Action:** Install Node **24.21.0**. Create `.nvmrc` at repo root with content `24.21.0`.
+**Action:** Install Node **26**. Create `.nvmrc` at repo root with content `26`.
 
 **Verify:**
 
@@ -132,7 +132,7 @@ npm -v
 **Expected output:**
 
 ```text
-v24.21.0
+v26
 11.9.0
 ```
 
@@ -202,13 +202,13 @@ on:
 
 jobs:
   check:
-    name: check (Node 24.21.0)
+    name: check (Node 26)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24.21.0'
+          node-version: "26"
           cache: npm
       - run: npm ci
       - run: npm run check
@@ -219,7 +219,7 @@ jobs:
 Create `.github/workflows/publish.yml` with:
 
 - Trigger on push to `main` and `workflow_dispatch`
-- Node 24.21.0, `npm ci --ignore-scripts`, `npm run build`
+- Node 26, `npm ci --ignore-scripts`, `npm run build`
 - [Changesets Action](https://github.com/changesets/action) for version bumps and staged publish
 - `permissions.id-token: write` for npm Trusted Publisher (OIDC)
 - `NPM_TOKEN` secret for fallback publish paths
@@ -231,7 +231,7 @@ Create `.github/workflows/publish.yml` with:
 1. **Settings → Branches → Add branch ruleset** (or classic protection).
 2. Protect `main` and `develop`:
    - Require pull request before merging
-   - Require status check: `check (Node 24.21.0)`
+   - Require status check: `check (Node 26)`
    - Do not allow force pushes
 
 **Verify:** Direct push to `main` is rejected; PR with green CI can merge.
@@ -293,20 +293,20 @@ npm init -y
 
 Edit `package.json` key fields:
 
-| Field | Value |
-| --- | --- |
-| `name` | `@itsaorg/ts-blueprint` |
-| `version` | `1.0.0` |
-| `description` | Itsa TypeScript library blueprint and GitHub template |
-| `type` | `module` |
-| `license` | `Apache-2.0` |
-| `engines.node` | `>=24.21.0` |
-| `exports["."].types` | `./types/index.d.ts` |
-| `exports["."].import` | `./dist/index.js` |
-| `files` | `["dist", "types", "LICENSE", "README.md", "CHANGELOG.md"]` |
-| `repository.url` | `git+https://github.com/itsaorg/ts-blueprint.git` |
-| `publishConfig.access` | `public` |
-| `publishConfig.provenance` | `true` |
+| Field                      | Value                                                       |
+| -------------------------- | ----------------------------------------------------------- |
+| `name`                     | `@itsaorg/ts-blueprint`                                     |
+| `version`                  | `1.0.0`                                                     |
+| `description`              | Itsa TypeScript library blueprint and GitHub template       |
+| `type`                     | `module`                                                    |
+| `license`                  | `Apache-2.0`                                                |
+| `engines.node`             | `>=26`                                                      |
+| `exports["."].types`       | `./types/index.d.ts`                                        |
+| `exports["."].import`      | `./dist/index.js`                                           |
+| `files`                    | `["dist", "types", "LICENSE", "README.md", "CHANGELOG.md"]` |
+| `repository.url`           | `git+https://github.com/itsaorg/ts-blueprint.git`           |
+| `publishConfig.access`     | `public`                                                    |
+| `publishConfig.provenance` | `true`                                                      |
 
 Add script skeleton (filled in as tools are added):
 
@@ -335,7 +335,7 @@ Create root `tsconfig.json` that extends config:
 npm pkg get name engines
 ```
 
-**Expected:** `@itsaorg/ts-blueprint` and `>=24.21.0`.
+**Expected:** `@itsaorg/ts-blueprint` and `>=26`.
 
 ---
 
@@ -480,11 +480,11 @@ npx husky init
 
 Configure hooks:
 
-| Hook | Content |
-| --- | --- |
+| Hook                | Content                                     |
+| ------------------- | ------------------------------------------- |
 | `.husky/pre-commit` | Staged file limit check + `npx lint-staged` |
-| `.husky/commit-msg` | `npx --no -- commitlint --edit $1` |
-| `.husky/pre-push` | `npm run check` |
+| `.husky/commit-msg` | `npx --no -- commitlint --edit $1`          |
+| `.husky/pre-push`   | `npm run check`                             |
 
 Create `config/commitlint.config.js` extending `@commitlint/config-conventional`.
 
@@ -583,14 +583,14 @@ ls docs/api/
 
 **Action:** Create scripts under `scripts/`:
 
-| Script | Purpose |
-| --- | --- |
-| `check-layout.mjs` | Validates `src/`, `dist/`, `types/` layout |
-| `check-types-mirror.mjs` | Ensures `types/` mirrors public API |
-| `check-tarball.mjs` | Validates npm pack contents |
-| `check-staged-file-limit.mjs` | Pre-commit staged file cap |
-| `clean.mjs` | Removes `dist/`, `coverage/`, `docs/api/` |
-| `stage-publish.mjs` | Staged npm publish for Changesets Action |
+| Script                        | Purpose                                    |
+| ----------------------------- | ------------------------------------------ |
+| `check-layout.mjs`            | Validates `src/`, `dist/`, `types/` layout |
+| `check-types-mirror.mjs`      | Ensures `types/` mirrors public API        |
+| `check-tarball.mjs`           | Validates npm pack contents                |
+| `check-staged-file-limit.mjs` | Pre-commit staged file cap                 |
+| `clean.mjs`                   | Removes `dist/`, `coverage/`, `docs/api/`  |
+| `stage-publish.mjs`           | Staged npm publish for Changesets Action   |
 
 Add scripts:
 
@@ -716,7 +716,7 @@ Install the same machine tools as [Verified toolchain baseline](#verified-toolch
 **Verify before continuing:**
 
 ```bash
-node -v    # v24.21.0 or newer
+node -v    # v26 or newer
 npm -v     # 11.9.0 or newer
 git -v     # git version 2.55.0 or newer
 git flow version   # AVH Edition
@@ -748,11 +748,11 @@ Select **Create a new repository** from the dropdown.
 
 #### Step 4 — Configure owner, name, and visibility
 
-| Field | Example |
-| --- | --- |
-| Owner | `itsaorg` (or your org/user) |
-| Repository name | `my-library` |
-| Visibility | Public or Private |
+| Field           | Example                      |
+| --------------- | ---------------------------- |
+| Owner           | `itsaorg` (or your org/user) |
+| Repository name | `my-library`                 |
+| Visibility      | Public or Private            |
 
 Click **Create repository**.
 
@@ -806,13 +806,13 @@ npm run typecheck
 
 There is no automatic token substitution. Edit these files manually:
 
-| File | What to change |
-| --- | --- |
-| `package.json` | `name`, `description`, `repository`, `bugs`, `homepage` |
-| `README.md` | Title, clone URL, package name references |
-| `src/index.ts` | Hardcoded package string in exports (if present) |
-| `types/index.d.ts` | Package name in placeholder declarations |
-| `.changeset/config.json` | `fixed` group if your npm scope differs |
+| File                     | What to change                                          |
+| ------------------------ | ------------------------------------------------------- |
+| `package.json`           | `name`, `description`, `repository`, `bugs`, `homepage` |
+| `README.md`              | Title, clone URL, package name references               |
+| `src/index.ts`           | Hardcoded package string in exports (if present)        |
+| `types/index.d.ts`       | Package name in placeholder declarations                |
+| `.changeset/config.json` | `fixed` group if your npm scope differs                 |
 
 **Worked example:** `@itsaorg/ts-blueprint` → `@itsaorg/my-library`, repo `ts-blueprint` → `my-library`.
 
@@ -849,7 +849,7 @@ git push -u origin develop
 1. **Settings → Branches**.
 2. Protect `main` and `develop`:
    - Require pull request
-   - Require status check: `check (Node 24.21.0)`
+   - Require status check: `check (Node 26)`
    - Block force pushes
 
 **Verify:** Issue and PR templates appear under **New issue** and when opening a PR.
@@ -911,24 +911,24 @@ npm pack --dry-run
 
 Run each command in order (matches `npm run check`):
 
-| # | Tool | Command | Config |
-| --- | --- | --- | --- |
-| 1 | ESLint | `npm run lint` | `config/eslint.config.js` |
-| 2 | Prettier | `npm run format:check` | `config/.prettierrc.json` |
-| 3 | TypeScript | `npm run typecheck` | `config/tsconfig.json` |
-| 4 | Vitest + coverage | `npm run test:coverage` | `config/vitest.config.ts` |
-| 5 | Build | `npm run build` | `src/` → `dist/` + `types/` |
-| 6 | Layout check | `npm run check:layout` | `scripts/check-layout.mjs` |
-| 7 | Types mirror | `npm run check:types-mirror` | `scripts/check-types-mirror.mjs` |
-| 8 | Consumer import | `npm run test:consumer` | `config/vitest.consumer.config.ts` |
-| 9 | Tarball inspect | `npm run check:tarball` | `scripts/check-tarball.mjs` |
-| 10 | Husky pre-commit | Stage a file, commit | `.husky/pre-commit` |
-| 11 | Commitlint | Try invalid commit message | `.husky/commit-msg` |
-| 12 | Conventional Commits | Use `feat:`, `fix:`, `chore:` prefixes | `config/commitlint.config.js` |
-| 13 | Changesets | `npx changeset` | `.changeset/` |
-| 14 | CHANGELOG | Updated by `changeset version` | `CHANGELOG.md` |
-| 15 | TypeDoc | `npm run docs` → output in `docs/api/` | `config/typedoc.json` |
-| 16 | GitHub Actions CI | Push branch, confirm green check | `.github/workflows/ci.yml` |
+| #   | Tool                 | Command                                | Config                             |
+| --- | -------------------- | -------------------------------------- | ---------------------------------- |
+| 1   | ESLint               | `npm run lint`                         | `config/eslint.config.js`          |
+| 2   | Prettier             | `npm run format:check`                 | `config/.prettierrc.json`          |
+| 3   | TypeScript           | `npm run typecheck`                    | `config/tsconfig.json`             |
+| 4   | Vitest + coverage    | `npm run test:coverage`                | `config/vitest.config.ts`          |
+| 5   | Build                | `npm run build`                        | `src/` → `dist/` + `types/`        |
+| 6   | Layout check         | `npm run check:layout`                 | `scripts/check-layout.mjs`         |
+| 7   | Types mirror         | `npm run check:types-mirror`           | `scripts/check-types-mirror.mjs`   |
+| 8   | Consumer import      | `npm run test:consumer`                | `config/vitest.consumer.config.ts` |
+| 9   | Tarball inspect      | `npm run check:tarball`                | `scripts/check-tarball.mjs`        |
+| 10  | Husky pre-commit     | Stage a file, commit                   | `.husky/pre-commit`                |
+| 11  | Commitlint           | Try invalid commit message             | `.husky/commit-msg`                |
+| 12  | Conventional Commits | Use `feat:`, `fix:`, `chore:` prefixes | `config/commitlint.config.js`      |
+| 13  | Changesets           | `npx changeset`                        | `.changeset/`                      |
+| 14  | CHANGELOG            | Updated by `changeset version`         | `CHANGELOG.md`                     |
+| 15  | TypeDoc              | `npm run docs` → output in `docs/api/` | `config/typedoc.json`              |
+| 16  | GitHub Actions CI    | Push branch, confirm green check       | `.github/workflows/ci.yml`         |
 
 **Screenshot paths (add as captured):** `assets/readme/part2/tools/01-eslint-pass.png` through `16-github-actions-ci.png`
 
