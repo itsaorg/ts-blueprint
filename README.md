@@ -2,14 +2,16 @@
 
 GitHub template for Itsa TypeScript libraries. Clone from this repository, rename the package identity, then start product code under `src/`.
 
-## Table of contents
+## 🗂️ Table Of Contents
 
-- [Requirements](#requirements)
-- [Use this template](#use-this-template)
-- [Rename checklist](#rename-checklist)
-- [Layout](#layout)
-- [Key scripts](#key-scripts)
-- [Links](#links)
+- [@itsaorg/ts-blueprint](#itsaorgts-blueprint)
+  - [🗂️ Table Of Contents](#️-table-of-contents)
+  - [Requirements](#requirements)
+  - [Use this template](#use-this-template)
+  - [Rename checklist](#rename-checklist)
+  - [Layout](#layout)
+  - [Key scripts](#key-scripts)
+  - [Links](#links)
 
 ## Requirements
 
@@ -55,12 +57,12 @@ Replace blueprint identity with your package before you publish or open Trusted 
 | npm Trusted Publishing              | `npm run npm:trust` after the GitHub repo and `release.yml` exist |
 | Labels                              | `npm run setup:labels` when `gh` is authenticated                 |
 
-Do not change portable paths under `.devenv/_` or the community policy files under `.github/` unless you mean to fork the toolchain.
+Do not change portable paths under `.devenv` or the community policy files under `.github/` unless you mean to fork the toolchain.
 
 ## Layout
 
 ```text
-.devenv/_/          Script library (lib, devenv, tools, utils, setup)
+.devenv/            Script library (lib, tools, deps, utils, setup)
 .husky/             Git hooks (Husky)
 .github/            Issues, PRs, workflows, labels, CONTRIBUTING
 configs/            ESLint, Prettier, Vitest, TypeDoc, tsconfig pieces
@@ -80,7 +82,7 @@ TypeDoc writes to `docs/` (gitignored). Do not commit generated docs.
 | `npm run check`            | Typecheck, format, lint, layout, tests, build         |
 | `npm run typedoc`          | Generate API docs into `docs/`                        |
 
-The full script table lives in [CONTRIBUTING](.github/CONTRIBUTING.md). Post-clone order is in [.devenv/_/POST-CLONE-STEPS.md](.devenv/_/POST-CLONE-STEPS.md).
+The full script table and post-clone order live in [CONTRIBUTING](.github/CONTRIBUTING.md).
 
 ## Links
 
@@ -88,4 +90,3 @@ The full script table lives in [CONTRIBUTING](.github/CONTRIBUTING.md). Post-clo
 - [Code of Conduct](.github/CODE_OF_CONDUCT.md)
 - [Security](.github/SECURITY.md)
 - [License](LICENSE)
-- [Post-clone steps](.devenv/_/POST-CLONE-STEPS.md)

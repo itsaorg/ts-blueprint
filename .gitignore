@@ -19,7 +19,7 @@ web_modules/
 # 📦 bower_components/: Bower dependency directory
 bower_components/
 
-# 🏗️ /dist/: repository-root tsc output. The leading slash keeps .devenv/_/tools/dist tracked.
+# 🏗️ /dist/: repository-root tsc output. The leading slash keeps .devenv/deps/dist tracked.
 /dist/
 
 # 🏗️ build/Release: compiled Node native addons

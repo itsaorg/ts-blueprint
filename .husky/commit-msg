@@ -42,7 +42,7 @@ log_hook_banner "commit-msg"
 log_go "npm run commitlint"
 
 # 🧪 if: run Commitlint; then-branch on exit 0, else-branch on failure
-# 🔤 npm run commitlint: package.scripts → node .devenv/_/tools/commitlint/lint.mjs
+# 🔤 npm run commitlint: package.scripts → node .devenv/deps/commitlint/lint.mjs
 # 🔤 --: end of npm args; remaining argv are forwarded to the script
 # 🔤 --edit: Commitlint reads/validates the file path that follows
 # 🔤 "$1": Git-provided path to the commit message file for this commit

@@ -8,6 +8,8 @@
   - [📥 Clone and install](#-clone-and-install)
   - [🌿 Start a branch](#-start-a-branch)
   - [🧪 Scripts](#-scripts)
+  - [📁 `.devenv` layout](#-devenv-layout)
+  - [🔄 Post-clone](#-post-clone)
   - [💬 Commit messages](#-commit-messages)
   - [🪝 Husky hooks](#-husky-hooks)
   - [🐛 Open an issue](#-open-an-issue)
@@ -68,7 +70,7 @@ Put product types under `src/`. Do not add a root `types/` directory. The publis
 
 ## 🧪 Scripts
 
-Every `package.json` script name starts with the tool, then an action (`tsc:typecheck`, `vitest:run`). Tool scripts run `node .devenv/_/tools/<tool>/<action>.mjs`. Clean scripts run `node .devenv/_/utils/clean.mjs`. Call them with `npm run`. Do not call `tsc`, `eslint`, or `vitest` directly. Every code file starts with the boxed banner: emoji title, what the file does, how to run or load it, and the Apache-2.0 copyright.
+Every `package.json` script name starts with the tool, then an action (`tsc:typecheck`, `vitest:run`). Repo command scripts run `node .devenv/deps/<tool>/<action>.mjs`. Machine runtime scripts live under `.devenv/tools/`. Clean scripts run `node .devenv/utils/clean.mjs`. Call them with `npm run`. Do not call `tsc`, `eslint`, or `vitest` directly. Every code file starts with the boxed banner: emoji title, what the file does, how to run or load it, and the Apache-2.0 copyright.
 
 | Script                              | What it does                                                                                                   | Writes files?                                      |
 | ----------------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
@@ -76,10 +78,10 @@ Every `package.json` script name starts with the tool, then an action (`tsc:type
 | `npm run tsc:typecheck`             | Typecheck only (`tsc --noEmit`)                                                                                | No                                                 |
 | `npm run tsc:emit`                  | Emit JavaScript and declarations into `dist/`                                                                  | Yes, `dist/`                                       |
 | `npm run tsc:build`                 | `dist:clean`, then `tsc:emit`                                                                                  | Yes, replaces `dist/`                              |
-| `npm run dist:clean`                | Delete `dist/` through `_/utils/clean.mjs`                                                                     | Yes, deletes `dist/`                               |
-| `npm run coverage:clean`            | Delete `coverage/` through `_/utils/clean.mjs`                                                                 | Yes, deletes `coverage/`                           |
-| `npm run docs:clean`                | Delete `docs/` through `_/utils/clean.mjs`                                                                     | Yes, deletes `docs/`                               |
-| `npm run modules:clean`             | Delete `node_modules/` through `_/utils/clean.mjs`                                                             | Yes, deletes `node_modules/`                       |
+| `npm run dist:clean`                | Delete `dist/` through `.devenv/utils/clean.mjs`                                                               | Yes, deletes `dist/`                               |
+| `npm run coverage:clean`            | Delete `coverage/` through `.devenv/utils/clean.mjs`                                                           | Yes, deletes `coverage/`                           |
+| `npm run docs:clean`                | Delete `docs/` through `.devenv/utils/clean.mjs`                                                               | Yes, deletes `docs/`                               |
+| `npm run modules:clean`             | Delete `node_modules/` through `.devenv/utils/clean.mjs`                                                       | Yes, deletes `node_modules/`                       |
 | `npm run prettier:check`            | Check formatting                                                                                               | No                                                 |
 | `npm run prettier:write`            | Rewrite formatting                                                                                             | Yes, source and docs                               |
 | `npm run eslint:lint`               | Lint                                                                                                           | No                                                 |
@@ -108,6 +110,38 @@ Every `package.json` script name starts with the tool, then an action (`tsc:type
 Do not run the `npm:*` scripts unless a maintainer asked you to publish or change trust. When Trusted Publishing is configured, it is bound to `.github/workflows/release.yml`.
 
 Hooks and GitHub Actions call `npm run` only. CI runs `npm run check` and does not publish.
+
+## 📁 `.devenv` layout
+
+Every development script is ESM (`.mjs`). Git hooks stay in `.husky`. Call package scripts with `npm run`.
+
+```text
+.devenv/lib/                 Shared helpers (tool-lib, repo-root)
+.devenv/tools/               Machine runtimes: git, git-flow, gh, node, npm
+.devenv/deps/                Repo commands: tsc, prettier, eslint, vitest, husky, …
+.devenv/utils/clean.mjs      Shared path cleaner
+.devenv/setup/               setup, post-clone, and label sync entry points
+```
+
+`tools/` holds runtimes a machine needs. `deps/` holds repo commands such as tsc and prettier. `setup/` orchestrates both. Under `tools/gh/`, scripts sit in short command folders (`auth/`, `issue/`, `label/`, `pr/`). Install probes are named `isInstalled.mjs`.
+
+## 🔄 Post-clone
+
+**Entry point:** `npm run setup:post-clone`
+
+**Implementation:** `.devenv/setup/post-clone-run.mjs`
+
+Order:
+
+1. `.devenv/tools/git/isInstalled.mjs` — fail if `git` is missing
+2. `.devenv/tools/node/isInstalled.mjs` — fail if `node` or `npm` is missing
+3. `npm ci`
+4. `npm run husky:prepare`
+5. `.devenv/tools/gh/isInstalled.mjs` — skip the rest of this list if `gh` is missing
+6. Skip `gh` auth and label sync when `CI` or `GITHUB_ACTIONS` is set
+7. If `gh auth status` succeeds, sync `.github/labels.json` through `.devenv/tools/gh/label/process-many.mjs`
+
+This sequence does not run `git config`. Hooks are installed by `husky:prepare` into `.husky`.
 
 ## 💬 Commit messages
 

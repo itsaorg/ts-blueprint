@@ -40,7 +40,7 @@ log_hook_banner "pre-push"
 log_go "npm run check"
 
 # 🧪 if: check success → allow push; else fall through to failure
-# 🔤 npm run check: package.scripts → node .devenv/_/tools/check/run.mjs
+# 🔤 npm run check: package.scripts → node .devenv/deps/check/run.mjs
 if npm run check; then
   # ✅ full gate passed for this package@version
   log_ok "pre-push passed for ${PKG_NAME}@${PKG_VERSION}"
