@@ -7,7 +7,7 @@
  * to delete a folder and its contents. Refuses the repo root and .git.
  *
  * HOW TO RUN:
- *   npm run dist:clean
+ *   npm run clean:dist
  *   node .devenv/utils/clean.mjs --path dist --recursive
  *
  * ---------------------------------------------------------------

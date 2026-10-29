@@ -6,7 +6,7 @@
  * Generates API docs.
  *
  * HOW TO RUN:
- *   npm run typedoc
+ *   npm run typedoc:build
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -15,7 +15,7 @@
  * ============================================================== */
 
 /**
- * npm script `typedoc` — Generates API docs.
+ * npm script `typedoc:build` — Generates API docs.
  *
  * @module typedoc
  */
@@ -24,7 +24,7 @@ import { forwardedArgs, runTool } from "../../lib/tool-lib.mjs";
 
 const args = ["--options", "configs/typedoc.json"].concat(forwardedArgs());
 process.exitCode = runTool({
-  label: "typedoc",
+  label: "typedoc:build",
   bin: "typedoc",
   args,
 });

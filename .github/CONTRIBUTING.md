@@ -77,11 +77,12 @@ Every `package.json` script name starts with the tool, then an action (`tsc:type
 | `npm run check`                     | CI gate, in order: `tsc:typecheck`, `prettier:check`, `eslint:lint`, `layout:check`, `vitest:run`, `tsc:build` | Yes. The last step rebuilds `dist/`                |
 | `npm run tsc:typecheck`             | Typecheck only (`tsc --noEmit`)                                                                                | No                                                 |
 | `npm run tsc:emit`                  | Emit JavaScript and declarations into `dist/`                                                                  | Yes, `dist/`                                       |
-| `npm run tsc:build`                 | `dist:clean`, then `tsc:emit`                                                                                  | Yes, replaces `dist/`                              |
-| `npm run dist:clean`                | Delete `dist/` through `.devenv/utils/clean.mjs`                                                               | Yes, deletes `dist/`                               |
-| `npm run coverage:clean`            | Delete `coverage/` through `.devenv/utils/clean.mjs`                                                           | Yes, deletes `coverage/`                           |
-| `npm run docs:clean`                | Delete `docs/` through `.devenv/utils/clean.mjs`                                                               | Yes, deletes `docs/`                               |
-| `npm run modules:clean`             | Delete `node_modules/` through `.devenv/utils/clean.mjs`                                                       | Yes, deletes `node_modules/`                       |
+| `npm run tsc:build`                 | `clean:dist`, then `tsc:emit`                                                                                  | Yes, replaces `dist/`                              |
+| `npm run clean:dist`                | Delete `dist/` through `.devenv/utils/clean.mjs`                                                               | Yes, deletes `dist/`                               |
+| `npm run clean:coverage`            | Delete `coverage/` through `.devenv/utils/clean.mjs`                                                           | Yes, deletes `coverage/`                           |
+| `npm run clean:docs`                | Delete tracked `docs/` through `.devenv/utils/clean.mjs`                                                       | Yes, deletes `docs/`                               |
+| `npm run clean:modules`             | Delete `node_modules/` through `.devenv/utils/clean.mjs`                                                       | Yes, deletes `node_modules/`                       |
+| `npm run clean:all`                 | `clean:dist`, `clean:coverage`, `clean:docs`, then `clean:modules`                                             | Yes, deletes those trees                           |
 | `npm run prettier:check`            | Check formatting                                                                                               | No                                                 |
 | `npm run prettier:write`            | Rewrite formatting                                                                                             | Yes, source and docs                               |
 | `npm run eslint:lint`               | Lint                                                                                                           | No                                                 |
@@ -93,7 +94,8 @@ Every `package.json` script name starts with the tool, then an action (`tsc:type
 | `npm run vitest:coverage`           | Tests plus a coverage report                                                                                   | Yes, `coverage/`                                   |
 | `npm run commitlint`                | Check a commit message                                                                                         | No                                                 |
 | `npm run lint-staged`               | Prettier and ESLint on staged files                                                                            | Yes, staged files                                  |
-| `npm run typedoc`                   | Generate API docs                                                                                              | Yes, `docs/`                                       |
+| `npm run typedoc:build`             | Generate API docs into `docs/`                                                                                 | Yes, `docs/`                                       |
+| `npm run docify:typedoc`            | `clean:docs`, then `typedoc:build` (regenerate GitHub Pages site)                                              | Yes, replaces `docs/`                              |
 | `npm run changeset:status`          | Show pending Changesets                                                                                        | No                                                 |
 | `npm run changeset:version`         | Apply Changesets to the version and changelog                                                                  | Yes, `package.json`, `CHANGELOG.md`, `.changeset/` |
 | `npm run husky:prepare`             | Install git hooks                                                                                              | Yes, `.husky/_` internals                          |
@@ -108,6 +110,8 @@ Every `package.json` script name starts with the tool, then an action (`tsc:type
 | `npm run setup:labels`              | Sync `.github/labels.json` with `gh`                                                                           | Yes, GitHub labels                                 |
 
 Do not run the `npm:*` scripts unless a maintainer asked you to publish or change trust. When Trusted Publishing is configured, it is bound to `.github/workflows/release.yml`.
+
+`docs/` is the TypeDoc site used for GitHub Pages. It is tracked. `clean:docs` and `docify:typedoc` rewrite that tree; after `clean:all`, run `npm run docify:typedoc` and commit `docs/` again before you push Pages content.
 
 Hooks and GitHub Actions call `npm run` only. CI runs `npm run check` and does not publish.
 

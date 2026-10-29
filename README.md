@@ -66,11 +66,12 @@ Do not change portable paths under `.devenv` or the community policy files under
 .husky/             Git hooks (Husky)
 .github/            Issues, PRs, workflows, labels, CONTRIBUTING
 configs/            ESLint, Prettier, Vitest, TypeDoc, tsconfig pieces
+docs/               TypeDoc GitHub Pages site (tracked)
 src/                Library source (`base/`, `types/`, package root)
 tests/              Consumer and unit tests
 ```
 
-TypeDoc writes to `docs/` (gitignored). Do not commit generated docs.
+`docs/` is the TypeDoc GitHub Pages site. Regenerate with `npm run docify:typedoc` and commit when the public API changes.
 
 ## Key scripts
 
@@ -80,7 +81,7 @@ TypeDoc writes to `docs/` (gitignored). Do not commit generated docs.
 | `npm run setup`            | `npm ci`, Husky, then `npm run check`                 |
 | `npm run setup:labels`     | Sync `.github/labels.json` with `gh`                  |
 | `npm run check`            | Typecheck, format, lint, layout, tests, build         |
-| `npm run typedoc`          | Generate API docs into `docs/`                        |
+| `npm run docify:typedoc`   | Regenerate the Pages site into `docs/`                |
 
 The full script table and post-clone order live in [CONTRIBUTING](.github/CONTRIBUTING.md).
 

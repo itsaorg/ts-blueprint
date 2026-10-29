@@ -28,9 +28,9 @@
 # 🔤 pwd: print the absolute path after cd
 HUSKY_DIR="$(CDPATH= cd -- "$(dirname "$0")" && pwd)"
 
-# 📥 source: load REPO_ROOT, PKG_*, and log_* helpers from common.sh
+# 📥 source: load REPO_ROOT, PKG_*, and log_* helpers from common
 # 🔤 .: POSIX synonym for `source` — run the file in the current shell
-. "$HUSKY_DIR/common.sh"
+. "$HUSKY_DIR/common"
 
 # 🏷️ print hook banner with dynamic package identity
 log_hook_banner "post-commit"

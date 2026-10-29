@@ -14,12 +14,12 @@
 # SPDX-License-Identifier: Apache-2.0
 # ==============================================================
 # =============================================================================
-# 🧰 .husky/common.sh — shared helpers for package-agnostic Git hooks
+# 🧰 .husky/common — shared helpers for package-agnostic Git hooks
 # =============================================================================
 # 📌 Purpose: resolve the repo root, read package.json identity dynamically,
 #    and provide emoji log helpers. Gates live in `npm run check` (`.devenv`).
 # ⚠️ Do NOT source .husky/_/husky.sh (deprecated in Husky v9+, fails in v10).
-# 📥 Usage: each hook sets HUSKY_DIR then runs `. "$HUSKY_DIR/common.sh"`.
+# 📥 Usage: each hook sets HUSKY_DIR then runs `. "$HUSKY_DIR/common"`.
 # =============================================================================
 
 # 🧪 if: run the then-branch only when HUSKY_DIR is empty / unset

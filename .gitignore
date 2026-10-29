@@ -94,9 +94,6 @@ coverage/
 # 📊 lib-cov: instrumented libraries from jscoverage or JSCover
 lib-cov
 
-# 📚 docs/: TypeDoc output (regenerated, not hand-edited)
-docs/
-
 # 🔐 .env: local environment file with secrets
 .env
 

@@ -15,7 +15,7 @@
  * ============================================================== */
 
 /**
- * npm script `tsc:build` — `dist:clean` then `tsc:emit`.
+ * npm script `tsc:build` — `clean:dist` then `tsc:emit`.
  *
  * @module tsc-build
  */
@@ -32,10 +32,10 @@ import {
 const { name, version } = readPackageIdentity();
 boxBanner(`▶️  tsc:build — ${name}@${version}`);
 
-logGo("dist:clean");
-let code = runNpmScript("dist:clean");
+logGo("clean:dist");
+let code = runNpmScript("clean:dist");
 if (code !== 0) {
-  logError("tsc:build failed at dist:clean");
+  logError("tsc:build failed at clean:dist");
   process.exitCode = code;
   process.exit(code);
 }
