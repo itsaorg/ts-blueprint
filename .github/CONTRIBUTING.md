@@ -109,7 +109,8 @@ Every `package.json` script name starts with the tool, then an action (`tsc:type
 | `npm run npm:deprecate:reservation` | Deprecate a name-reservation publish                                                                           | Yes, npm deprecation message                        |
 | `npm run setup`                     | `npm clean-install` (runs `prepare`), then `check`                                                             | Yes, `node_modules/` and `dist/`                    |
 | `npm run setup:post-clone`          | Git and Node checks, then `npm clean-install` (runs `prepare`)                                                 | Yes, `node_modules/` and local prepare side effects |
-| `npm run setup:labels`              | Sync `.github/labels.json` with `gh`                                                                           | Yes, GitHub labels                                  |
+| `npm run gh:label:sync`             | Sync `.github/labels.json` with `gh`                                                                           | Yes, GitHub labels                                  |
+| `npm run gh:setup`                  | Ensure `gh` auth, then sync labels                                                                             | Yes, GitHub labels when authenticated               |
 
 Do not run the `npm:*` scripts unless a maintainer asked you to publish or change trust. When Trusted Publishing is configured, it is bound to `.github/workflows/release.yml`.
 
@@ -129,7 +130,7 @@ Every development script is ESM (`.mjs`). Git hooks stay in `.husky`. Call packa
 .devenv/setup/               setup, post-clone, and label sync entry points
 ```
 
-`tools/` holds runtimes a machine needs. `deps/` holds repo commands such as tsc and prettier. `setup/` orchestrates both. Under `tools/gh/`, scripts sit in short command folders (`auth/`, `issue/`, `label/`, `pr/`). Install probes are named `isInstalled.mjs`.
+`tools/` holds runtimes a machine needs. `deps/` holds repo commands such as tsc and prettier. Scripts under `.devenv/tools/**` export functions for import and also run as CLIs. `setup/` only orchestrates multi-tool flows (prepare, post-clone, setup), not single-tool shims. Under `tools/gh/`, use `auth/` (mirrors `gh auth` subcommands), `label/`, `issue/`, `pr/`, plus `setup.mjs` and `isInstalled.mjs`.
 
 ## 🐶 Prepare lifecycle
 
@@ -142,10 +143,8 @@ Order:
 1. `husky:prepare` — install hooks under `.husky/`
 2. `.devenv/tools/git/isInstalled.mjs` — fail if `git` is missing
 3. `.devenv/tools/git/configure.mjs` — set local `commit.template` to `.github/COMMIT_TEMPLATE/commit.txt`
-4. `.devenv/tools/gh/isInstalled.mjs` — if missing, skip gh auth and labels
-5. `.devenv/tools/gh/auth/setup.mjs` — skip in CI; login on a TTY when logged out
-6. `.devenv/tools/npm/auth/setup.mjs` — skip in CI; `npm login` on a TTY when logged out (not `npm:trust`)
-7. If `gh` is authenticated and not CI, sync `.github/labels.json`
+4. `.devenv/tools/gh/setup.mjs` — ensure `gh` is installed and authenticated, then sync labels (skips auth/labels in CI as needed)
+5. `.devenv/tools/npm/auth/setup.mjs` — skip in CI; `npm login` on a TTY when logged out (not `npm:trust`)
 
 Idempotent. Does not run `npm clean-install`, `check`, or Trusted Publishing.
 

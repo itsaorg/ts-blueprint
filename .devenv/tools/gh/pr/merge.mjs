@@ -59,7 +59,7 @@ boxBanner("🔀 merge pull request");
 try {
   run("gh auth status", { inherit: false });
 } catch {
-  logError("gh is not authenticated. Run: node .devenv/tools/gh/auth/setup.mjs");
+  logError("gh is not authenticated. Run: node .devenv/tools/gh/auth/login.mjs");
   process.exit(1);
 }
 

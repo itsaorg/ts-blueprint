@@ -3,7 +3,7 @@
 /** ==============================================================
  * 🐙 GitHub CLI check
  * ---------------------------------------------------------------
- * Logs whether the gh command is on PATH.
+ * Reports whether the gh command is on PATH.
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/isInstalled.mjs
@@ -17,17 +17,40 @@
 /**
  * Verifies that the GitHub CLI is installed.
  *
- * @module gh-check
+ * @module gh-is-installed
  */
 
-import { boxBanner, boxDone, logError, logOk, run } from "../../lib/tool-lib.mjs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { boxBanner, boxDone, logError, logGo, logOk, run } from "../../lib/tool-lib.mjs";
 
-boxBanner("🐙 gh check");
-try {
-  const version = run("gh --version", { inherit: false }).split(/\r?\n/)[0];
-  logOk(version);
+/**
+ * @typedef {{ ok: true, version: string } | { ok: false }} GhInstalledResult
+ */
+
+/**
+ * Checks whether `gh` is on PATH.
+ *
+ * @returns {GhInstalledResult} Version when installed.
+ */
+export function isGhInstalled() {
+  logGo("gh --version");
+  try {
+    const version = run("gh --version", { inherit: false }).split(/\r?\n/)[0];
+    logOk(version);
+    return { ok: true, version };
+  } catch {
+    logError("gh is not installed");
+    return { ok: false };
+  }
+}
+
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+  boxBanner("🐙 gh check");
+  const result = isGhInstalled();
+  if (!result.ok) {
+    process.exit(1);
+  }
   boxDone("gh check");
-} catch {
-  logError("gh is not installed");
-  process.exit(1);
 }

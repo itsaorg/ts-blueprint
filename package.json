@@ -75,7 +75,8 @@
     "npm:release": "node .devenv/tools/npm/release.mjs",
     "setup": "node .devenv/setup/setup.mjs",
     "setup:post-clone": "node .devenv/setup/post-clone.mjs",
-    "setup:labels": "node .devenv/setup/github-labels.mjs"
+    "gh:setup": "node .devenv/tools/gh/setup.mjs",
+    "gh:label:sync": "node .devenv/tools/gh/label/sync.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",

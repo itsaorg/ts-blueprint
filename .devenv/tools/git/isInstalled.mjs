@@ -3,7 +3,7 @@
 /** ==============================================================
  * 🔧 Git check
  * ---------------------------------------------------------------
- * Prints the installed Git version. Exits 1 when git is missing.
+ * Reports whether git is on PATH.
  *
  * HOW TO RUN:
  *   node .devenv/tools/git/isInstalled.mjs
@@ -17,16 +17,40 @@
 /**
  * Verifies that git is on PATH.
  *
- * @module git-check
+ * @module git-is-installed
  */
 
-import { boxBanner, boxDone, logError, logOk, run } from "../../lib/tool-lib.mjs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { boxBanner, boxDone, logError, logGo, logOk, run } from "../../lib/tool-lib.mjs";
 
-boxBanner("🔧 git check");
-try {
-  logOk(run("git --version", { inherit: false }));
+/**
+ * @typedef {{ ok: true, version: string } | { ok: false }} GitInstalledResult
+ */
+
+/**
+ * Checks whether `git` is on PATH.
+ *
+ * @returns {GitInstalledResult} Version when installed.
+ */
+export function isGitInstalled() {
+  logGo("git --version");
+  try {
+    const version = run("git --version", { inherit: false });
+    logOk(version);
+    return { ok: true, version };
+  } catch {
+    logError("git is not installed");
+    return { ok: false };
+  }
+}
+
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+  boxBanner("🔧 git check");
+  const result = isGitInstalled();
+  if (!result.ok) {
+    process.exit(1);
+  }
   boxDone("git check");
-} catch {
-  logError("git is not installed");
-  process.exit(1);
 }

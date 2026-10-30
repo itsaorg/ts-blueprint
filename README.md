@@ -55,7 +55,7 @@ Replace blueprint identity with your package before you publish or open Trusted 
 | `src/**` file banners and examples  | Package import name                                               |
 | `tests/consumer/public-api.test.ts` | Deep-import probe package name                                    |
 | npm Trusted Publishing              | `npm run npm:trust` after the GitHub repo and `release.yml` exist |
-| Labels                              | `npm run setup:labels` when `gh` is authenticated                 |
+| Labels                              | `npm run gh:label:sync` when `gh` is authenticated                |
 
 Do not change portable paths under `.devenv` or the community policy files under `.github/` unless you mean to fork the toolchain.
 
@@ -79,7 +79,8 @@ tests/              Consumer and unit tests
 | -------------------------- | ---------------------------------------------------------- |
 | `npm run setup:post-clone` | Git/Node checks, then `npm clean-install` (runs `prepare`) |
 | `npm run setup`            | `npm clean-install` (runs `prepare`), then `npm run check` |
-| `npm run setup:labels`     | Sync `.github/labels.json` with `gh`                       |
+| `npm run gh:label:sync`    | Sync `.github/labels.json` with `gh`                       |
+| `npm run gh:setup`         | Ensure `gh` auth, then sync labels                         |
 | `npm run check`            | Typecheck, format, lint, layout, tests, build              |
 | `npm run docify:typedoc`   | Regenerate the Pages site into `docs/`                     |
 

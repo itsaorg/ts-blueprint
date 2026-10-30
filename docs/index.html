@@ -83,7 +83,7 @@
 </tr>
 <tr>
 <td>Labels</td>
-<td><code>npm run setup:labels</code> when <code>gh</code> is authenticated</td>
+<td><code>npm run gh:label:sync</code> when <code>gh</code> is authenticated</td>
 </tr>
 </tbody>
 </table>
@@ -117,8 +117,12 @@ tests/              Consumer and unit tests
 <td><code>npm clean-install</code> (runs <code>prepare</code>), then <code>npm run check</code></td>
 </tr>
 <tr>
-<td><code>npm run setup:labels</code></td>
+<td><code>npm run gh:label:sync</code></td>
 <td>Sync <code>.github/labels.json</code> with <code>gh</code></td>
+</tr>
+<tr>
+<td><code>npm run gh:setup</code></td>
+<td>Ensure <code>gh</code> auth, then sync labels</td>
 </tr>
 <tr>
 <td><code>npm run check</code></td>
