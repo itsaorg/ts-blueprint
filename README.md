@@ -32,7 +32,7 @@ On Windows, use Git Bash. Install Node from [nodejs.org](https://nodejs.org/), n
 ```bash
 git clone <your-repo-HTTPS-URL>
 cd <your-repo-directory>
-npm ci
+npm clean-install
 ```
 
 For a first-time machine check plus optional GitHub label sync:
@@ -41,7 +41,7 @@ For a first-time machine check plus optional GitHub label sync:
 npm run setup:post-clone
 ```
 
-`npm ci` runs `prepare`, which runs `husky:prepare` and turns on git hooks. Prefer `npm ci` for a clean checkout. Use `npm install` only when refreshing the lockfile.
+`npm clean-install` runs `prepare` (Husky, commit template, gh/npm auth when possible, label sync). Prefer `npm clean-install` for a clean checkout (long form of the old `npm ci` alias). Use `npm install` only when refreshing the lockfile.
 
 ## Rename checklist
 
@@ -75,19 +75,20 @@ tests/              Consumer and unit tests
 
 ## Key scripts
 
-| Script                     | Purpose                                               |
-| -------------------------- | ----------------------------------------------------- |
-| `npm run setup:post-clone` | Git/Node checks, `npm ci`, Husky, optional label sync |
-| `npm run setup`            | `npm ci`, Husky, then `npm run check`                 |
-| `npm run setup:labels`     | Sync `.github/labels.json` with `gh`                  |
-| `npm run check`            | Typecheck, format, lint, layout, tests, build         |
-| `npm run docify:typedoc`   | Regenerate the Pages site into `docs/`                |
+| Script                     | Purpose                                                    |
+| -------------------------- | ---------------------------------------------------------- |
+| `npm run setup:post-clone` | Git/Node checks, then `npm clean-install` (runs `prepare`) |
+| `npm run setup`            | `npm clean-install` (runs `prepare`), then `npm run check` |
+| `npm run setup:labels`     | Sync `.github/labels.json` with `gh`                       |
+| `npm run check`            | Typecheck, format, lint, layout, tests, build              |
+| `npm run docify:typedoc`   | Regenerate the Pages site into `docs/`                     |
 
-The full script table and post-clone order live in [CONTRIBUTING](.github/CONTRIBUTING.md).
+The full script table and prepare/post-clone order live in [CONTRIBUTING](.github/CONTRIBUTING.md). Tutorials are in [HOW-TO](.github/HOW-TO.md).
 
 ## Links
 
 - [Contributing](.github/CONTRIBUTING.md)
+- [How-to FAQ](.github/HOW-TO.md)
 - [Code of Conduct](.github/CODE_OF_CONDUCT.md)
 - [Security](.github/SECURITY.md)
 - [License](LICENSE)

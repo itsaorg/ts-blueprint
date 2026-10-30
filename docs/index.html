@@ -39,14 +39,14 @@
 <li>Choose owner, name, and visibility. Create the repository.</li>
 <li>Clone your new repository and install:</li>
 </ol>
-<pre><code class="bash"><span class="hl-0">git</span><span class="hl-1"> </span><span class="hl-2">clone</span><span class="hl-1"> &lt;</span><span class="hl-2">your-repo-HTTPS-UR</span><span class="hl-1">L&gt;</span><br/><span class="hl-0">cd</span><span class="hl-1"> &lt;</span><span class="hl-2">your-repo-director</span><span class="hl-1">y&gt;</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">ci</span>
+<pre><code class="bash"><span class="hl-0">git</span><span class="hl-1"> </span><span class="hl-2">clone</span><span class="hl-1"> &lt;</span><span class="hl-2">your-repo-HTTPS-UR</span><span class="hl-1">L&gt;</span><br/><span class="hl-0">cd</span><span class="hl-1"> &lt;</span><span class="hl-2">your-repo-director</span><span class="hl-1">y&gt;</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">clean-install</span>
 </code><button type="button">Copy</button></pre>
 
 <p>For a first-time machine check plus optional GitHub label sync:</p>
 <pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">setup:post-clone</span>
 </code><button type="button">Copy</button></pre>
 
-<p><code>npm ci</code> runs <code>prepare</code>, which runs <code>husky:prepare</code> and turns on git hooks. Prefer <code>npm ci</code> for a clean checkout. Use <code>npm install</code> only when refreshing the lockfile.</p>
+<p><code>npm clean-install</code> runs <code>prepare</code> (Husky, commit template, gh/npm auth when possible, label sync). Prefer <code>npm clean-install</code> for a clean checkout (long form of the old <code>npm ci</code> alias). Use <code>npm install</code> only when refreshing the lockfile.</p>
 <h2 id="rename-checklist" class="tsd-anchor-link">Rename checklist<a href="#rename-checklist" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>Replace blueprint identity with your package before you publish or open Trusted Publishing:</p>
 <table>
@@ -110,11 +110,11 @@ tests/              Consumer and unit tests
 <tbody>
 <tr>
 <td><code>npm run setup:post-clone</code></td>
-<td>Git/Node checks, <code>npm ci</code>, Husky, optional label sync</td>
+<td>Git/Node checks, then <code>npm clean-install</code> (runs <code>prepare</code>)</td>
 </tr>
 <tr>
 <td><code>npm run setup</code></td>
-<td><code>npm ci</code>, Husky, then <code>npm run check</code></td>
+<td><code>npm clean-install</code> (runs <code>prepare</code>), then <code>npm run check</code></td>
 </tr>
 <tr>
 <td><code>npm run setup:labels</code></td>
@@ -130,10 +130,11 @@ tests/              Consumer and unit tests
 </tr>
 </tbody>
 </table>
-<p>The full script table and post-clone order live in <a href="media/CONTRIBUTING.md">CONTRIBUTING</a>.</p>
+<p>The full script table and prepare/post-clone order live in <a href="media/CONTRIBUTING.md">CONTRIBUTING</a>. Tutorials are in <a href="media/HOW-TO.md">HOW-TO</a>.</p>
 <h2 id="links" class="tsd-anchor-link">Links<a href="#links" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <ul>
 <li><a href="media/CONTRIBUTING.md">Contributing</a></li>
+<li><a href="media/HOW-TO.md">How-to FAQ</a></li>
 <li><a href="media/CODE_OF_CONDUCT.md">Code of Conduct</a></li>
 <li><a href="media/SECURITY.md">Security</a></li>
 <li><a href="media/LICENSE">License</a></li>

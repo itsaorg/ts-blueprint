@@ -3,8 +3,7 @@
 /** ==============================================================
  * 🚀 Development setup
  * ---------------------------------------------------------------
- * Installs dependencies, installs Husky hooks, then runs check.
- * Does not delete node_modules and does not run git config.
+ * Runs npm clean-install (triggers prepare), then the CI gate.
  *
  * HOW TO RUN:
  *   npm run setup
@@ -16,7 +15,7 @@
  * ============================================================== */
 
 /**
- * Prepares a working tree with npm ci, Husky, and the CI gate.
+ * Prepares a working tree with npm clean-install and the CI gate.
  *
  * @module setup-run
  */
@@ -30,21 +29,15 @@ import { boxBanner, boxDone, logError, logGo, run, runNpmScript } from "../lib/t
  */
 export function runSetup() {
   boxBanner("🚀 setup");
-  logGo("npm ci");
+  logGo("npm clean-install");
   try {
-    run("npm ci");
+    run("npm clean-install");
   } catch {
-    logError("npm ci failed");
+    logError("npm clean-install failed");
     return 1;
   }
-  logGo("husky:prepare");
-  let code = runNpmScript("husky:prepare");
-  if (code !== 0) {
-    logError("husky:prepare failed");
-    return code;
-  }
   logGo("check");
-  code = runNpmScript("check");
+  const code = runNpmScript("check");
   if (code !== 0) {
     logError("check failed");
     return code;

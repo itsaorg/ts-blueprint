@@ -3,8 +3,8 @@
 /** ==============================================================
  * 🔄 Post-clone steps
  * ---------------------------------------------------------------
- * Checks git and Node, runs npm ci and husky:prepare, then optionally
- * checks gh and syncs labels. Does not run git config.
+ * Checks git and Node, then runs npm clean-install (which runs
+ * prepare: husky, git configure, gh/npm auth, labels).
  *
  * HOW TO RUN:
  *   npm run setup:post-clone
@@ -16,7 +16,7 @@
  * ============================================================== */
 
 /**
- * Prepares a clone without changing git config.
+ * Prepares a clone via probes then npm clean-install.
  *
  * @module post-clone-run
  */
@@ -24,17 +24,7 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  boxBanner,
-  boxDone,
-  logError,
-  logGo,
-  logSkip,
-  repoRoot,
-  run,
-  runNpmScript,
-} from "../lib/tool-lib.mjs";
-import { processLabels } from "../tools/gh/label/process-many.mjs";
+import { boxBanner, boxDone, logError, logGo, repoRoot, run } from "../lib/tool-lib.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -64,35 +54,12 @@ export function runPostClone() {
     logError("node check failed");
     return 1;
   }
-  logGo("npm ci");
+  logGo("npm clean-install");
   try {
-    run("npm ci");
+    run("npm clean-install");
   } catch {
-    logError("npm ci failed");
+    logError("npm clean-install failed");
     return 1;
-  }
-  logGo("husky:prepare");
-  const hooks = runNpmScript("husky:prepare");
-  if (hooks !== 0) {
-    logError("husky:prepare failed");
-    return hooks;
-  }
-  logGo("gh check");
-  if (runScript(path.join(repoRoot, ".devenv/tools/gh/isInstalled.mjs")) !== 0) {
-    logSkip("gh check skipped.");
-  } else if (process.env.CI || process.env.GITHUB_ACTIONS) {
-    logSkip("CI. Skipping gh auth and label sync.");
-  } else {
-    try {
-      run("gh auth status", { inherit: false });
-      logGo("sync labels");
-      const summary = processLabels(".github/labels.json");
-      if (summary.failed > 0) {
-        logSkip("Some labels failed. Continuing.");
-      }
-    } catch {
-      logSkip("gh is not authenticated. Skipping label sync.");
-    }
   }
   boxDone("post-clone");
   return 0;

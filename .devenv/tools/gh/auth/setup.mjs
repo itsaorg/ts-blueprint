@@ -48,8 +48,8 @@ try {
 }
 
 if (!isInteractive()) {
-  logError("Refusing gh auth login without a TTY.");
-  process.exit(1);
+  logSkip("No TTY. Skipping gh auth login.");
+  process.exit(0);
 }
 
 try {

@@ -30,7 +30,7 @@ jobs:
     steps:
       # ⬇️ checkout: clone this repo into the runner workspace
       - uses: actions/checkout@v7
-      # 🧰 setup: Node from .nvmrc + npm ci
+      # 🧰 setup: Node from .nvmrc + npm clean-install
       - uses: ./.github/actions/setup
       # ✅ check: full CI gate via package.scripts → .devenv
       - run: npm run check

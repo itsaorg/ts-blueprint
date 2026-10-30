@@ -37,7 +37,7 @@ jobs:
     steps:
       # ⬇️ checkout: clone at the pushed tag
       - uses: actions/checkout@v7
-      # 🧰 setup: Node from .nvmrc + npm ci
+      # 🧰 setup: Node from .nvmrc + npm clean-install
       - uses: ./.github/actions/setup
       # ✅ check: full CI gate
       - run: npm run check

@@ -1,8 +1,8 @@
 # =============================================================================
-# 🧰 Setup — composite action: Node + npm ci
+# 🧰 Setup — composite action: Node + npm clean-install
 # =============================================================================
 # 📌 Purpose: shared install step for ci.yml and release.yml so both workflows
-#    use the same Node version (.nvmrc) and a clean `npm ci` lockfile install.
+#    use the same Node version (.nvmrc) and a clean `npm clean-install` lockfile install.
 # ▶️ Example: `uses: ./.github/actions/setup` in a job step.
 # =============================================================================
 
@@ -16,7 +16,7 @@ description: Install Node from .nvmrc and install dependencies
 runs:
   # 🧩 using: composite — multiple steps defined below (not docker/node)
   using: composite
-  # 📋 steps: install Node, then npm ci
+  # 📋 steps: install Node, then npm clean-install
   steps:
     # 🟢 setup-node: official action to install Node.js
     - uses: actions/setup-node@v4
@@ -26,7 +26,7 @@ runs:
         node-version-file: .nvmrc
         # 💾 cache: enable npm dependency caching keyed by lockfile
         cache: npm
-    # 📦 npm ci: clean install from package-lock.json (fails if out of sync)
-    - run: npm ci
+    # 📦 npm clean-install: clean install from package-lock.json (fails if out of sync)
+    - run: npm clean-install
       # 🐚 shell: required for composite run steps
       shell: bash

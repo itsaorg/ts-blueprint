@@ -7,7 +7,7 @@
 # ▶️ Example: `npm run tsc:build` writes dist/, and `git status` does not list it.
 # =============================================================================
 
-# 📦 node_modules/: npm install tree (recreated by npm ci)
+# 📦 node_modules/: npm install tree (recreated by npm clean-install)
 node_modules/
 
 # 📦 jspm_packages/: jspm dependency directory

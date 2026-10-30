@@ -38,7 +38,7 @@
     }
   },
   "scripts": {
-    "prepare": "npm run husky:prepare",
+    "prepare": "node .devenv/setup/prepare-run.mjs",
     "husky:prepare": "node .devenv/deps/husky/prepare.mjs",
     "tsc:typecheck": "node .devenv/deps/tsc/typecheck.mjs",
     "tsc:emit": "node .devenv/deps/tsc/emit.mjs",

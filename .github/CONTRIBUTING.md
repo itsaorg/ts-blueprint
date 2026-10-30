@@ -9,6 +9,7 @@
   - [🌿 Start a branch](#-start-a-branch)
   - [🧪 Scripts](#-scripts)
   - [📁 `.devenv` layout](#-devenv-layout)
+  - [🐶 Prepare lifecycle](#-prepare-lifecycle)
   - [🔄 Post-clone](#-post-clone)
   - [💬 Commit messages](#-commit-messages)
   - [🪝 Husky hooks](#-husky-hooks)
@@ -16,8 +17,9 @@
   - [🏷️ Labels](#️-labels)
   - [🔀 Open a pull request](#-open-a-pull-request)
   - [✅ Required check](#-required-check)
+  - [📘 How-to FAQ](#-how-to-faq)
 
-Follow the steps in order the first time. Later changes can start at [Start a branch](#-start-a-branch).
+Follow the steps in order the first time. Later changes can start at [Start a branch](#-start-a-branch). Step-by-step tutorials live in [HOW-TO.md](HOW-TO.md).
 
 ## 🧰 Prerequisites
 
@@ -41,10 +43,10 @@ cd <repository directory>
 ```
 
 ```bash
-npm ci
+npm clean-install
 ```
 
-`npm ci` installs the exact lockfile and runs `prepare`, which runs `husky:prepare` and turns on the git hooks. Do not use `npm install` for a clean checkout unless a maintainer asked you to refresh the lockfile.
+`npm clean-install` installs the exact lockfile (same as the old `npm ci` alias; this repo uses the long name). It runs `prepare` (Husky, local commit template, gh/npm auth when possible, label sync). Do not use `npm install` for a clean checkout unless a maintainer asked you to refresh the lockfile.
 
 ## 🌿 Start a branch
 
@@ -64,7 +66,7 @@ git pull origin develop
 git flow feature start <number>-<slug>
 ```
 
-Replace `<number>` with the issue number and `<slug>` with a few words, for example `git flow feature start 12-page-address`.
+Replace `<number>` with the issue number and `<slug>` with a few words, for example `git flow feature start 12-page-address`. Finish topic branches with a pull request — see [HOW-TO.md](HOW-TO.md).
 
 Put product types under `src/`. Do not add a root `types/` directory. The published entry is `dist/`.
 
@@ -72,42 +74,42 @@ Put product types under `src/`. Do not add a root `types/` directory. The publis
 
 Every `package.json` script name starts with the tool, then an action (`tsc:typecheck`, `vitest:run`). Repo command scripts run `node .devenv/deps/<tool>/<action>.mjs`. Machine runtime scripts live under `.devenv/tools/`. Clean scripts run `node .devenv/utils/clean.mjs`. Call them with `npm run`. Do not call `tsc`, `eslint`, or `vitest` directly. Every code file starts with the boxed banner: emoji title, what the file does, how to run or load it, and the Apache-2.0 copyright.
 
-| Script                              | What it does                                                                                                   | Writes files?                                      |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| `npm run check`                     | CI gate, in order: `tsc:typecheck`, `prettier:check`, `eslint:lint`, `layout:check`, `vitest:run`, `tsc:build` | Yes. The last step rebuilds `dist/`                |
-| `npm run tsc:typecheck`             | Typecheck only (`tsc --noEmit`)                                                                                | No                                                 |
-| `npm run tsc:emit`                  | Emit JavaScript and declarations into `dist/`                                                                  | Yes, `dist/`                                       |
-| `npm run tsc:build`                 | `clean:dist`, then `tsc:emit`                                                                                  | Yes, replaces `dist/`                              |
-| `npm run clean:dist`                | Delete `dist/` through `.devenv/utils/clean.mjs`                                                               | Yes, deletes `dist/`                               |
-| `npm run clean:coverage`            | Delete `coverage/` through `.devenv/utils/clean.mjs`                                                           | Yes, deletes `coverage/`                           |
-| `npm run clean:docs`                | Delete tracked `docs/` through `.devenv/utils/clean.mjs`                                                       | Yes, deletes `docs/`                               |
-| `npm run clean:modules`             | Delete `node_modules/` through `.devenv/utils/clean.mjs`                                                       | Yes, deletes `node_modules/`                       |
-| `npm run clean:all`                 | `clean:dist`, `clean:coverage`, `clean:docs`, then `clean:modules`                                             | Yes, deletes those trees                           |
-| `npm run prettier:check`            | Check formatting                                                                                               | No                                                 |
-| `npm run prettier:write`            | Rewrite formatting                                                                                             | Yes, source and docs                               |
-| `npm run eslint:lint`               | Lint                                                                                                           | No                                                 |
-| `npm run eslint:fix`                | Lint and autofix                                                                                               | Yes, source                                        |
-| `npm run layout:check`              | One principal export per source file                                                                           | No                                                 |
-| `npm run vitest:run`                | Tests once                                                                                                     | No                                                 |
-| `npm run vitest:verbose`            | Tests once, verbose reporter                                                                                   | No                                                 |
-| `npm run vitest`                    | Vitest in watch mode                                                                                           | No, until you quit the watcher                     |
-| `npm run vitest:coverage`           | Tests plus a coverage report                                                                                   | Yes, `coverage/`                                   |
-| `npm run commitlint`                | Check a commit message                                                                                         | No                                                 |
-| `npm run lint-staged`               | Prettier and ESLint on staged files                                                                            | Yes, staged files                                  |
-| `npm run typedoc:build`             | Generate API docs into `docs/`                                                                                 | Yes, `docs/`                                       |
-| `npm run docify:typedoc`            | `clean:docs`, then `typedoc:build` (regenerate GitHub Pages site)                                              | Yes, replaces `docs/`                              |
-| `npm run changeset:status`          | Show pending Changesets                                                                                        | No                                                 |
-| `npm run changeset:version`         | Apply Changesets to the version and changelog                                                                  | Yes, `package.json`, `CHANGELOG.md`, `.changeset/` |
-| `npm run husky:prepare`             | Install git hooks                                                                                              | Yes, `.husky/_` internals                          |
-| `npm run prepare`                   | npm lifecycle alias for `husky:prepare`                                                                        | Same as `husky:prepare`                            |
-| `npm run npm:publish:local`         | Interactive npm name reservation                                                                               | Yes, publishes to npm                              |
-| `npm run npm:publish:worker`        | Publish from CI with provenance                                                                                | Yes, publishes to npm                              |
-| `npm run npm:release`               | `tsc:build`, then `npm:publish:worker`                                                                         | Yes, `dist/` and npm                               |
-| `npm run npm:trust`                 | Link Trusted Publishing                                                                                        | Yes, npm trust settings                            |
-| `npm run npm:deprecate:reservation` | Deprecate a name-reservation publish                                                                           | Yes, npm deprecation message                       |
-| `npm run setup`                     | `npm ci`, Husky hooks, then `check`                                                                            | Yes, `node_modules/` and `dist/`                   |
-| `npm run setup:post-clone`          | Git and Node checks, then the same steps as `setup`, plus an optional label sync                               | Yes, `node_modules/` and `dist/`                   |
-| `npm run setup:labels`              | Sync `.github/labels.json` with `gh`                                                                           | Yes, GitHub labels                                 |
+| Script                              | What it does                                                                                                   | Writes files?                                       |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| `npm run check`                     | CI gate, in order: `tsc:typecheck`, `prettier:check`, `eslint:lint`, `layout:check`, `vitest:run`, `tsc:build` | Yes. The last step rebuilds `dist/`                 |
+| `npm run tsc:typecheck`             | Typecheck only (`tsc --noEmit`)                                                                                | No                                                  |
+| `npm run tsc:emit`                  | Emit JavaScript and declarations into `dist/`                                                                  | Yes, `dist/`                                        |
+| `npm run tsc:build`                 | `clean:dist`, then `tsc:emit`                                                                                  | Yes, replaces `dist/`                               |
+| `npm run clean:dist`                | Delete `dist/` through `.devenv/utils/clean.mjs`                                                               | Yes, deletes `dist/`                                |
+| `npm run clean:coverage`            | Delete `coverage/` through `.devenv/utils/clean.mjs`                                                           | Yes, deletes `coverage/`                            |
+| `npm run clean:docs`                | Delete tracked `docs/` through `.devenv/utils/clean.mjs`                                                       | Yes, deletes `docs/`                                |
+| `npm run clean:modules`             | Delete `node_modules/` through `.devenv/utils/clean.mjs`                                                       | Yes, deletes `node_modules/`                        |
+| `npm run clean:all`                 | `clean:dist`, `clean:coverage`, `clean:docs`, then `clean:modules`                                             | Yes, deletes those trees                            |
+| `npm run prettier:check`            | Check formatting                                                                                               | No                                                  |
+| `npm run prettier:write`            | Rewrite formatting                                                                                             | Yes, source and docs                                |
+| `npm run eslint:lint`               | Lint                                                                                                           | No                                                  |
+| `npm run eslint:fix`                | Lint and autofix                                                                                               | Yes, source                                         |
+| `npm run layout:check`              | One principal export per source file                                                                           | No                                                  |
+| `npm run vitest:run`                | Tests once                                                                                                     | No                                                  |
+| `npm run vitest:verbose`            | Tests once, verbose reporter                                                                                   | No                                                  |
+| `npm run vitest`                    | Vitest in watch mode                                                                                           | No, until you quit the watcher                      |
+| `npm run vitest:coverage`           | Tests plus a coverage report                                                                                   | Yes, `coverage/`                                    |
+| `npm run commitlint`                | Check a commit message                                                                                         | No                                                  |
+| `npm run lint-staged`               | Prettier and ESLint on staged files                                                                            | Yes, staged files                                   |
+| `npm run typedoc:build`             | Generate API docs into `docs/`                                                                                 | Yes, `docs/`                                        |
+| `npm run docify:typedoc`            | `clean:docs`, then `typedoc:build` (regenerate GitHub Pages site)                                              | Yes, replaces `docs/`                               |
+| `npm run changeset:status`          | Show pending Changesets                                                                                        | No                                                  |
+| `npm run changeset:version`         | Apply Changesets to the version and changelog                                                                  | Yes, `package.json`, `CHANGELOG.md`, `.changeset/`  |
+| `npm run husky:prepare`             | Install git hooks                                                                                              | Yes, `.husky/_` internals                           |
+| `npm run prepare`                   | Husky, git commit.template, gh/npm auth, optional label sync                                                   | Yes, hooks, local git config, labels when allowed   |
+| `npm run npm:publish:local`         | Interactive npm name reservation                                                                               | Yes, publishes to npm                               |
+| `npm run npm:publish:worker`        | Publish from CI with provenance                                                                                | Yes, publishes to npm                               |
+| `npm run npm:release`               | `tsc:build`, then `npm:publish:worker`                                                                         | Yes, `dist/` and npm                                |
+| `npm run npm:trust`                 | Link Trusted Publishing                                                                                        | Yes, npm trust settings                             |
+| `npm run npm:deprecate:reservation` | Deprecate a name-reservation publish                                                                           | Yes, npm deprecation message                        |
+| `npm run setup`                     | `npm clean-install` (runs `prepare`), then `check`                                                             | Yes, `node_modules/` and `dist/`                    |
+| `npm run setup:post-clone`          | Git and Node checks, then `npm clean-install` (runs `prepare`)                                                 | Yes, `node_modules/` and local prepare side effects |
+| `npm run setup:labels`              | Sync `.github/labels.json` with `gh`                                                                           | Yes, GitHub labels                                  |
 
 Do not run the `npm:*` scripts unless a maintainer asked you to publish or change trust. When Trusted Publishing is configured, it is bound to `.github/workflows/release.yml`.
 
@@ -129,6 +131,24 @@ Every development script is ESM (`.mjs`). Git hooks stay in `.husky`. Call packa
 
 `tools/` holds runtimes a machine needs. `deps/` holds repo commands such as tsc and prettier. `setup/` orchestrates both. Under `tools/gh/`, scripts sit in short command folders (`auth/`, `issue/`, `label/`, `pr/`). Install probes are named `isInstalled.mjs`.
 
+## 🐶 Prepare lifecycle
+
+**Entry point:** `npm run prepare` (also runs automatically after `npm clean-install` / `npm install`)
+
+**Implementation:** `.devenv/setup/prepare-run.mjs`
+
+Order:
+
+1. `husky:prepare` — install hooks under `.husky/`
+2. `.devenv/tools/git/isInstalled.mjs` — fail if `git` is missing
+3. `.devenv/tools/git/configure.mjs` — set local `commit.template` to `.github/COMMIT_TEMPLATE/commit.txt`
+4. `.devenv/tools/gh/isInstalled.mjs` — if missing, skip gh auth and labels
+5. `.devenv/tools/gh/auth/setup.mjs` — skip in CI; login on a TTY when logged out
+6. `.devenv/tools/npm/auth/setup.mjs` — skip in CI; `npm login` on a TTY when logged out (not `npm:trust`)
+7. If `gh` is authenticated and not CI, sync `.github/labels.json`
+
+Idempotent. Does not run `npm clean-install`, `check`, or Trusted Publishing.
+
 ## 🔄 Post-clone
 
 **Entry point:** `npm run setup:post-clone`
@@ -139,13 +159,7 @@ Order:
 
 1. `.devenv/tools/git/isInstalled.mjs` — fail if `git` is missing
 2. `.devenv/tools/node/isInstalled.mjs` — fail if `node` or `npm` is missing
-3. `npm ci`
-4. `npm run husky:prepare`
-5. `.devenv/tools/gh/isInstalled.mjs` — skip the rest of this list if `gh` is missing
-6. Skip `gh` auth and label sync when `CI` or `GITHUB_ACTIONS` is set
-7. If `gh auth status` succeeds, sync `.github/labels.json` through `.devenv/tools/gh/label/process-many.mjs`
-
-This sequence does not run `git config`. Hooks are installed by `husky:prepare` into `.husky`.
+3. `npm clean-install` — runs `prepare` (Husky, commit template, auth, labels)
 
 ## 💬 Commit messages
 
@@ -165,21 +179,17 @@ Rules that reject a commit:
 - The subject must match `type(scope): subject` or `type: subject`.
 - Each **body** line must be **100 characters or fewer**. Wrap the body yourself. Commitlint does not wrap it for you.
 
-Point your local Git at the template once per clone:
+`prepare` sets local `commit.template` to `.github/COMMIT_TEMPLATE/commit.txt`. Confirm with:
 
 ```bash
-git config commit.template .github/COMMIT_TEMPLATE/commit.txt
+git config --local --get commit.template
 ```
 
-```bash
-git config --get commit.template
-```
-
-The second command should print `.github/COMMIT_TEMPLATE/commit.txt`. Lines in that file that start with `#` are comments. Git removes them when you save the message.
+The command should print `.github/COMMIT_TEMPLATE/commit.txt`. Lines in that file that start with `#` are comments. Git removes them when you save the message.
 
 ## 🪝 Husky hooks
 
-Hooks install through `npm ci` or `npm run prepare`. They only call `npm run`.
+Hooks install through `prepare` (via `npm clean-install` or `npm run prepare`). They only call `npm run`.
 
 | Hook          | What it runs                                      |
 | ------------- | ------------------------------------------------- |
@@ -236,7 +246,7 @@ Push your `feature/` branch and open a pull request into `develop`. GitHub fills
 3. **Test plan.** Commands you ran. Code changes should include `npm run check`.
 4. **Checklist.** Conventional Commits, public contract notes, and docs.
 
-Wait for the `ci` workflow. It runs `npm run check` on the pull request.
+Wait for the `ci` workflow. It runs `npm run check` on the pull request. Finish and merge procedures for each Git Flow type are in [HOW-TO.md](HOW-TO.md).
 
 ## ✅ Required check
 
@@ -251,3 +261,7 @@ That command typechecks, checks formatting, lints, checks layout, runs tests, th
 ```bash
 npm run vitest:coverage
 ```
+
+## 📘 How-to FAQ
+
+Step-by-step, command-by-command guides (clone, issues, Git Flow finish via pull request) are in [HOW-TO.md](HOW-TO.md).
