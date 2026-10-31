@@ -3,7 +3,7 @@
 /** ==============================================================
  * 🟢 Node setup
  * ---------------------------------------------------------------
- * Ensures node/npm are on PATH and the Node major matches `.nvmrc`
+ * Ensures node is on PATH and the Node major matches `.nvmrc`
  * (or engines.node). Idempotent. Soft-skips on mismatch.
  *
  * HOW TO RUN:
@@ -17,7 +17,7 @@
  * ============================================================== */
 
 /**
- * Orchestrates node/npm install and required-version checks.
+ * Orchestrates node install and required-version checks.
  *
  * @module node-setup
  */
@@ -28,21 +28,17 @@ import { boxBanner, boxDone, logSkip } from "../../lib/tool-lib.mjs";
 import { isNodeInstalled } from "./isInstalled.mjs";
 
 /**
- * Runs node/npm check including `.nvmrc` / engines major.
+ * Runs node check including `.nvmrc` / engines major.
  *
- * @returns {{ ok: boolean, node?: string, npm?: string }} Outcome summary.
+ * @returns {{ ok: boolean, node?: string }} Outcome summary.
  */
 export function setupNode() {
   const installed = isNodeInstalled();
   if (!installed.ok) {
     logSkip("node setup incomplete (missing or wrong version). Continuing.");
-    return {
-      ok: false,
-      node: installed.node,
-      npm: installed.npm,
-    };
+    return { ok: false, node: installed.node };
   }
-  return { ok: true, node: installed.node, npm: installed.npm };
+  return { ok: true, node: installed.node };
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);

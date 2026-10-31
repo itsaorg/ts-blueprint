@@ -3,9 +3,8 @@
 /** ==============================================================
  * 🟢 Node check
  * ---------------------------------------------------------------
- * Reports whether node and npm are on PATH and whether the Node
- * major matches `.nvmrc` when present (else package.json
- * engines.node).
+ * Reports whether node is on PATH and whether the Node major
+ * matches `.nvmrc` when present (else package.json engines.node).
  *
  * HOW TO RUN:
  *   node .devenv/tools/node/isInstalled.mjs
@@ -17,7 +16,7 @@
  * ============================================================== */
 
 /**
- * Verifies that node and npm are on PATH and match the required major.
+ * Verifies that node is on PATH and matches the required major.
  *
  * @module node-is-installed
  */
@@ -37,8 +36,8 @@ import {
 } from "../../lib/tool-lib.mjs";
 
 /**
- * @typedef {{ ok: true, node: string, npm: string, expected: string | null, source: string | null }
- *   | { ok: false, node?: string, npm?: string, expected?: string | null, source?: string | null }} NodeInstalledResult
+ * @typedef {{ ok: true, node: string, expected: string | null, source: string | null }
+ *   | { ok: false, node?: string, expected?: string | null, source?: string | null }} NodeInstalledResult
  */
 
 /**
@@ -82,31 +81,26 @@ export function requiredNodeMajor() {
 }
 
 /**
- * Checks whether `node` and `npm` are on PATH and match the required major.
+ * Checks whether `node` is on PATH and matches the required major.
  *
- * @returns {NodeInstalledResult} Versions and requirement outcome.
+ * @returns {NodeInstalledResult} Version and requirement outcome.
  */
 export function isNodeInstalled() {
   logGo("node --version");
-  logGo("npm --version");
   /** @type {string} */
   let node;
-  /** @type {string} */
-  let npm;
   try {
     node = run("node --version", { inherit: false });
-    npm = run("npm --version", { inherit: false });
     logOk(`node ${node}`);
-    logOk(`npm ${npm}`);
   } catch {
-    logError("node or npm is not installed");
+    logError("node is not installed");
     return { ok: false };
   }
 
   const requirement = requiredNodeMajor();
   if (!requirement) {
     logInfo("No .nvmrc or engines.node requirement found");
-    return { ok: true, node, npm, expected: null, source: null };
+    return { ok: true, node, expected: null, source: null };
   }
 
   const actual = majorOf(node);
@@ -118,7 +112,6 @@ export function isNodeInstalled() {
     return {
       ok: false,
       node,
-      npm,
       expected: requirement.expected,
       source: requirement.source,
     };
@@ -127,7 +120,6 @@ export function isNodeInstalled() {
   return {
     ok: true,
     node,
-    npm,
     expected: requirement.expected,
     source: requirement.source,
   };

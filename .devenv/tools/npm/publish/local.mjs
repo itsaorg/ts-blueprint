@@ -36,7 +36,7 @@ import {
   requireNpmWhoami,
   run,
   waitForPackageNameOnRegistry,
-} from "../../lib/tool-lib.mjs";
+} from "../../../lib/tool-lib.mjs";
 
 /**
  * Reserves the package name on the public npm registry when still free.

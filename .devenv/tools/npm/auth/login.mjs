@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🔐 npm auth
+ * 🔐 npm login
  * ---------------------------------------------------------------
- * Logs npm whoami. Starts npm login on a TTY when logged out.
- * Skips in CI. Does not run npm:trust. Idempotent.
+ * Logs in to npm. Skips in CI or without a TTY.
  *
  * HOW TO RUN:
- *   node .devenv/tools/npm/auth/setup.mjs
+ *   node .devenv/tools/npm/auth/login.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -16,9 +15,9 @@
  * ============================================================== */
 
 /**
- * Authenticates npm when needed.
+ * Wraps `npm login`.
  *
- * @module npm-auth-setup
+ * @module npm-auth-login
  */
 
 import path from "node:path";
@@ -35,45 +34,39 @@ import {
 } from "../../../lib/tool-lib.mjs";
 
 /**
- * Ensures npm auth on a TTY when not in CI.
- *
- * @returns {{ ok: boolean, authenticated: boolean }} Outcome.
+ * @typedef {{ ok: true } | { ok: false, reason: string }} NpmLoginResult
  */
-export function setupNpmAuth() {
+
+/**
+ * Runs `npm login` when interactive and not in CI.
+ *
+ * @returns {NpmLoginResult} Outcome.
+ */
+export function npmLogin() {
   if (process.env.CI || process.env.GITHUB_ACTIONS) {
     logSkip("CI. Skipping npm login.");
-    return { ok: true, authenticated: false };
+    return { ok: false, reason: "ci" };
   }
-
-  try {
-    const user = run("npm whoami", { inherit: false });
-    logOk(`npm whoami: ${user}`);
-    return { ok: true, authenticated: true };
-  } catch {
-    logGo("npm is not authenticated");
-  }
-
   if (!isInteractive()) {
     logSkip("No TTY. Skipping npm login.");
-    return { ok: true, authenticated: false };
+    return { ok: false, reason: "no-tty" };
   }
-
+  logGo("npm login");
   try {
-    logGo("npm login");
     run("npm login");
-    return { ok: true, authenticated: true };
+    logOk("npm login finished");
+    return { ok: true };
   } catch {
     logError("npm login failed");
-    return { ok: false, authenticated: false };
+    return { ok: false, reason: "login-failed" };
   }
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
-  boxBanner("🔐 npm auth");
-  const result = setupNpmAuth();
-  if (!result.ok) {
+  boxBanner("🔐 npm login");
+  if (!npmLogin().ok) {
     process.exit(1);
   }
-  boxDone("npm auth");
+  boxDone("npm login");
 }

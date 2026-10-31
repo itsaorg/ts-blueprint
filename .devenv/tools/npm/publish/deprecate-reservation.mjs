@@ -36,7 +36,7 @@ import {
   readPublishedVersion,
   requireNpmWhoami,
   run,
-} from "../../lib/tool-lib.mjs";
+} from "../../../lib/tool-lib.mjs";
 
 /** @type {string} Semver used only to reserve the scoped name. */
 const RESERVATION_VERSION = "0.0.0";

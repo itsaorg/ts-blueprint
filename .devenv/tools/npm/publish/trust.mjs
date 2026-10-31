@@ -35,7 +35,7 @@ import {
   requireGithubOwnerRepo,
   requireNpmWhoami,
   run,
-} from "../../lib/tool-lib.mjs";
+} from "../../../lib/tool-lib.mjs";
 
 /** @type {string} Workflow filename Trusted Publishing must match. */
 const WORKFLOW_FILE = "release.yml";

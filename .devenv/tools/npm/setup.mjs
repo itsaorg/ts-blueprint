@@ -25,7 +25,8 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, logSkip } from "../../lib/tool-lib.mjs";
-import { setupNpmAuth } from "./auth/setup.mjs";
+import { npmLogin } from "./auth/login.mjs";
+import { npmWhoami } from "./auth/whoami.mjs";
 
 /**
  * Runs npm auth ensure. Skips in CI.
@@ -37,7 +38,22 @@ export function setupNpm() {
     logSkip("CI. Skipping npm setup.");
     return { ok: true, authenticated: false };
   }
-  return setupNpmAuth();
+
+  const whoami = npmWhoami();
+  if (whoami.ok) {
+    return { ok: true, authenticated: true };
+  }
+
+  const login = npmLogin();
+  if (!login.ok) {
+    if (login.reason === "no-tty" || login.reason === "ci") {
+      return { ok: true, authenticated: false };
+    }
+    return { ok: false, authenticated: false };
+  }
+
+  const again = npmWhoami();
+  return { ok: again.ok, authenticated: again.ok };
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);

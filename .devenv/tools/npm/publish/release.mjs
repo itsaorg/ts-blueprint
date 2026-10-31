@@ -27,7 +27,7 @@ import {
   logGo,
   readPackageIdentity,
   runNpmScript,
-} from "../../lib/tool-lib.mjs";
+} from "../../../lib/tool-lib.mjs";
 
 const { name, version } = readPackageIdentity();
 boxBanner(`▶️  npm:release — ${name}@${version}`);

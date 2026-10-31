@@ -31,7 +31,7 @@ import {
   packageSpecExistsOnRegistry,
   readPackageIdentity,
   run,
-} from "../../lib/tool-lib.mjs";
+} from "../../../lib/tool-lib.mjs";
 
 /**
  * Publishes the current package.json version when missing from the registry.

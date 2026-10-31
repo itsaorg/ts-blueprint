@@ -75,7 +75,7 @@ Use `npm install` only when a maintainer asked you to refresh `package-lock.json
 
 1. `husky:prepare` — install hooks under `.husky/`
 2. `git:setup` — fail if git is missing; set local `commit.template`
-3. `node:setup` — soft-check node/npm vs `.nvmrc` (else `engines.node`)
+3. `node:setup` — soft-check Node vs `.nvmrc` (else `engines.node`)
 4. `gh:setup` — `gh` auth and exclusive label sync when allowed (skips in CI)
 5. `npm:setup` — `npm whoami` / `npm login` on a TTY (skips in CI; never `npm:trust`)
 6. `git-flow:setup` — soft-skip if missing; else ensure Git Flow init for `main`/`develop`

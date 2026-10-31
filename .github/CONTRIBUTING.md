@@ -103,7 +103,7 @@ Every `package.json` script name starts with the tool, then an action (`tsc:type
 | `npm run husky:prepare`             | Install git hooks                                                                                              | Yes, `.husky/_` internals                           |
 | `npm run prepare`                   | Husky, then idempotent git/node/gh/npm/git-flow setups                                                         | Yes, hooks, local git config, labels when allowed   |
 | `npm run git:setup`                 | Ensure git is installed and local `commit.template` is set                                                     | Yes, local git config                               |
-| `npm run node:setup`                | Ensure node/npm on PATH; soft-check major vs `.nvmrc` (else `engines.node`)                                    | No                                                  |
+| `npm run node:setup`                | Ensure Node on PATH; soft-check major vs `.nvmrc` (else `engines.node`)                                        | No                                                  |
 | `npm run npm:setup`                 | Ensure npm auth on a TTY (skips CI; never `npm:trust`)                                                         | Yes, npm login when needed                          |
 | `npm run git-flow:setup`            | Ensure Git Flow AVH init for `main`/`develop` (skips if missing)                                               | Yes, local git-flow config when present             |
 | `npm run npm:publish:local`         | Interactive npm name reservation                                                                               | Yes, publishes to npm                               |
@@ -134,7 +134,7 @@ Every development script is ESM (`.mjs`). Git hooks stay in `.husky`. Call packa
 .devenv/setup/               setup, post-clone, and label sync entry points
 ```
 
-`tools/` holds runtimes a machine needs. `deps/` holds repo commands such as tsc and prettier. Scripts under `.devenv/tools/**` export functions for import and also run as CLIs. `setup/` only orchestrates multi-tool flows (prepare, post-clone, setup), not single-tool shims. Under `tools/gh/`, use `auth/` (mirrors `gh auth` subcommands), `label/`, `issue/`, `pr/`, plus `setup.mjs` and `isInstalled.mjs`.
+`tools/` holds runtimes a machine needs. `deps/` holds repo commands such as tsc and prettier. Scripts under `.devenv/tools/**` export functions for import and also run as CLIs. `setup/` only orchestrates multi-tool flows (prepare, post-clone, setup), not single-tool shims. Under `tools/gh/`, use `auth/` (mirrors `gh auth` subcommands), `label/`, `issue/`, `pr/`, plus `setup.mjs` and `isInstalled.mjs`. Under `tools/npm/`, use `auth/` (whoami/login/logout), `publish/` (local/worker/release/deprecate-reservation/trust), plus `setup.mjs` — no `isInstalled` (npm ships with Node).
 
 ## 🐶 Prepare lifecycle
 
@@ -146,9 +146,9 @@ Order:
 
 1. `husky:prepare` — install hooks under `.husky/`
 2. `git:setup` — fail if `git` is missing; set local `commit.template`
-3. `node:setup` — soft-check node/npm vs `.nvmrc` (else `engines.node`; does not fail prepare)
+3. `node:setup` — soft-check Node vs `.nvmrc` (else `engines.node`; does not fail prepare)
 4. `gh:setup` — ensure `gh` auth, then exclusive label sync (skips in CI as needed)
-5. `npm:setup` — skip in CI; `npm login` on a TTY when logged out (not `npm:trust`)
+5. `npm:setup` — skip in CI; `npm whoami` / `npm login` on a TTY when logged out (not `npm:trust`)
 6. `git-flow:setup` — soft-skip if Git Flow AVH is missing; else ensure init for `main`/`develop`
 
 Idempotent. Does not run `npm clean-install`, `check`, or Trusted Publishing.
@@ -162,7 +162,7 @@ Idempotent. Does not run `npm clean-install`, `check`, or Trusted Publishing.
 Order:
 
 1. `.devenv/tools/git/isInstalled.mjs` — fail if `git` is missing
-2. `.devenv/tools/node/isInstalled.mjs` — fail if `node` or `npm` is missing
+2. `.devenv/tools/node/isInstalled.mjs` — fail if Node is missing or major mismatches `.nvmrc`
 3. `npm clean-install` — runs `prepare` (Husky, commit template, auth, labels)
 
 ## 💬 Commit messages
