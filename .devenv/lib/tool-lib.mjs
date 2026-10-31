@@ -173,6 +173,72 @@ export function logGo(message) {
   console.log(`▶️  ${message}`);
 }
 
+const ANSI_ESCAPE_RE = new RegExp(`${String.fromCharCode(0x1b)}\\[[0-9;]*m`, "g");
+
+/**
+ * Column width of one grapheme cluster in typical terminals.
+ *
+ * @param {string} segment - Single grapheme cluster.
+ * @returns {number} 0, 1, or 2.
+ */
+function graphemeDisplayWidth(segment) {
+  if (/[\uFE0F\u200D]/.test(segment)) {
+    return 2;
+  }
+  for (const ch of segment) {
+    const cp = ch.codePointAt(0);
+    if (cp <= 0x1f) {
+      return 0;
+    }
+    if (cp < 0x7f) {
+      continue;
+    }
+    if (cp >= 0x300 && cp <= 0x36f) {
+      continue;
+    }
+    if (
+      (cp >= 0x1100 && cp <= 0x115f) ||
+      (cp >= 0x2329 && cp <= 0x232a) ||
+      (cp >= 0x2e80 && cp <= 0xa4cf) ||
+      (cp >= 0xac00 && cp <= 0xd7a3) ||
+      (cp >= 0xf900 && cp <= 0xfaff) ||
+      (cp >= 0xfe10 && cp <= 0xfe19) ||
+      (cp >= 0xfe30 && cp <= 0xfe6f) ||
+      (cp >= 0xff00 && cp <= 0xff60) ||
+      (cp >= 0xffe0 && cp <= 0xffe6) ||
+      cp >= 0x1f000 ||
+      (cp >= 0x2190 && cp <= 0x21ff) ||
+      (cp >= 0x2300 && cp <= 0x23ff) ||
+      (cp >= 0x2460 && cp <= 0x24ff) ||
+      (cp >= 0x25a0 && cp <= 0x25ff) ||
+      (cp >= 0x2600 && cp <= 0x27bf) ||
+      (cp >= 0x2900 && cp <= 0x297f) ||
+      (cp >= 0x2b00 && cp <= 0x2bff) ||
+      (cp >= 0x3030 && cp <= 0x303f) ||
+      (cp >= 0x3297 && cp <= 0x3299)
+    ) {
+      return 2;
+    }
+  }
+  return 1;
+}
+
+/**
+ * Visible terminal column width (emoji ≈ 2, ASCII ≈ 1). Strips ANSI colors.
+ *
+ * @param {string} text - Input text.
+ * @returns {number} Column count.
+ */
+export function displayWidth(text) {
+  const plain = String(text).replace(ANSI_ESCAPE_RE, "");
+  const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
+  let width = 0;
+  for (const { segment } of segmenter.segment(plain)) {
+    width += graphemeDisplayWidth(segment);
+  }
+  return width;
+}
+
 /**
  * Prints a prettified box banner around a title.
  *
@@ -181,8 +247,9 @@ export function logGo(message) {
  */
 export function boxBanner(title) {
   const text = ` ${title} `;
-  const width = Math.max(text.length + 2, 24);
-  const pad = width - text.length;
+  const textWidth = displayWidth(text);
+  const width = Math.max(textWidth + 2, 24);
+  const pad = width - textWidth;
   const left = Math.floor(pad / 2);
   const right = pad - left;
   const bar = "═".repeat(width);
@@ -199,8 +266,9 @@ export function boxBanner(title) {
  */
 export function boxDone(title) {
   const text = ` ✅ ${title} `;
-  const width = Math.max(text.length + 2, 24);
-  const pad = width - text.length;
+  const textWidth = displayWidth(text);
+  const width = Math.max(textWidth + 2, 24);
+  const pad = width - textWidth;
   const left = Math.floor(pad / 2);
   const right = pad - left;
   const bar = "─".repeat(width);

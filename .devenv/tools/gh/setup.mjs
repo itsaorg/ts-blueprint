@@ -36,7 +36,6 @@ import { syncLabels } from "./label/sync.mjs";
  * @returns {{ ok: boolean, authenticated: boolean }} Outcome summary.
  */
 export function setupGh() {
-  logGo("gh setup");
   const installed = isGhInstalled();
   if (!installed.ok) {
     logSkip("gh missing. Skipping auth and label sync.");

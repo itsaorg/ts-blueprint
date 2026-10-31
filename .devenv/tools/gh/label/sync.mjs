@@ -3,7 +3,8 @@
 /** ==============================================================
  * 🏷️ Sync labels
  * ---------------------------------------------------------------
- * Syncs a labels JSON file to the GitHub repository.
+ * Syncs a labels JSON file to the GitHub repository. Exclusive:
+ * remote labels not listed in the catalog are deleted.
  *
  * HOW TO RUN:
  *   npm run gh:label:sync
@@ -16,7 +17,7 @@
  * ============================================================== */
 
 /**
- * Syncs every label in a JSON catalog.
+ * Syncs every label in a JSON catalog and removes orphans.
  *
  * @module label-sync
  */
@@ -35,23 +36,25 @@ import {
 } from "../../../lib/tool-lib.mjs";
 import { ghAuthStatus } from "../auth/status.mjs";
 import { createLabel } from "./create.mjs";
-import { readLabel } from "./read.mjs";
+import { deleteLabel } from "./delete.mjs";
+import { listLabels } from "./list.mjs";
 
 /**
- * Upserts one label (read then create --force).
+ * Upserts one label (create --force), using a preloaded remote name set.
  *
  * @param {{ name: string, description?: string, color?: string }} label - Label fields.
+ * @param {Set<string>} remoteNames - Names present before this sync.
  * @returns {"CREATED" | "UPDATED" | "FAILED"} Status token.
  */
-function upsertLabel(label) {
+function upsertLabel(label, remoteNames) {
   const name = label.name;
   logGo(`Upsert label: ${name}`);
-  const existing = readLabel(name);
+  const existed = remoteNames.has(name);
   const status = createLabel(label);
   if (status === "FAILED") {
     return "FAILED";
   }
-  if (existing) {
+  if (existed) {
     logOk(`Updated: ${name}`);
     return "UPDATED";
   }
@@ -60,11 +63,12 @@ function upsertLabel(label) {
 }
 
 /**
- * Syncs labels from a JSON file.
+ * Syncs labels from a JSON file. Catalog is authoritative: remote labels
+ * not listed are deleted.
  *
  * @param {string} [labelsFile=".github/labels.json"] - Repo-relative or absolute path.
  * @param {{ requireAuth?: boolean }} [options] - When requireAuth is true (default), check gh auth first.
- * @returns {{ created: number, updated: number, failed: number, total: number }} Counts.
+ * @returns {{ created: number, updated: number, deleted: number, failed: number, total: number }} Counts.
  */
 export function syncLabels(labelsFile = ".github/labels.json", options = {}) {
   const requireAuth = options.requireAuth !== false;
@@ -82,9 +86,12 @@ export function syncLabels(labelsFile = ".github/labels.json", options = {}) {
     throw new Error("labels file must contain an array");
   }
 
-  const summary = { created: 0, updated: 0, failed: 0, total: labels.length };
+  const catalogNames = new Set(labels.map((label) => String(label.name ?? "")).filter(Boolean));
+  const remoteNames = new Set(listLabels());
+  const summary = { created: 0, updated: 0, deleted: 0, failed: 0, total: labels.length };
+
   for (const label of labels) {
-    const status = upsertLabel(label);
+    const status = upsertLabel(label, remoteNames);
     logInfo(`${label.name}: ${status}`);
     if (status === "CREATED") {
       summary.created += 1;
@@ -94,8 +101,25 @@ export function syncLabels(labelsFile = ".github/labels.json", options = {}) {
       summary.failed += 1;
     }
   }
+
+  logGo("Remove labels not in catalog");
+  for (const name of remoteNames) {
+    if (catalogNames.has(name)) {
+      continue;
+    }
+    logGo(`Delete orphan label: ${name}`);
+    const status = deleteLabel(name);
+    if (status === "OK") {
+      summary.deleted += 1;
+      logInfo(`${name}: DELETED`);
+    } else {
+      summary.failed += 1;
+      logInfo(`${name}: FAILED`);
+    }
+  }
+
   logInfo(
-    `Created ${summary.created}, updated ${summary.updated}, failed ${summary.failed}, total ${summary.total}.`,
+    `Created ${summary.created}, updated ${summary.updated}, deleted ${summary.deleted}, failed ${summary.failed}, total ${summary.total}.`,
   );
   return summary;
 }

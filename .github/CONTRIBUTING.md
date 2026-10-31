@@ -109,8 +109,8 @@ Every `package.json` script name starts with the tool, then an action (`tsc:type
 | `npm run npm:deprecate:reservation` | Deprecate a name-reservation publish                                                                           | Yes, npm deprecation message                        |
 | `npm run setup`                     | `npm clean-install` (runs `prepare`), then `check`                                                             | Yes, `node_modules/` and `dist/`                    |
 | `npm run setup:post-clone`          | Git and Node checks, then `npm clean-install` (runs `prepare`)                                                 | Yes, `node_modules/` and local prepare side effects |
-| `npm run gh:label:sync`             | Sync `.github/labels.json` with `gh`                                                                           | Yes, GitHub labels                                  |
-| `npm run gh:setup`                  | Ensure `gh` auth, then sync labels                                                                             | Yes, GitHub labels when authenticated               |
+| `npm run gh:label:sync`             | Exclusive sync of `.github/labels.json` with `gh` (upsert catalog; delete remote labels not listed)            | Yes, GitHub labels                                  |
+| `npm run gh:setup`                  | Ensure `gh` auth, then exclusive label sync                                                                    | Yes, GitHub labels when authenticated               |
 
 Do not run the `npm:*` scripts unless a maintainer asked you to publish or change trust. When Trusted Publishing is configured, it is bound to `.github/workflows/release.yml`.
 
@@ -232,9 +232,9 @@ The template applies the type label. Do not also invent a label name.
 3. Chore or docs: both formats apply `🧹 Chore`. Add `📚 Documentation` by hand when the change is docs and not tooling.
 4. Do not open a public issue for a vulnerability or a conduct report, and do not add a security label. Use `.github/SECURITY.md`.
 5. Maintainers apply Status, Priority, and Git Flow labels. Contributors do not need to set those.
-6. `good first issue` and `help wanted` are the exact names GitHub's Contribute and help-wanted views read. Dependabot applies `🔗 Dependencies` and opens branches under `dependabot/`.
+6. `good first issue` and `help wanted` are the exact names GitHub's Contribute and help-wanted views read (no emoji prefix). Dependabot applies `🔗 Dependencies` and opens branches under `dependabot/`.
 
-The full set lives in `.github/labels.json`.
+The full set lives in `.github/labels.json`. `npm run gh:label:sync` is exclusive: it upserts that catalog and deletes any remote label not listed.
 
 ## 🔀 Open a pull request
 

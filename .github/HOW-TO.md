@@ -78,7 +78,7 @@ Use `npm install` only when a maintainer asked you to refresh `package-lock.json
 3. Local `git config commit.template` → `.github/COMMIT_TEMPLATE/commit.txt`
 4. If `gh` is on PATH: `gh` auth (skips in CI; skips login without a TTY)
 5. npm auth via `npm whoami` / `npm login` on a TTY (skips in CI; never runs `npm:trust`)
-6. If `gh` is authenticated and not CI: sync `.github/labels.json`
+6. If `gh` is authenticated and not CI: exclusive sync of `.github/labels.json` (upsert catalog; delete remote labels not listed)
 
 The sequence is idempotent. It does not run `npm clean-install`, `npm run check`, or Trusted Publishing setup.
 

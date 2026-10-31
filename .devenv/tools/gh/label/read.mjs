@@ -3,7 +3,8 @@
 /** ==============================================================
  * 🏷️ Read one label
  * ---------------------------------------------------------------
- * Reads a GitHub label with gh label view.
+ * Reads a GitHub label by listing labels and matching on name.
+ * (gh label view is unavailable on older gh releases.)
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/label/read.mjs --name "🐞 Bug Report"
@@ -39,27 +40,43 @@ import {
  */
 
 /**
- * Reads one label by name.
+ * Reads one label by name via `gh label list --json`.
  *
  * @param {string} name - Label name.
  * @returns {LabelFields | null} Fields when found.
  */
 export function readLabel(name) {
-  logGo(`gh label view ${JSON.stringify(name)}`);
+  logGo(`Lookup label: ${name}`);
   try {
-    const raw = execFileSync("gh", ["label", "view", name, "--json", "name,description,color"], {
-      cwd: repoRoot,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
-    }).trim();
-    const parsed = JSON.parse(raw);
-    logOk(`Found label: ${parsed.name}`);
+    const raw = execFileSync(
+      "gh",
+      ["label", "list", "--json", "name,description,color", "--limit", "1000"],
+      {
+        cwd: repoRoot,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    ).trim();
+    const parsed = JSON.parse(raw || "[]");
+    if (!Array.isArray(parsed)) {
+      throw new Error("gh label list did not return an array");
+    }
+    const match = parsed.find((entry) => String(entry.name ?? "") === name);
+    if (!match) {
+      logSkip(`Label not found: ${name}`);
+      return null;
+    }
+    logOk(`Found label: ${match.name}`);
     return {
-      name: String(parsed.name ?? name),
-      description: String(parsed.description ?? ""),
-      color: String(parsed.color ?? "ededed").replace(/^#/, ""),
+      name: String(match.name ?? name),
+      description: String(match.description ?? ""),
+      color: String(match.color ?? "ededed").replace(/^#/, ""),
     };
-  } catch {
+  } catch (error) {
+    if (error && typeof error === "object" && "status" in error) {
+      logSkip(`Label not found: ${name}`);
+      return null;
+    }
     logSkip(`Label not found: ${name}`);
     return null;
   }
