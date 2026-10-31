@@ -4,7 +4,6 @@
  * 🏷️ Read one label
  * ---------------------------------------------------------------
  * Reads a GitHub label by listing labels and matching on name.
- * (gh label view is unavailable on older gh releases.)
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/label/read.mjs --name "🐞 Bug Report"
@@ -21,7 +20,6 @@
  * @module label-read
  */
 
-import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -32,15 +30,15 @@ import {
   logGo,
   logOk,
   logSkip,
-  repoRoot,
 } from "../../../lib/tool-lib.mjs";
+import { listLabels } from "./list.mjs";
 
 /**
  * @typedef {{ name: string, description: string, color: string }} LabelFields
  */
 
 /**
- * Reads one label by name via `gh label list --json`.
+ * Reads one label by name via listLabels().
  *
  * @param {string} name - Label name.
  * @returns {LabelFields | null} Fields when found.
@@ -48,35 +46,14 @@ import {
 export function readLabel(name) {
   logGo(`Lookup label: ${name}`);
   try {
-    const raw = execFileSync(
-      "gh",
-      ["label", "list", "--json", "name,description,color", "--limit", "1000"],
-      {
-        cwd: repoRoot,
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "pipe"],
-      },
-    ).trim();
-    const parsed = JSON.parse(raw || "[]");
-    if (!Array.isArray(parsed)) {
-      throw new Error("gh label list did not return an array");
-    }
-    const match = parsed.find((entry) => String(entry.name ?? "") === name);
+    const match = listLabels().find((entry) => entry.name === name);
     if (!match) {
       logSkip(`Label not found: ${name}`);
       return null;
     }
     logOk(`Found label: ${match.name}`);
-    return {
-      name: String(match.name ?? name),
-      description: String(match.description ?? ""),
-      color: String(match.color ?? "ededed").replace(/^#/, ""),
-    };
-  } catch (error) {
-    if (error && typeof error === "object" && "status" in error) {
-      logSkip(`Label not found: ${name}`);
-      return null;
-    }
+    return match;
+  } catch {
     logSkip(`Label not found: ${name}`);
     return null;
   }

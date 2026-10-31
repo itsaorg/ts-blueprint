@@ -101,7 +101,11 @@ Every `package.json` script name starts with the tool, then an action (`tsc:type
 | `npm run changeset:status`          | Show pending Changesets                                                                                        | No                                                  |
 | `npm run changeset:version`         | Apply Changesets to the version and changelog                                                                  | Yes, `package.json`, `CHANGELOG.md`, `.changeset/`  |
 | `npm run husky:prepare`             | Install git hooks                                                                                              | Yes, `.husky/_` internals                           |
-| `npm run prepare`                   | Husky, git commit.template, gh/npm auth, optional label sync                                                   | Yes, hooks, local git config, labels when allowed   |
+| `npm run prepare`                   | Husky, then idempotent git/node/gh/npm/git-flow setups                                                         | Yes, hooks, local git config, labels when allowed   |
+| `npm run git:setup`                 | Ensure git is installed and local `commit.template` is set                                                     | Yes, local git config                               |
+| `npm run node:setup`                | Ensure node/npm on PATH; soft-check major vs `.nvmrc` (else `engines.node`)                                    | No                                                  |
+| `npm run npm:setup`                 | Ensure npm auth on a TTY (skips CI; never `npm:trust`)                                                         | Yes, npm login when needed                          |
+| `npm run git-flow:setup`            | Ensure Git Flow AVH init for `main`/`develop` (skips if missing)                                               | Yes, local git-flow config when present             |
 | `npm run npm:publish:local`         | Interactive npm name reservation                                                                               | Yes, publishes to npm                               |
 | `npm run npm:publish:worker`        | Publish from CI with provenance                                                                                | Yes, publishes to npm                               |
 | `npm run npm:release`               | `tsc:build`, then `npm:publish:worker`                                                                         | Yes, `dist/` and npm                                |
@@ -141,10 +145,11 @@ Every development script is ESM (`.mjs`). Git hooks stay in `.husky`. Call packa
 Order:
 
 1. `husky:prepare` — install hooks under `.husky/`
-2. `.devenv/tools/git/isInstalled.mjs` — fail if `git` is missing
-3. `.devenv/tools/git/configure.mjs` — set local `commit.template` to `.github/COMMIT_TEMPLATE/commit.txt`
-4. `.devenv/tools/gh/setup.mjs` — ensure `gh` is installed and authenticated, then sync labels (skips auth/labels in CI as needed)
-5. `.devenv/tools/npm/auth/setup.mjs` — skip in CI; `npm login` on a TTY when logged out (not `npm:trust`)
+2. `git:setup` — fail if `git` is missing; set local `commit.template`
+3. `node:setup` — soft-check node/npm vs `.nvmrc` (else `engines.node`; does not fail prepare)
+4. `gh:setup` — ensure `gh` auth, then exclusive label sync (skips in CI as needed)
+5. `npm:setup` — skip in CI; `npm login` on a TTY when logged out (not `npm:trust`)
+6. `git-flow:setup` — soft-skip if Git Flow AVH is missing; else ensure init for `main`/`develop`
 
 Idempotent. Does not run `npm clean-install`, `check`, or Trusted Publishing.
 

@@ -3,9 +3,8 @@
 /** ==============================================================
  * 🐶 Prepare lifecycle
  * ---------------------------------------------------------------
- * After install: husky, git check + commit.template, gh setup
- * (auth + labels), npm auth. Idempotent. Does not run
- * npm clean-install or check.
+ * After install: husky, git/node/gh/npm/git-flow setups.
+ * Idempotent. Does not run npm clean-install or check.
  *
  * HOW TO RUN:
  *   npm run prepare
@@ -22,21 +21,14 @@
  * @module prepare-run
  */
 
-import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { boxBanner, boxDone, logError, logGo, repoRoot, runNpmScript } from "../lib/tool-lib.mjs";
-import { isGitInstalled } from "../tools/git/isInstalled.mjs";
+import { boxBanner, boxDone, logError, logGo, runNpmScript } from "../lib/tool-lib.mjs";
 import { setupGh } from "../tools/gh/setup.mjs";
-
-/**
- * @param {string} script - Absolute script path.
- * @returns {number} Exit code.
- */
-function runScript(script) {
-  const result = spawnSync(process.execPath, [script], { cwd: repoRoot, stdio: "inherit" });
-  return result.status ?? 1;
-}
+import { setupGit } from "../tools/git/setup.mjs";
+import { setupGitFlow } from "../tools/git-flow/setup.mjs";
+import { setupNode } from "../tools/node/setup.mjs";
+import { setupNpm } from "../tools/npm/setup.mjs";
 
 /**
  * Runs the prepare sequence.
@@ -53,23 +45,23 @@ export function runPrepare() {
     return hooks;
   }
 
-  logGo("git isInstalled");
-  if (!isGitInstalled().ok) {
-    logError("git isInstalled failed");
+  logGo("git setup");
+  if (!setupGit().ok) {
+    logError("git setup failed");
     return 1;
   }
 
-  logGo("git configure");
-  if (runScript(path.join(repoRoot, ".devenv/tools/git/configure.mjs")) !== 0) {
-    logError("git configure failed");
-    return 1;
-  }
+  logGo("node setup");
+  setupNode();
 
   logGo("gh setup");
   setupGh();
 
-  logGo("npm auth");
-  runScript(path.join(repoRoot, ".devenv/tools/npm/auth/setup.mjs"));
+  logGo("npm setup");
+  setupNpm();
+
+  logGo("git-flow setup");
+  setupGitFlow();
 
   boxDone("prepare");
   return 0;

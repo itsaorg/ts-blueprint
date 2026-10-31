@@ -22,6 +22,7 @@
  */
 
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   boxBanner,
   boxDone,
@@ -34,27 +35,41 @@ import {
 } from "../../lib/tool-lib.mjs";
 
 const TEMPLATE = ".github/COMMIT_TEMPLATE/commit.txt";
-const templatePath = path.join(repoRoot, TEMPLATE);
 
-boxBanner("🔧 git configure");
-logGo(`commit.template → ${TEMPLATE}`);
-
-try {
-  let current = "";
+/**
+ * Sets local commit.template when needed.
+ *
+ * @returns {{ ok: boolean, skipped?: boolean }} Outcome.
+ */
+export function configureGit() {
+  const templatePath = path.join(repoRoot, TEMPLATE);
+  logGo(`commit.template → ${TEMPLATE}`);
   try {
-    current = run("git config --local --get commit.template", { inherit: false });
-  } catch {
-    current = "";
+    let current = "";
+    try {
+      current = run("git config --local --get commit.template", { inherit: false });
+    } catch {
+      current = "";
+    }
+    if (current === TEMPLATE || current === templatePath) {
+      logSkip(`commit.template already ${current}`);
+      return { ok: true, skipped: true };
+    }
+    run(`git config --local commit.template ${TEMPLATE}`);
+    logOk(`commit.template = ${TEMPLATE}`);
+    return { ok: true, skipped: false };
+  } catch (error) {
+    logError(error instanceof Error ? error.message : String(error));
+    return { ok: false };
   }
-  if (current === TEMPLATE || current === templatePath) {
-    logSkip(`commit.template already ${current}`);
-    boxDone("git configure");
-    process.exit(0);
+}
+
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+  boxBanner("🔧 git configure");
+  const result = configureGit();
+  if (!result.ok) {
+    process.exit(1);
   }
-  run(`git config --local commit.template ${TEMPLATE}`);
-  logOk(`commit.template = ${TEMPLATE}`);
   boxDone("git configure");
-} catch (error) {
-  logError(error instanceof Error ? error.message : String(error));
-  process.exit(1);
 }

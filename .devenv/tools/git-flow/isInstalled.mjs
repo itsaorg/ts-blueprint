@@ -3,8 +3,8 @@
 /** ==============================================================
  * 🌿 Git Flow check
  * ---------------------------------------------------------------
- * Prints the installed Git Flow AVH version. Exits 1 when git-flow
- * is missing. Does not install Git Flow and does not run git config.
+ * Reports whether Git Flow AVH is on PATH. Does not install Git
+ * Flow and does not run git config.
  *
  * HOW TO RUN:
  *   node .devenv/tools/git-flow/isInstalled.mjs
@@ -18,16 +18,40 @@
 /**
  * Verifies that Git Flow AVH is on PATH.
  *
- * @module git-flow-check
+ * @module git-flow-is-installed
  */
 
-import { boxBanner, boxDone, logError, logOk, run } from "../../lib/tool-lib.mjs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { boxBanner, boxDone, logError, logGo, logOk, run } from "../../lib/tool-lib.mjs";
 
-boxBanner("🌿 git-flow check");
-try {
-  logOk(run("git flow version", { inherit: false }));
+/**
+ * @typedef {{ ok: true, version: string } | { ok: false }} GitFlowInstalledResult
+ */
+
+/**
+ * Checks whether `git flow` is on PATH.
+ *
+ * @returns {GitFlowInstalledResult} Version when installed.
+ */
+export function isGitFlowInstalled() {
+  logGo("git flow version");
+  try {
+    const version = run("git flow version", { inherit: false });
+    logOk(version);
+    return { ok: true, version };
+  } catch {
+    logError("Git Flow AVH is not installed");
+    return { ok: false };
+  }
+}
+
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+  boxBanner("🌿 git-flow check");
+  const result = isGitFlowInstalled();
+  if (!result.ok) {
+    process.exit(1);
+  }
   boxDone("git-flow check");
-} catch {
-  logError("Git Flow AVH is not installed");
-  process.exit(1);
 }

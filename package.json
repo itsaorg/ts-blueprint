@@ -75,6 +75,10 @@
     "npm:release": "node .devenv/tools/npm/release.mjs",
     "setup": "node .devenv/setup/setup.mjs",
     "setup:post-clone": "node .devenv/setup/post-clone.mjs",
+    "git:setup": "node .devenv/tools/git/setup.mjs",
+    "node:setup": "node .devenv/tools/node/setup.mjs",
+    "npm:setup": "node .devenv/tools/npm/setup.mjs",
+    "git-flow:setup": "node .devenv/tools/git-flow/setup.mjs",
     "gh:setup": "node .devenv/tools/gh/setup.mjs",
     "gh:label:sync": "node .devenv/tools/gh/label/sync.mjs"
   },

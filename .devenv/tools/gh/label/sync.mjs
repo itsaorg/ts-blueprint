@@ -87,7 +87,7 @@ export function syncLabels(labelsFile = ".github/labels.json", options = {}) {
   }
 
   const catalogNames = new Set(labels.map((label) => String(label.name ?? "")).filter(Boolean));
-  const remoteNames = new Set(listLabels());
+  const remoteNames = new Set(listLabels().map((label) => label.name));
   const summary = { created: 0, updated: 0, deleted: 0, failed: 0, total: labels.length };
 
   for (const label of labels) {
