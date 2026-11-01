@@ -35,10 +35,10 @@ cd <your-repo-directory>
 npm clean-install
 ```
 
-For a first-time machine check plus optional GitHub label sync:
+For machine probes, install, and the CI gate:
 
 ```bash
-npm run setup:post-clone
+npm run setup
 ```
 
 `npm clean-install` runs `prepare` (Husky, commit template, gh/npm auth when possible, label sync). Prefer `npm clean-install` for a clean checkout (long form of the old `npm ci` alias). Use `npm install` only when refreshing the lockfile.
@@ -62,7 +62,7 @@ Do not change portable paths under `.devenv` or the community policy files under
 ## Layout
 
 ```text
-.devenv/            Script library (lib, tools, deps, utils, setup)
+.devenv/            Script library (prepare, setup, lib, tools, deps, utils)
 .husky/             Git hooks (Husky)
 .github/            Issues, PRs, workflows, labels, CONTRIBUTING
 configs/            ESLint, Prettier, Vitest, TypeDoc, tsconfig pieces
@@ -75,16 +75,15 @@ tests/              Consumer and unit tests
 
 ## Key scripts
 
-| Script                     | Purpose                                                    |
-| -------------------------- | ---------------------------------------------------------- |
-| `npm run setup:post-clone` | Git/Node checks, then `npm clean-install` (runs `prepare`) |
-| `npm run setup`            | `npm clean-install` (runs `prepare`), then `npm run check` |
-| `npm run gh:label:sync`    | Sync `.github/labels.json` with `gh`                       |
-| `npm run gh:setup`         | Ensure `gh` auth, then sync labels                         |
-| `npm run check`            | Typecheck, format, lint, layout, tests, build              |
-| `npm run docify:typedoc`   | Regenerate the Pages site into `docs/`                     |
+| Script                   | Purpose                                                             |
+| ------------------------ | ------------------------------------------------------------------- |
+| `npm run setup`          | Git/Node checks, `npm clean-install` (runs `prepare`), then `check` |
+| `npm run gh:label:sync`  | Sync `.github/labels.json` with `gh`                                |
+| `npm run gh:setup`       | Ensure `gh` auth, then sync labels                                  |
+| `npm run check`          | Typecheck, format, lint, layout, tests, build                       |
+| `npm run docify:typedoc` | Regenerate the Pages site into `docs/`                              |
 
-The full script table and prepare/post-clone order live in [CONTRIBUTING](.github/CONTRIBUTING.md). Tutorials are in [HOW-TO](.github/HOW-TO.md).
+The full script table and prepare/setup order live in [CONTRIBUTING](.github/CONTRIBUTING.md). Tutorials are in [HOW-TO](.github/HOW-TO.md).
 
 ## Links
 

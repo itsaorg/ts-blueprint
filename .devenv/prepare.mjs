@@ -18,17 +18,17 @@
 /**
  * Runs the npm prepare sequence for this repository.
  *
- * @module prepare-run
+ * @module prepare
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { boxBanner, boxDone, logError, logGo, runNpmScript } from "../lib/tool-lib.mjs";
-import { setupGh } from "../tools/gh/setup.mjs";
-import { setupGit } from "../tools/git/setup.mjs";
-import { setupGitFlow } from "../tools/git-flow/setup.mjs";
-import { setupNode } from "../tools/node/setup.mjs";
-import { setupNpm } from "../tools/npm/setup.mjs";
+import { boxBanner, boxDone, logError, logGo, runNpmScript } from "./lib/tool-lib.mjs";
+import { setupGh } from "./tools/gh/setup.mjs";
+import { setupGit } from "./tools/git/setup.mjs";
+import { setupGitFlow } from "./tools/git-flow/setup.mjs";
+import { setupNode } from "./tools/node/setup.mjs";
+import { setupNpm } from "./tools/npm/setup.mjs";
 
 /**
  * Runs the prepare sequence.

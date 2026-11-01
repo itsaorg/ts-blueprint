@@ -61,10 +61,10 @@ npm clean-install
 
 That runs the `prepare` lifecycle (Husky, git commit template, gh/npm auth when possible, label sync). See [What does `npm prepare` run?](#what-does-npm-prepare-run).
 
-For machine probes first, then the same install:
+For machine probes, install, and the CI gate in one step:
 
 ```bash
-npm run setup:post-clone
+npm run setup
 ```
 
 Use `npm install` only when a maintainer asked you to refresh `package-lock.json`.
@@ -108,10 +108,10 @@ git pull origin develop
 ```
 
 ```bash
-git flow feature start 42-<slug>
+node .devenv/tools/git-flow/feature/start.mjs 42-<slug>
 ```
 
-Use `bugfix`, `release`, `hotfix`, or `support` instead of `feature` when that type matches. Replace `<slug>` with a short kebab-case phrase.
+Or the raw CLI: `git flow feature start 42-<slug>`. Use `bugfix`, `release`, `hotfix`, or `support` modules under `.devenv/tools/git-flow/` when that type matches. Replace `<slug>` with a short kebab-case phrase.
 
 ## Which Git Flow branch type do I use?
 
@@ -152,13 +152,13 @@ git push -u origin HEAD
 Use a **pull request**. Do **not** use `git flow feature finish` or `git flow bugfix finish` to merge locally — that bypasses GitHub review and CI.
 
 ```bash
-git push -u origin HEAD
+node .devenv/tools/git-flow/feature/finish.mjs
 ```
 
-Open a PR into `develop` (GitHub web or `gh`):
+That pushes the branch and runs `gh pr create --base develop --fill` when `gh` is authenticated. For bugfix:
 
 ```bash
-gh pr create --base develop --fill
+node .devenv/tools/git-flow/bugfix/finish.mjs
 ```
 
 Wait for the `ci` workflow. Merge on GitHub when green.
@@ -181,7 +181,7 @@ git branch -d feature/<number>-<slug>
 git push origin --delete feature/<number>-<slug>
 ```
 
-Use `bugfix/` in those names when finishing a bugfix. `git flow feature delete <name>` is fine after the PR is already merged.
+Use `bugfix/` in those names when finishing a bugfix.
 
 ## How do I finish a release?
 
@@ -194,16 +194,16 @@ git pull origin develop
 ```
 
 ```bash
-git flow release start <x.y.z>
+node .devenv/tools/git-flow/release/start.mjs <x.y.z>
 ```
 
 Stabilize on `release/<x.y.z>` (version bumps, changelog, docs as needed).
 
 ```bash
-git push -u origin HEAD
+node .devenv/tools/git-flow/release/finish.mjs
 ```
 
-Open a pull request into `main`. After it merges and CI is green on `main`, tag:
+That opens a pull request into `main`. After it merges and CI is green on `main`, tag:
 
 ```bash
 git checkout main
@@ -234,17 +234,13 @@ git pull origin main
 ```
 
 ```bash
-git flow hotfix start <x.y.z>
+node .devenv/tools/git-flow/hotfix/start.mjs <x.y.z>
 ```
 
-Fix, push, open a PR into `main`.
+Fix, then PR-first finish into `main`:
 
 ```bash
-git push -u origin HEAD
-```
-
-```bash
-gh pr create --base main --fill
+node .devenv/tools/git-flow/hotfix/finish.mjs
 ```
 
 After merge, tag `v<x.y.z>` on `main` if this cut ships. Open a second PR (or merge-back) so `develop` receives the same fix. Delete the hotfix branch after both merges.
@@ -254,7 +250,7 @@ After merge, tag `v<x.y.z>` on `main` if this cut ships. Open a second PR (or me
 Use `support/<name>` for a long-lived maintenance line that must stay separate from current `develop` work. Start it from the appropriate base commit, open PRs **into that support branch**, and do not mix unrelated `develop` features onto it.
 
 ```bash
-git flow support start <name> <base>
+node .devenv/tools/git-flow/support/start.mjs <name> <base>
 ```
 
 ## How do I skip hooks once?
