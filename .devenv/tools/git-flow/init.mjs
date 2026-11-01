@@ -4,11 +4,14 @@
  * 🌿 Git Flow init
  * ---------------------------------------------------------------
  * Initializes Git Flow AVH with explicit main/develop branches,
- * branch prefixes, and version tag prefix `v`. Idempotent: skips
- * when config already matches; repairs drift with force init.
+ * branch prefixes (feature/, bugfix/, …), and version tag prefix
+ * `v`. Idempotent: skips when local config already matches; repairs
+ * drift with a forced `git flow init`. Soft-skips (and prints the
+ * install guide) when AVH is missing — never auto-installs.
  *
  * HOW TO RUN:
  *   node .devenv/tools/git-flow/init.mjs
+ *   npm run git-flow:setup
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -17,9 +20,13 @@
  * ============================================================== */
 
 /**
- * Initializes Git Flow for this repository.
+ * Initializes Git Flow for this repository to match expected config.
  *
  * @module git-flow-init
+ *
+ * @example
+ * // Direct init (exits 1 on hard failure):
+ * //   node .devenv/tools/git-flow/init.mjs
  */
 
 import { spawnSync } from "node:child_process";
@@ -35,7 +42,7 @@ import {
   repoRoot,
   run,
 } from "../../lib/tool-lib.mjs";
-import { isGitFlowInstalled } from "./isInstalled.mjs";
+import { isGitFlowInstalled, logGitFlowInstallGuide } from "./isInstalled.mjs";
 
 /** @type {Readonly<Record<string, string>>} Expected local gitflow.* keys. */
 const EXPECTED = Object.freeze({
@@ -52,7 +59,7 @@ const EXPECTED = Object.freeze({
 /**
  * Reads a local git config value, or empty string.
  *
- * @param {string} key - Config key.
+ * @param {string} key - Config key (e.g. `gitflow.branch.master`).
  * @returns {string} Value or "".
  */
 function getLocal(key) {
@@ -82,6 +89,9 @@ function findDrift() {
 
 /**
  * Runs explicit `git flow init` with all naming flags.
+ *
+ * Prefills branch keys, then force-inits with `-d -f` and prefix flags
+ * so defaults match this repository (main/develop, `v` tags).
  *
  * @returns {boolean} True when the command exits 0.
  */
@@ -118,12 +128,19 @@ function runExplicitInit() {
 /**
  * Ensures git-flow config matches this repository's conventions.
  *
+ * Soft-skips when AVH is missing so prepare/setup can continue.
+ *
  * @returns {{ ok: boolean, initialized: boolean, skipped?: boolean }} Outcome.
+ *
+ * @example
+ * const result = initGitFlow();
+ * // { ok: true, initialized: true, skipped: true } when already matched
  */
 export function initGitFlow() {
-  const installed = isGitFlowInstalled();
+  const installed = isGitFlowInstalled({ quiet: true });
   if (!installed.ok) {
-    logSkip("git-flow missing. Skipping init.");
+    logSkip("git-flow missing. Skipping init so prepare/setup can continue.");
+    logGitFlowInstallGuide();
     return { ok: false, initialized: false };
   }
 

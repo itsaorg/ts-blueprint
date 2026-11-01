@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🔐 gh auth switch
+ * 🔀 gh auth switch
  * ---------------------------------------------------------------
- * Switches the active GitHub account.
+ * Switches the active GitHub account via `gh auth switch` when
+ * multiple accounts are logged in. Forwards extra CLI flags. Does
+ * not log out other accounts — only changes which one is active.
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/auth/switch.mjs
+ *   node .devenv/tools/gh/auth/switch.mjs --user my-alt
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,6 +21,9 @@
  * Wraps `gh auth switch`.
  *
  * @module gh-auth-switch
+ *
+ * @example
+ * //   node .devenv/tools/gh/auth/switch.mjs --user my-alt
  */
 
 import { spawnSync } from "node:child_process";
@@ -38,6 +44,9 @@ import {
  *
  * @param {{ args?: string[] }} [options] - Extra argv after `gh auth switch`.
  * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * ghAuthSwitch({ args: ["--user", "my-alt"] });
  */
 export function ghAuthSwitch(options = {}) {
   const args = ["auth", "switch", ...(options.args ?? [])];

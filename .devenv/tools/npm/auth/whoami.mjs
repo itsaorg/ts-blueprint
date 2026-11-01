@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🔐 npm whoami
+ * 🪪 npm whoami
  * ---------------------------------------------------------------
- * Prints the logged-in npm user via npm whoami.
+ * Prints the logged-in npm username via `npm whoami`. Read-only
+ * probe used by setup and publish guards. Does not log you in —
+ * returns `{ ok: false }` when unauthenticated.
  *
  * HOW TO RUN:
  *   node .devenv/tools/npm/auth/whoami.mjs
+ *   npm run npm:setup
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,6 +21,9 @@
  * Wraps `npm whoami`.
  *
  * @module npm-auth-whoami
+ *
+ * @example
+ * //   node .devenv/tools/npm/auth/whoami.mjs
  */
 
 import path from "node:path";
@@ -32,6 +38,12 @@ import { boxBanner, boxDone, logError, logGo, logOk, run } from "../../../lib/to
  * Runs `npm whoami`.
  *
  * @returns {NpmWhoamiResult} Username when authenticated.
+ *
+ * @example
+ * const me = npmWhoami();
+ * if (me.ok) {
+ *   console.log(me.user);
+ * }
  */
 export function npmWhoami() {
   logGo("npm whoami");

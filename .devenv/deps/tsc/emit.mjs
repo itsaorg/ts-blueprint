@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 📦 Emit
+ * 📤 Emit
  * ---------------------------------------------------------------
- * Runs tsc and writes dist/.
+ * Runs `tsc` against `tsconfig.json` and writes JavaScript plus
+ * declaration files into `dist/`. Does not delete the previous
+ * output first — use `tsc:build` when you want a clean emit.
+ * Extra CLI flags can be forwarded after `--`.
  *
  * HOW TO RUN:
  *   npm run tsc:emit
+ *   node .devenv/deps/tsc/emit.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -15,9 +19,13 @@
  * ============================================================== */
 
 /**
- * npm script `tsc:emit` — Runs tsc and writes dist/.
+ * npm script `tsc:emit` — compiles TypeScript into `dist/`.
  *
  * @module tsc-emit
+ *
+ * @example
+ * // Write JS and .d.ts without cleaning first:
+ * //   npm run tsc:emit
  */
 
 import { forwardedArgs, runTool } from "../../lib/tool-lib.mjs";

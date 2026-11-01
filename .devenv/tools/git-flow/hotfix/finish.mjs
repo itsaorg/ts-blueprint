@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🩹 Git Flow hotfix finish
+ * 🩹 Hotfix PR finish
  * ---------------------------------------------------------------
- * PR-first finish for a hotfix branch.
- * Pushes the branch and opens a pull request into main.
- * Never runs git flow hotfix finish.
+ * PR-first finish for a hotfix branch: push, then open a pull
+ * request into `main` (override with `--base`). Never runs
+ * `git flow hotfix finish` — merges stay on GitHub so CI runs.
+ * After merge, delete the topic branch locally and on origin.
  *
  * HOW TO RUN:
  *   node .devenv/tools/git-flow/hotfix/finish.mjs
+ *   node .devenv/tools/git-flow/hotfix/finish.mjs --base main
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -20,6 +22,10 @@
  * PR-first finish for a Git Flow hotfix branch.
  *
  * @module git-flow-hotfix-finish
+ *
+ * @example
+ * // On hotfix/1.2.1:
+ * //   node .devenv/tools/git-flow/hotfix/finish.mjs
  */
 
 import path from "node:path";
@@ -32,6 +38,10 @@ import { finishWithPullRequest } from "../finish-pr.mjs";
  *
  * @param {{ base?: string }} [options] - Optional base override.
  * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * finishHotfix();
+ * finishHotfix({ base: "main" });
  */
 export function finishHotfix(options = {}) {
   return finishWithPullRequest("hotfix", { base: options.base || "main" });

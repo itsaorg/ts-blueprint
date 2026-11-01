@@ -3,10 +3,14 @@
 /** ==============================================================
  * 🔐 gh auth login
  * ---------------------------------------------------------------
- * Logs in to a GitHub account. Skips in CI or without a TTY.
+ * Runs interactive `gh auth login` so later gh tools can talk to
+ * GitHub. Soft-skips in CI or when stdin is not a TTY. Forwards
+ * extra CLI flags after the script name. Does not create issues
+ * or PRs by itself.
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/auth/login.mjs
+ *   npm run gh:setup
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -15,9 +19,13 @@
  * ============================================================== */
 
 /**
- * Wraps `gh auth login`.
+ * Wraps `gh auth login` with CI / non-TTY guards.
  *
  * @module gh-auth-login
+ *
+ * @example
+ * //   node .devenv/tools/gh/auth/login.mjs
+ * //   node .devenv/tools/gh/auth/login.mjs --web
  */
 
 import { spawnSync } from "node:child_process";
@@ -44,6 +52,9 @@ import {
  *
  * @param {{ args?: string[] }} [options] - Extra argv after `gh auth login`.
  * @returns {GhAuthLoginResult} Outcome.
+ *
+ * @example
+ * ghAuthLogin({ args: ["--web"] });
  */
 export function ghAuthLogin(options = {}) {
   if (process.env.CI || process.env.GITHUB_ACTIONS) {

@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🐛 Git Flow bugfix finish
+ * 🐛 Bugfix PR finish
  * ---------------------------------------------------------------
- * PR-first finish for a bugfix branch.
- * Pushes the branch and opens a pull request into develop.
- * Never runs git flow bugfix finish.
+ * PR-first finish for a bugfix branch: push, then open a pull
+ * request into `develop` (override with `--base`). Never runs
+ * `git flow bugfix finish` — merges stay on GitHub so CI runs.
+ * After merge, delete the topic branch locally and on origin.
  *
  * HOW TO RUN:
  *   node .devenv/tools/git-flow/bugfix/finish.mjs
+ *   node .devenv/tools/git-flow/bugfix/finish.mjs --base develop
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -20,6 +22,10 @@
  * PR-first finish for a Git Flow bugfix branch.
  *
  * @module git-flow-bugfix-finish
+ *
+ * @example
+ * // On bugfix/99-null-guard:
+ * //   node .devenv/tools/git-flow/bugfix/finish.mjs
  */
 
 import path from "node:path";
@@ -32,6 +38,10 @@ import { finishWithPullRequest } from "../finish-pr.mjs";
  *
  * @param {{ base?: string }} [options] - Optional base override.
  * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * finishBugfix();
+ * finishBugfix({ base: "develop" });
  */
 export function finishBugfix(options = {}) {
   return finishWithPullRequest("bugfix", { base: options.base || "develop" });

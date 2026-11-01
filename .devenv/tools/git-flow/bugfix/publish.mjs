@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🐛 Git Flow bugfix publish
+ * 🐛 Bugfix branch publish
  * ---------------------------------------------------------------
- * Publishes a bugfix branch via git flow bugfix publish.
- * Omit the name to use the current branch.
+ * Pushes a bugfix branch to origin via `git flow bugfix publish`.
+ * Omit the name to publish the current `bugfix/…` branch.
+ * Requires Git Flow AVH on PATH.
  *
  * HOW TO RUN:
+ *   node .devenv/tools/git-flow/bugfix/publish.mjs
  *   node .devenv/tools/git-flow/bugfix/publish.mjs [<name>]
  *
  * ---------------------------------------------------------------
@@ -19,6 +21,10 @@
  * Publishes a Git Flow bugfix branch.
  *
  * @module git-flow-bugfix-publish
+ *
+ * @example
+ * // On bugfix/99-null-guard:
+ * //   node .devenv/tools/git-flow/bugfix/publish.mjs
  */
 
 import path from "node:path";
@@ -31,6 +37,10 @@ import { currentBranch, runGitFlow, stripTypePrefix } from "../command.mjs";
  *
  * @param {string[]} [args] - Optional name; defaults to current branch.
  * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * publishBugfix();
+ * publishBugfix(["99-null-guard"]);
  */
 export function publishBugfix(args = []) {
   let nameArgs = args;

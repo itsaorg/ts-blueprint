@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🔀 Merge pull request
+ * ✅ Merge pull request
  * ---------------------------------------------------------------
- * Merges a pull request with gh pr merge --merge.
- * Set DRY_RUN=true to print the command and skip the merge.
+ * Merges a pull request with `gh pr merge --merge` after a
+ * confirmation prompt. Uses `.github/MERGE_PR_BODY.md` when
+ * relevant. Set `DRY_RUN=true` to print the command and skip the
+ * merge — use `pr/merge-preview.mjs` for that path.
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/pr/merge.mjs
+ *   DRY_RUN=true node .devenv/tools/gh/pr/merge.mjs
+ *   node .devenv/tools/gh/pr/merge-preview.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -19,6 +23,11 @@
  * Merges one GitHub pull request after a confirmation.
  *
  * @module pr-merge
+ *
+ * @example
+ * // Live merge, or dry-run via preview:
+ * //   node .devenv/tools/gh/pr/merge.mjs
+ * //   node .devenv/tools/gh/pr/merge-preview.mjs
  */
 
 import { execFileSync } from "node:child_process";

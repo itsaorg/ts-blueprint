@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🟢 Node setup
+ * 🟦 Node setup
  * ---------------------------------------------------------------
- * Ensures node is on PATH and the Node major matches `.nvmrc`
- * (or engines.node). Idempotent. Soft-skips on mismatch.
+ * One-shot entry for this repo's Node requirement: ensure `node`
+ * is on PATH and the major matches `.nvmrc` (or `engines.node`).
+ * Idempotent. Soft-skips on missing/wrong version so `prepare`
+ * can continue. Never installs or switches Node for you.
  *
  * HOW TO RUN:
- *   node .devenv/tools/node/setup.mjs
  *   npm run node:setup
+ *   node .devenv/tools/node/setup.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -19,7 +21,15 @@
 /**
  * Orchestrates node install and required-version checks.
  *
+ * Thin wrapper around {@link isNodeInstalled} used by `prepare`
+ * and the `node:setup` npm script. Soft-skips on failure.
+ *
  * @module node-setup
+ *
+ * @example
+ * // From package.json: "node:setup": "node .devenv/tools/node/setup.mjs"
+ * import { setupNode } from "./setup.mjs";
+ * setupNode();
  */
 
 import path from "node:path";
@@ -31,6 +41,12 @@ import { isNodeInstalled } from "./isInstalled.mjs";
  * Runs node check including `.nvmrc` / engines major.
  *
  * @returns {{ ok: boolean, node?: string }} Outcome summary.
+ *
+ * @example
+ * const result = setupNode();
+ * if (!result.ok) {
+ *   // Missing/wrong Node — prepare soft-skips; CLI still exits 0.
+ * }
  */
 export function setupNode() {
   const installed = isNodeInstalled();

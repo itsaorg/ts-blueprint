@@ -1,14 +1,17 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🏷️ Sync labels
+ * ♻️ Sync labels
  * ---------------------------------------------------------------
- * Syncs a labels JSON file to the GitHub repository. Exclusive:
- * remote labels not listed in the catalog are deleted.
+ * Syncs a labels JSON catalog to the GitHub repository. Upserts
+ * every listed label, then deletes remote labels missing from the
+ * catalog (exclusive sync). Requires `gh` auth. Destructive for
+ * orphans — keep the catalog complete before running.
  *
  * HOW TO RUN:
  *   npm run gh:label:sync
  *   node .devenv/tools/gh/label/sync.mjs .github/labels.json
+ *   npm run gh:setup
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -20,6 +23,11 @@
  * Syncs every label in a JSON catalog and removes orphans.
  *
  * @module label-sync
+ *
+ * @example
+ * // Default catalog path when omitted:
+ * //   npm run gh:label:sync
+ * //   node .devenv/tools/gh/label/sync.mjs .github/labels.json
  */
 
 import { readFileSync } from "node:fs";
@@ -69,6 +77,9 @@ function upsertLabel(label, remoteNames) {
  * @param {string} [labelsFile=".github/labels.json"] - Repo-relative or absolute path.
  * @param {{ requireAuth?: boolean }} [options] - When requireAuth is true (default), check gh auth first.
  * @returns {{ created: number, updated: number, deleted: number, failed: number, total: number }} Counts.
+ *
+ * @example
+ * syncLabels(".github/labels.json");
  */
 export function syncLabels(labelsFile = ".github/labels.json", options = {}) {
   const requireAuth = options.requireAuth !== false;

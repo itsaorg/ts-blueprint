@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 📁 Repository root
+ * 📁 Repository root printer
  * ---------------------------------------------------------------
- * Prints the directory that contains package.json.
+ * Walks upward from this file until `package.json` is found, then
+ * prints that directory. Useful when debugging “where is the repo?”
+ * from nested `.devenv` scripts. Pass `--json` for machine output.
  *
  * HOW TO RUN:
  *   node .devenv/lib/repo-root.mjs
@@ -16,9 +18,18 @@
  * ============================================================== */
 
 /**
- * Prints the walked-up repository root.
+ * CLI: prints the walked-up repository root.
+ *
+ * Uses {@link findRepoRoot} from `tool-lib.mjs`. Plain text by default;
+ * `{ "repoRoot": "…" }` when `--json` is present.
  *
  * @module repo-root
+ *
+ * @example
+ * // Plain:
+ * //   D:\GitHub\itsaorg\…\ts-blueprint
+ * // JSON:
+ * //   {"repoRoot":"D:\\GitHub\\…\\ts-blueprint"}
  */
 
 import { fileURLToPath } from "node:url";

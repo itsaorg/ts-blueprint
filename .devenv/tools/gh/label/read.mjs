@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🏷️ Read one label
+ * 🔍 Read one label
  * ---------------------------------------------------------------
- * Reads a GitHub label by listing labels and matching on name.
+ * Reads one repository label by listing all labels and matching
+ * on exact name. Read-only helper for debugging catalog entries.
+ * Returns null / skips when the name is missing remotely.
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/label/read.mjs --name "🐞 Bug Report"
+ *   node .devenv/tools/gh/label/read.mjs --name "bug"
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,6 +21,9 @@
  * Reads a single repository label.
  *
  * @module label-read
+ *
+ * @example
+ * //   node .devenv/tools/gh/label/read.mjs --name "bug"
  */
 
 import path from "node:path";
@@ -42,6 +48,12 @@ import { listLabels } from "./list.mjs";
  *
  * @param {string} name - Label name.
  * @returns {LabelFields | null} Fields when found.
+ *
+ * @example
+ * const label = readLabel("bug");
+ * if (!label) {
+ *   // Missing remotely.
+ * }
  */
 export function readLabel(name) {
   logGo(`Lookup label: ${name}`);

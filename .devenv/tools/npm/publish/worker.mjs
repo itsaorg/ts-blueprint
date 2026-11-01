@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 📤 Publish worker
+ * 🏭 Publish worker
  * ---------------------------------------------------------------
- * Publishes the current version when it is missing from npm.
+ * Non-interactive publish-if-missing for CI and release pipelines.
+ * Publishes the current `package.json` version only when that
+ * exact spec is absent from the registry. Adds `--provenance` on
+ * GitHub Actions. Safe to re-run: already-published versions skip.
  *
  * HOW TO RUN:
  *   npm run npm:publish:worker
+ *   node .devenv/tools/npm/publish/worker.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,6 +22,10 @@
  * npm script `npm:publish:worker` — non-interactive publish-if-missing (CI).
  *
  * @module npm-publish-worker
+ *
+ * @example
+ * // From CI / `npm:release` after a successful build:
+ * //   npm run npm:publish:worker
  */
 
 import {

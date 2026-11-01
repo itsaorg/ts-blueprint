@@ -3,11 +3,14 @@
 /** ==============================================================
  * 🟢 Node check
  * ---------------------------------------------------------------
- * Reports whether node is on PATH and whether the Node major
- * matches `.nvmrc` when present (else package.json engines.node).
+ * Reports whether `node` is on PATH and whether the running Node
+ * major matches `.nvmrc` when present (else `package.json`
+ * `engines.node`). Does not install or switch Node versions —
+ * it only detects mismatches so setup can soft-skip.
  *
  * HOW TO RUN:
  *   node .devenv/tools/node/isInstalled.mjs
+ *   npm run node:setup
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,7 +21,14 @@
 /**
  * Verifies that node is on PATH and matches the required major.
  *
+ * Prefer `.nvmrc` over `engines.node` when both exist. CLI exits 1
+ * when node is missing or the major does not match.
+ *
  * @module node-is-installed
+ *
+ * @example
+ * // CLI check (exits 1 when missing/wrong major):
+ * //   node .devenv/tools/node/isInstalled.mjs
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -84,6 +94,12 @@ export function requiredNodeMajor() {
  * Checks whether `node` is on PATH and matches the required major.
  *
  * @returns {NodeInstalledResult} Version and requirement outcome.
+ *
+ * @example
+ * const result = isNodeInstalled();
+ * if (!result.ok) {
+ *   // Missing node or wrong major — setup soft-skips.
+ * }
  */
 export function isNodeInstalled() {
   logGo("node --version");

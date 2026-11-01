@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 📦 Build
+ * 🏗️ Build
  * ---------------------------------------------------------------
- * Deletes dist/, then emits JavaScript and declarations.
+ * Fresh compile pipeline: runs `clean:dist` to remove the old
+ * `dist/` tree, then `tsc:emit` to write JavaScript and
+ * declarations. Use this when stale emit files would confuse
+ * packaging or consumers.
  *
  * HOW TO RUN:
  *   npm run tsc:build
+ *   node .devenv/deps/tsc/build.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,6 +22,10 @@
  * npm script `tsc:build` — `clean:dist` then `tsc:emit`.
  *
  * @module tsc-build
+ *
+ * @example
+ * // Clean dist/ then emit a fresh build:
+ * //   npm run tsc:build
  */
 
 import {

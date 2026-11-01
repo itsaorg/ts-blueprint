@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🏷️ Delete one label
+ * 🗑️ Delete one label
  * ---------------------------------------------------------------
- * Deletes a GitHub label with gh label delete --yes.
+ * Deletes one repository label via `gh label delete --yes` (no
+ * interactive confirm). Used by exclusive label sync to remove
+ * orphans not listed in the catalog. Destructive — prefer sync
+ * over ad-hoc deletes unless you know the name is unused.
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/label/delete.mjs --name "bug"
+ *   npm run gh:label:sync
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,6 +22,9 @@
  * Deletes a single repository label.
  *
  * @module label-delete
+ *
+ * @example
+ * //   node .devenv/tools/gh/label/delete.mjs --name "bug"
  */
 
 import { execFileSync } from "node:child_process";
@@ -38,6 +45,9 @@ import {
  *
  * @param {string} name - Label name.
  * @returns {"OK" | "FAILED"} Status token.
+ *
+ * @example
+ * deleteLabel("obsolete-label");
  */
 export function deleteLabel(name) {
   logGo(`gh label delete ${JSON.stringify(name)} --yes`);

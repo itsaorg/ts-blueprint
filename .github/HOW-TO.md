@@ -4,22 +4,22 @@ Command-by-command guides for this repository. Reference details (script table, 
 
 Use **`npm clean-install`** for lockfile installs (same command as the old `npm ci` alias). This repo uses the long name so install is not confused with continuous integration.
 
-## Table of contents
+## 🗂️ Table of contents
 
-- [What do I do before cloning?](#what-do-i-do-before-cloning)
-- [What do I do after cloning?](#what-do-i-do-after-cloning)
-- [What does `npm prepare` run?](#what-does-npm-prepare-run)
-- [When do I open which issue?](#when-do-i-open-which-issue)
-- [What do I do after the issue exists?](#what-do-i-do-after-the-issue-exists)
-- [Which Git Flow branch type do I use?](#which-git-flow-branch-type-do-i-use)
-- [How do I work day to day on a topic branch?](#how-do-i-work-day-to-day-on-a-topic-branch)
-- [How do I finish a feature or bugfix?](#how-do-i-finish-a-feature-or-bugfix)
-- [How do I finish a release?](#how-do-i-finish-a-release)
-- [How do I finish a hotfix?](#how-do-i-finish-a-hotfix)
-- [When do I use a support branch?](#when-do-i-use-a-support-branch)
-- [How do I skip hooks once?](#how-do-i-skip-hooks-once)
+- [🖥️ What do I do before cloning?](#️-what-do-i-do-before-cloning)
+- [🌱 What do I do after cloning?](#-what-do-i-do-after-cloning)
+- [🔄 What does `npm prepare` run?](#-what-does-npm-prepare-run)
+- [🎫 When do I open which issue?](#-when-do-i-open-which-issue)
+- [📌 What do I do after the issue exists?](#-what-do-i-do-after-the-issue-exists)
+- [🌲 Which Git Flow branch type do I use?](#-which-git-flow-branch-type-do-i-use)
+- [💻 How do I work day to day on a topic branch?](#-how-do-i-work-day-to-day-on-a-topic-branch)
+- [✨ How do I finish a feature or bugfix?](#-how-do-i-finish-a-feature-or-bugfix)
+- [📦 How do I finish a release?](#-how-do-i-finish-a-release)
+- [🚑 How do I finish a hotfix?](#-how-do-i-finish-a-hotfix)
+- [🛟 When do I use a support branch?](#-when-do-i-use-a-support-branch)
+- [⏭️ How do I skip hooks once?](#️-how-do-i-skip-hooks-once)
 
-## What do I do before cloning?
+## 🖥️ What do I do before cloning?
 
 Install tools on your machine first. On Windows, use Git Bash.
 
@@ -41,9 +41,9 @@ Node must match `.nvmrc` (this repo uses Node 26).
 git flow version
 ```
 
-Install Git Flow AVH if that command fails and you will start topic branches with `git flow`.
+If that fails and you will start topic branches with `git flow` or `.devenv/tools/git-flow/*`, install Git Flow AVH from the [AVH wiki](https://github.com/petervanderdoes/gitflow-avh/wiki/Installation), then re-run `git flow version`. Helpers print the same install guide when AVH is missing.
 
-## What do I do after cloning?
+## 🌱 What do I do after cloning?
 
 If this repository was created from the GitHub template, ensure **all branches** were included so `develop` exists on the remote (CI and Git Flow need it). If `develop` is missing:
 
@@ -79,7 +79,7 @@ npm run setup
 
 Use `npm install` only when a maintainer asked you to refresh `package-lock.json`.
 
-## What does `npm prepare` run?
+## 🔄 What does `npm prepare` run?
 
 `prepare` runs after every `npm clean-install` / `npm install`. Order:
 
@@ -92,7 +92,7 @@ Use `npm install` only when a maintainer asked you to refresh `package-lock.json
 
 The sequence is idempotent. It does not run `npm clean-install`, `npm run check`, or Trusted Publishing setup.
 
-## When do I open which issue?
+## 🎫 When do I open which issue?
 
 Blank issues are off. Use the GitHub chooser:
 
@@ -105,7 +105,7 @@ Blank issues are off. Use the GitHub chooser:
 
 The template applies the type label. Maintainers set Status, Priority, and Git Flow labels.
 
-## What do I do after the issue exists?
+## 📌 What do I do after the issue exists?
 
 Note the issue number (for example `42`).
 
@@ -123,7 +123,7 @@ node .devenv/tools/git-flow/feature/start.mjs 42-<slug>
 
 Or the raw CLI: `git flow feature start 42-<slug>`. Use `bugfix`, `release`, `hotfix`, or `support` modules under `.devenv/tools/git-flow/` when that type matches. Replace `<slug>` with a short kebab-case phrase.
 
-## Which Git Flow branch type do I use?
+## 🌲 Which Git Flow branch type do I use?
 
 | Type       | When                                   | Merges toward                                        |
 | ---------- | -------------------------------------- | ---------------------------------------------------- |
@@ -137,7 +137,7 @@ Or the raw CLI: `git flow feature start 42-<slug>`. Use `bugfix`, `release`, `ho
 
 Tags use the `v` prefix (for example `v0.1.0`).
 
-## How do I work day to day on a topic branch?
+## 💻 How do I work day to day on a topic branch?
 
 Edit under `src/` (and tests). Commit with Conventional Commits.
 
@@ -157,7 +157,7 @@ npm run check
 git push -u origin HEAD
 ```
 
-## How do I finish a feature or bugfix?
+## ✨ How do I finish a feature or bugfix?
 
 Use a **pull request**. Do **not** use `git flow feature finish` or `git flow bugfix finish` to merge locally — that bypasses GitHub review and CI.
 
@@ -193,7 +193,7 @@ git push origin --delete feature/<number>-<slug>
 
 Use `bugfix/` in those names when finishing a bugfix.
 
-## How do I finish a release?
+## 📦 How do I finish a release?
 
 ```bash
 git checkout develop
@@ -233,7 +233,7 @@ git push origin v<x.y.z>
 
 Bring `develop` up to date with a PR from `main` or the release branch into `develop` so integration stays current. Delete the local/remote `release/` branch after both lines have the release commits.
 
-## How do I finish a hotfix?
+## 🚑 How do I finish a hotfix?
 
 ```bash
 git checkout main
@@ -255,7 +255,7 @@ node .devenv/tools/git-flow/hotfix/finish.mjs
 
 After merge, tag `v<x.y.z>` on `main` if this cut ships. Open a second PR (or merge-back) so `develop` receives the same fix. Delete the hotfix branch after both merges.
 
-## When do I use a support branch?
+## 🛟 When do I use a support branch?
 
 Use `support/<name>` for a long-lived maintenance line that must stay separate from current `develop` work. Start it from the appropriate base commit, open PRs **into that support branch**, and do not mix unrelated `develop` features onto it.
 
@@ -263,7 +263,7 @@ Use `support/<name>` for a long-lived maintenance line that must stay separate f
 node .devenv/tools/git-flow/support/start.mjs <name> <base>
 ```
 
-## How do I skip hooks once?
+## ⏭️ How do I skip hooks once?
 
 Only with maintainer agreement:
 

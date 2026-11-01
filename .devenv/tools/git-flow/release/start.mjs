@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🚀 Git Flow release start
+ * 🚀 Release branch start
  * ---------------------------------------------------------------
- * Starts a release branch via git flow release start.
- * Pass <x.y.z>.
+ * Creates a new `release/<x.y.z>` branch from develop via
+ * `git flow release start`. Use when cutting a versioned release
+ * candidate. Requires Git Flow AVH on PATH.
  *
  * HOW TO RUN:
  *   node .devenv/tools/git-flow/release/start.mjs <x.y.z>
+ *   node .devenv/tools/git-flow/release/start.mjs 1.2.0
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -19,6 +21,9 @@
  * Starts a Git Flow release branch.
  *
  * @module git-flow-release-start
+ *
+ * @example
+ * //   node .devenv/tools/git-flow/release/start.mjs 1.2.0
  */
 
 import path from "node:path";
@@ -29,8 +34,11 @@ import { runGitFlow } from "../command.mjs";
 /**
  * Runs `git flow release start …`.
  *
- * @param {string[]} [args] - Arguments after start.
+ * @param {string[]} [args] - Arguments after start (`<x.y.z>`).
  * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * startRelease(["1.2.0"]);
  */
 export function startRelease(args = []) {
   if (args.length === 0) {

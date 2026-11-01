@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🔐 gh auth logout
+ * 🚪 gh auth logout
  * ---------------------------------------------------------------
- * Logs out of a GitHub account.
+ * Logs out of a GitHub account via `gh auth logout`. Useful when
+ * switching machines or clearing a shared session. Forwards extra
+ * CLI flags. Does not delete repositories or tokens on GitHub.com
+ * beyond what `gh` itself removes locally.
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/auth/logout.mjs
+ *   node .devenv/tools/gh/auth/logout.mjs --hostname github.com
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,6 +22,9 @@
  * Wraps `gh auth logout`.
  *
  * @module gh-auth-logout
+ *
+ * @example
+ * //   node .devenv/tools/gh/auth/logout.mjs
  */
 
 import { spawnSync } from "node:child_process";
@@ -38,6 +45,9 @@ import {
  *
  * @param {{ args?: string[] }} [options] - Extra argv after `gh auth logout`.
  * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * ghAuthLogout({ args: ["--hostname", "github.com"] });
  */
 export function ghAuthLogout(options = {}) {
   const args = ["auth", "logout", ...(options.args ?? [])];

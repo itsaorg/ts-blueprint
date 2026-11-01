@@ -3,10 +3,13 @@
 /** ==============================================================
  * 🚀 npm release
  * ---------------------------------------------------------------
- * Builds, then publishes with the worker.
+ * Local/CI release helper: run `tsc:build`, then hand off to
+ * `npm:publish:worker` (publish-if-missing). Stops on the first
+ * non-zero exit. Does not bump versions — use changesets for that.
  *
  * HOW TO RUN:
  *   npm run npm:release
+ *   node .devenv/tools/npm/publish/release.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,6 +21,10 @@
  * npm script `npm:release` — `tsc:build` then `npm:publish:worker`.
  *
  * @module npm-release
+ *
+ * @example
+ * // Build + publish-if-missing:
+ * //   npm run npm:release
  */
 
 import {

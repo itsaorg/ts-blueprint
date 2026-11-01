@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🐙 GitHub CLI setup
+ * 🧰 GitHub CLI setup
  * ---------------------------------------------------------------
- * Ensures gh is installed and authenticated, then syncs labels.
- * Idempotent. Skips auth/login and labels in CI when appropriate.
+ * One-shot entry for this repo's GitHub CLI workflow: ensure `gh`
+ * is on PATH, ensure auth when a TTY is available, then sync
+ * labels from the catalog. Idempotent. Soft-skips missing CLI /
+ * CI auth so `prepare` can continue. Never installs `gh` for you.
  *
  * HOW TO RUN:
- *   node .devenv/tools/gh/setup.mjs
  *   npm run gh:setup
+ *   node .devenv/tools/gh/setup.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -19,7 +21,14 @@
 /**
  * Orchestrates GitHub CLI auth and label sync for this repository.
  *
+ * Used by `prepare` and the `gh:setup` npm script.
+ *
  * @module gh-setup
+ *
+ * @example
+ * // From package.json: "gh:setup": "node .devenv/tools/gh/setup.mjs"
+ * import { setupGh } from "./setup.mjs";
+ * setupGh();
  */
 
 import path from "node:path";
@@ -34,6 +43,12 @@ import { syncLabels } from "./label/sync.mjs";
  * Runs gh install check, auth ensure, and label sync.
  *
  * @returns {{ ok: boolean, authenticated: boolean }} Outcome summary.
+ *
+ * @example
+ * const result = setupGh();
+ * if (!result.ok) {
+ *   // Missing gh — prepare soft-skips; CLI may still exit 1 here.
+ * }
  */
 export function setupGh() {
   const installed = isGhInstalled();

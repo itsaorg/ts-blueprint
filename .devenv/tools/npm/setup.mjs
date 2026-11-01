@@ -3,12 +3,13 @@
 /** ==============================================================
  * 📦 npm setup
  * ---------------------------------------------------------------
- * Ensures npm auth when appropriate. Does not run npm:trust.
- * Idempotent. Skips in CI.
+ * Ensures you are logged in to npm when a TTY is available. Runs
+ * `whoami`, then `login` only if needed. Skips entirely in CI.
+ * Does not run `npm:trust` or publish anything. Idempotent.
  *
  * HOW TO RUN:
- *   node .devenv/tools/npm/setup.mjs
  *   npm run npm:setup
+ *   node .devenv/tools/npm/setup.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -19,7 +20,15 @@
 /**
  * Orchestrates npm auth for this repository.
  *
+ * Soft-skips when already authenticated, in CI, or without a TTY.
+ * Used by `prepare` and the `npm:setup` npm script.
+ *
  * @module npm-setup
+ *
+ * @example
+ * // From package.json: "npm:setup": "node .devenv/tools/npm/setup.mjs"
+ * import { setupNpm } from "./setup.mjs";
+ * setupNpm();
  */
 
 import path from "node:path";
@@ -32,6 +41,12 @@ import { npmWhoami } from "./auth/whoami.mjs";
  * Runs npm auth ensure. Skips in CI.
  *
  * @returns {{ ok: boolean, authenticated: boolean }} Outcome summary.
+ *
+ * @example
+ * const result = setupNpm();
+ * if (!result.authenticated) {
+ *   // CI / no TTY / login declined — publishing may still fail later.
+ * }
  */
 export function setupNpm() {
   if (process.env.CI || process.env.GITHUB_ACTIONS) {

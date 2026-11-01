@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 👀 Preview pull request
+ * 👁️ Preview pull request
  * ---------------------------------------------------------------
- * Logs the gh pr create command and does not open the pull request.
+ * Dry-run wrapper: spawns `pr/create.mjs` with `DRY_RUN=true` so
+ * you can inspect the `gh pr create` command without opening a
+ * real PR. Safe to re-run; no GitHub writes.
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/pr/preview.mjs
+ *   DRY_RUN=true node .devenv/tools/gh/pr/create.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,6 +21,9 @@
  * Runs pull-request creation in dry-run mode.
  *
  * @module pr-preview
+ *
+ * @example
+ * //   node .devenv/tools/gh/pr/preview.mjs
  */
 
 import { spawnSync } from "node:child_process";

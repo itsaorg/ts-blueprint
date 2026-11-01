@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🚀 Setup
+ * 🚀 Setup (post-clone bootstrap)
  * ---------------------------------------------------------------
- * After clone or for a fresh working tree: git/node checks,
- * npm clean-install (runs prepare), then the CI gate.
+ * Full machine bootstrap after cloning: prove Git and Node are on
+ * PATH, run `npm clean-install` (which triggers `prepare`), then
+ * run the CI gate (`npm run check`). Prefer this over a bare
+ * prepare when onboarding a new working tree.
  *
  * HOW TO RUN:
  *   npm run setup
+ *   node .devenv/setup.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -19,6 +22,10 @@
  * Prepares a working tree with probes, clean-install, and check.
  *
  * @module setup
+ *
+ * @example
+ * import { runSetup } from "./setup.mjs";
+ * process.exit(runSetup());
  */
 
 import path from "node:path";
@@ -28,9 +35,14 @@ import { isGitInstalled } from "./tools/git/isInstalled.mjs";
 import { isNodeInstalled } from "./tools/node/isInstalled.mjs";
 
 /**
- * Runs setup: probes, clean-install, check.
+ * Runs setup: git/node probes → `npm clean-install` → `check`.
  *
- * @returns {number} Exit code.
+ * @returns {number} Process exit code (`0` on success).
+ *
+ * @example
+ * // After clone:
+ * //   git clone <url> && cd <dir> && npm run setup
+ * const code = runSetup();
  */
 export function runSetup() {
   boxBanner("🚀 setup");

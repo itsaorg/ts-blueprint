@@ -3,10 +3,15 @@
 /** ==============================================================
  * ⚠️ Deprecate reservation
  * ---------------------------------------------------------------
- * Deprecates a name-reservation publish.
+ * Marks the name-reservation publish (`0.0.0`) as deprecated once
+ * a real release (>=0.1.0) exists on npm. Confirms interactively
+ * unless you pass `-y`. Refuses when latest is still `0.0.0` so
+ * you do not deprecate the only published version by mistake.
  *
  * HOW TO RUN:
  *   npm run npm:deprecate:reservation
+ *   node .devenv/tools/npm/publish/deprecate-reservation.mjs
+ *   node .devenv/tools/npm/publish/deprecate-reservation.mjs -y
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,6 +23,10 @@
  * npm script `npm:deprecate:reservation` — deprecate name-reservation `0.0.0`.
  *
  * @module npm-deprecate-reservation
+ *
+ * @example
+ * // After a real release is on npm:
+ * //   npm run npm:deprecate:reservation
  */
 
 import {

@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🛟 Git Flow support start
+ * 🛟 Support branch start
  * ---------------------------------------------------------------
- * Starts a support branch via git flow support start.
- * Pass <name> <base>.
+ * Creates a long-lived `support/<name>` branch from `<base>` via
+ * `git flow support start`. Use for maintenance lines that track
+ * an older release. Requires Git Flow AVH on PATH. There is no
+ * publish/finish wrapper here — support branches are long-lived.
  *
  * HOW TO RUN:
  *   node .devenv/tools/git-flow/support/start.mjs <name> <base>
+ *   node .devenv/tools/git-flow/support/start.mjs 1.x v1.2.0
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -19,6 +22,9 @@
  * Starts a Git Flow support branch.
  *
  * @module git-flow-support-start
+ *
+ * @example
+ * //   node .devenv/tools/git-flow/support/start.mjs 1.x v1.2.0
  */
 
 import path from "node:path";
@@ -29,8 +35,11 @@ import { runGitFlow } from "../command.mjs";
 /**
  * Runs `git flow support start …`.
  *
- * @param {string[]} [args] - <name> <base>.
+ * @param {string[]} [args] - `<name> <base>` (both required).
  * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * startSupport(["1.x", "v1.2.0"]);
  */
 export function startSupport(args = []) {
   if (args.length < 2) {

@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🏷️ List repository labels
+ * 📋 List repository labels
  * ---------------------------------------------------------------
- * Lists GitHub labels with gh label list --json.
+ * Lists every label on the current repository via
+ * `gh label list --json`. Read-only. Used by sync/read to compare
+ * remote names against the local catalog. Requires `gh` auth.
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/label/list.mjs
+ *   npm run gh:label:sync
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,6 +21,9 @@
  * Lists all repository labels.
  *
  * @module label-list
+ *
+ * @example
+ * //   node .devenv/tools/gh/label/list.mjs
  */
 
 import { execFileSync } from "node:child_process";
@@ -33,6 +39,10 @@ import { boxBanner, boxDone, logError, logGo, logOk, repoRoot } from "../../../l
  * Lists every label on the current repository.
  *
  * @returns {LabelFields[]} Label fields.
+ *
+ * @example
+ * const labels = listLabels();
+ * console.log(labels.map((l) => l.name));
  */
 export function listLabels() {
   logGo("gh label list --json name,description,color");

@@ -3,10 +3,13 @@
 /** ==============================================================
  * 👀 Preview issue
  * ---------------------------------------------------------------
- * Logs the gh issue create command and does not create the issue.
+ * Dry-run wrapper: spawns `issue/create.mjs` with `DRY_RUN=true`
+ * so you can inspect the `gh issue create` command without
+ * opening a real issue. Safe to re-run; no GitHub writes.
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/issue/preview.mjs
+ *   DRY_RUN=true node .devenv/tools/gh/issue/create.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,6 +21,9 @@
  * Runs issue creation in dry-run mode.
  *
  * @module issue-preview
+ *
+ * @example
+ * //   node .devenv/tools/gh/issue/preview.mjs
  */
 
 import { spawnSync } from "node:child_process";

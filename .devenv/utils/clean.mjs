@@ -3,12 +3,15 @@
 /** ==============================================================
  * 🗑️ Clean path
  * ---------------------------------------------------------------
- * Deletes one file or folder under the repo root. Pass --recursive
- * to delete a folder and its contents. Refuses the repo root and .git.
+ * Deletes one file or folder under the repository root. Pass
+ * `--recursive` to remove a directory tree. Always refuses the
+ * repo root itself and anything under `.git` (safety guard).
+ * Used by `tsc:build` via `clean:dist` before emit.
  *
  * HOW TO RUN:
  *   npm run clean:dist
  *   node .devenv/utils/clean.mjs --path dist --recursive
+ *   node .devenv/utils/clean.mjs --path coverage --recursive
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -17,9 +20,13 @@
  * ============================================================== */
 
 /**
- * Deletes one repo-relative path. Recursion is opt-in.
+ * Deletes one repo-relative path. Recursion is opt-in via `--recursive`.
  *
  * @module clean
+ *
+ * @example
+ * // Remove build output before a fresh emit:
+ * //   node .devenv/utils/clean.mjs --path dist --recursive
  */
 
 import { rmSync } from "node:fs";

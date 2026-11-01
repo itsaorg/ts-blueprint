@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🌿 Git Flow PR-first finish helper
+ * 🔀 Git Flow PR-first finish
  * ---------------------------------------------------------------
- * Shared finish: push branch and open a pull request. Never runs
- * `git flow <type> finish` (that merges locally and skips CI).
+ * Shared finish for feature/bugfix/release/hotfix: push the
+ * current topic branch and open a pull request with `gh`. Never
+ * runs `git flow <type> finish` (that merges locally and skips CI).
+ * If `gh` is not authenticated, push still succeeds and you get
+ * manual `gh pr create` instructions.
  *
  * HOW TO RUN:
  *   imported by git-flow finish modules
+ *   (e.g. feature/finish.mjs → finishWithPullRequest)
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,7 +22,14 @@
 /**
  * PR-first finish for Git Flow topic branches.
  *
+ * Defaults: feature/bugfix → develop; release/hotfix → main.
+ * After merge, delete the topic branch locally and on origin.
+ *
  * @module git-flow-finish-pr
+ *
+ * @example
+ * import { finishWithPullRequest } from "../finish-pr.mjs";
+ * finishWithPullRequest("feature");
  */
 
 import { spawnSync } from "node:child_process";
@@ -34,7 +45,11 @@ import { isGitFlowInstalled } from "./isInstalled.mjs";
  * Default PR base for a Git Flow type.
  *
  * @param {FinishableType} type - Branch type.
- * @returns {string} Base branch.
+ * @returns {string} Base branch (`develop` or `main`).
+ *
+ * @example
+ * defaultBaseFor("feature"); // "develop"
+ * defaultBaseFor("hotfix");  // "main"
  */
 export function defaultBaseFor(type) {
   if (type === "feature" || type === "bugfix") {
@@ -60,9 +75,15 @@ function ghReady() {
 /**
  * PR-first finish: push current branch, create PR into base.
  *
+ * Requires the current branch to start with `<type>/`. Does **not**
+ * call `git flow <type> finish`.
+ *
  * @param {FinishableType} type - Branch type.
  * @param {{ base?: string }} [options] - Override PR base.
  * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * finishWithPullRequest("release", { base: "main" });
  */
 export function finishWithPullRequest(type, options = {}) {
   if (!isGitFlowInstalled().ok) {

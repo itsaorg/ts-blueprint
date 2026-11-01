@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🎨 Prettier write
+ * ✍️ Prettier write
  * ---------------------------------------------------------------
- * Rewrites formatting.
+ * Rewrites files in place to match `configs/.prettierrc.json`.
+ * Uses `configs/prettierignore` so generated and vendor paths stay
+ * untouched. Run locally when `prettier:check` reports drift.
  *
  * HOW TO RUN:
  *   npm run prettier:write
+ *   node .devenv/deps/prettier/write.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -15,9 +18,13 @@
  * ============================================================== */
 
 /**
- * npm script `prettier:write` — Rewrites formatting.
+ * npm script `prettier:write` — formats the repository in place.
  *
  * @module prettier-write
+ *
+ * @example
+ * // Apply Prettier across the tree:
+ * //   npm run prettier:write
  */
 
 import { forwardedArgs, runTool } from "../../lib/tool-lib.mjs";

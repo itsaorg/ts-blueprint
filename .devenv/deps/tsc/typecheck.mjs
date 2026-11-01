@@ -3,10 +3,14 @@
 /** ==============================================================
  * 🔎 Typecheck
  * ---------------------------------------------------------------
- * Runs tsc --noEmit.
+ * Runs the TypeScript compiler with `--noEmit` so types are
+ * checked without writing any `dist/` output. Forward extra flags
+ * after `--` if you need them. Prefer this in CI and local gates
+ * before a full emit.
  *
  * HOW TO RUN:
  *   npm run tsc:typecheck
+ *   node .devenv/deps/tsc/typecheck.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -15,9 +19,13 @@
  * ============================================================== */
 
 /**
- * npm script `tsc:typecheck` — Runs tsc --noEmit.
+ * npm script `tsc:typecheck` — type-checks via `tsc --noEmit`.
  *
  * @module tsc-typecheck
+ *
+ * @example
+ * // Fail fast on type errors without writing dist/:
+ * //   npm run tsc:typecheck
  */
 
 import { forwardedArgs, runTool } from "../../lib/tool-lib.mjs";

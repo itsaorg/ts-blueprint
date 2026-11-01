@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🩹 Git Flow hotfix start
+ * 🩹 Hotfix branch start
  * ---------------------------------------------------------------
- * Starts a hotfix branch via git flow hotfix start.
- * Pass <x.y.z>.
+ * Creates a new `hotfix/<x.y.z>` branch from main via
+ * `git flow hotfix start`. Use for urgent production fixes that
+ * need a patch release. Requires Git Flow AVH on PATH.
  *
  * HOW TO RUN:
  *   node .devenv/tools/git-flow/hotfix/start.mjs <x.y.z>
+ *   node .devenv/tools/git-flow/hotfix/start.mjs 1.2.1
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -19,6 +21,9 @@
  * Starts a Git Flow hotfix branch.
  *
  * @module git-flow-hotfix-start
+ *
+ * @example
+ * //   node .devenv/tools/git-flow/hotfix/start.mjs 1.2.1
  */
 
 import path from "node:path";
@@ -29,8 +34,11 @@ import { runGitFlow } from "../command.mjs";
 /**
  * Runs `git flow hotfix start …`.
  *
- * @param {string[]} [args] - Arguments after start.
+ * @param {string[]} [args] - Arguments after start (`<x.y.z>`).
  * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * startHotfix(["1.2.1"]);
  */
 export function startHotfix(args = []) {
   if (args.length === 0) {

@@ -3,10 +3,14 @@
 /** ==============================================================
  * 🏷️ Create or force-update one label
  * ---------------------------------------------------------------
- * Creates a GitHub label with gh label create --force.
+ * Creates (or force-updates) one repository label via
+ * `gh label create --force`. Used by label sync for each catalog
+ * entry. Requires `gh` auth with repo access. Pass `--name` and
+ * optionally `--color` / description flags from the CLI.
  *
  * HOW TO RUN:
- *   node .devenv/tools/gh/label/create.mjs --name "name" --color ededed
+ *   node .devenv/tools/gh/label/create.mjs --name "bug" --color d73a4a
+ *   npm run gh:label:sync
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,6 +22,9 @@
  * Creates or force-updates a single repository label.
  *
  * @module label-create
+ *
+ * @example
+ * //   node .devenv/tools/gh/label/create.mjs --name "bug" --color d73a4a
  */
 
 import { execFileSync } from "node:child_process";
@@ -38,6 +45,9 @@ import {
  *
  * @param {{ name: string, description?: string, color?: string }} label - Label fields.
  * @returns {"OK" | "FAILED"} Status token.
+ *
+ * @example
+ * createLabel({ name: "bug", color: "d73a4a", description: "Something broken" });
  */
 export function createLabel(label) {
   const name = label.name;

@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🚀 Git Flow release publish
+ * 🚀 Release branch publish
  * ---------------------------------------------------------------
- * Publishes a release branch via git flow release publish.
- * Omit the name to use the current branch.
+ * Pushes a release branch to origin via `git flow release publish`.
+ * Omit the version to publish the current `release/…` branch.
+ * Requires Git Flow AVH on PATH.
  *
  * HOW TO RUN:
+ *   node .devenv/tools/git-flow/release/publish.mjs
  *   node .devenv/tools/git-flow/release/publish.mjs [<x.y.z>]
  *
  * ---------------------------------------------------------------
@@ -19,6 +21,10 @@
  * Publishes a Git Flow release branch.
  *
  * @module git-flow-release-publish
+ *
+ * @example
+ * // On release/1.2.0:
+ * //   node .devenv/tools/git-flow/release/publish.mjs
  */
 
 import path from "node:path";
@@ -29,8 +35,12 @@ import { currentBranch, runGitFlow, stripTypePrefix } from "../command.mjs";
 /**
  * Runs `git flow release publish …`.
  *
- * @param {string[]} [args] - Optional name; defaults to current branch.
+ * @param {string[]} [args] - Optional version; defaults to current branch.
  * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * publishRelease();
+ * publishRelease(["1.2.0"]);
  */
 export function publishRelease(args = []) {
   let nameArgs = args;

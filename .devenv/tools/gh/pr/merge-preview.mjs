@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 👀 Preview merge
+ * 🪞 Preview merge
  * ---------------------------------------------------------------
- * Logs the gh pr merge command and does not merge.
+ * Dry-run wrapper: spawns `pr/merge.mjs` with `DRY_RUN=true` so
+ * you can inspect the `gh pr merge` command without merging.
+ * Safe to re-run; no GitHub writes.
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/pr/merge-preview.mjs
+ *   DRY_RUN=true node .devenv/tools/gh/pr/merge.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,6 +21,9 @@
  * Runs pull-request merge in dry-run mode.
  *
  * @module pr-merge-preview
+ *
+ * @example
+ * //   node .devenv/tools/gh/pr/merge-preview.mjs
  */
 
 import { spawnSync } from "node:child_process";

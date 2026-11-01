@@ -3,10 +3,14 @@
 /** ==============================================================
  * 📤 Publish local
  * ---------------------------------------------------------------
- * Interactive name reservation on npm.
+ * Interactively reserves the package name on the public npm
+ * registry (first publish, usually `0.0.0`). Idempotent: skips when
+ * the name already exists. Requires a TTY and npm auth. Confirms
+ * before publishing — never runs unattended.
  *
  * HOW TO RUN:
  *   npm run npm:publish:local
+ *   node .devenv/tools/npm/publish/local.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,6 +22,10 @@
  * npm script `npm:publish:local` — interactive, idempotent name reservation.
  *
  * @module npm-publish-local
+ *
+ * @example
+ * // Reserve the scoped name once (interactive confirm):
+ * //   npm run npm:publish:local
  */
 
 import {

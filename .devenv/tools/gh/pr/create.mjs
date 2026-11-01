@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🔀 Create pull request
+ * 📬 Create pull request
  * ---------------------------------------------------------------
- * Creates a pull request from .github/PR_BODY.md.
- * Set DRY_RUN=true to print the command and skip creation.
+ * Creates a pull request from `.github/PR_BODY.md` (override with
+ * `BODY_FILE`). Set `DRY_RUN=true` to print the `gh` command and
+ * skip opening the PR — use `pr/preview.mjs` for that path.
+ * Requires `gh` auth and a pushable branch.
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/pr/create.mjs
+ *   DRY_RUN=true node .devenv/tools/gh/pr/create.mjs
+ *   node .devenv/tools/gh/pr/preview.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -19,6 +23,11 @@
  * Creates a GitHub pull request from the PR body file.
  *
  * @module pr-create
+ *
+ * @example
+ * // Live create, or dry-run via preview:
+ * //   node .devenv/tools/gh/pr/create.mjs
+ * //   node .devenv/tools/gh/pr/preview.mjs
  */
 
 import { execFileSync } from "node:child_process";

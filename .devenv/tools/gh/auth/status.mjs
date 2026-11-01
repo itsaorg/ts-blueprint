@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🔐 gh auth status
+ * 📊 gh auth status
  * ---------------------------------------------------------------
- * Displays active GitHub account and authentication state.
+ * Displays the active GitHub account and authentication state via
+ * `gh auth status`. Read-only probe used by setup before login.
+ * Parses a login name when present. Forwards extra CLI flags.
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/auth/status.mjs
  *   node .devenv/tools/gh/auth/status.mjs --hostname github.com
+ *   npm run gh:setup
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -19,6 +22,9 @@
  * Wraps `gh auth status`.
  *
  * @module gh-auth-status
+ *
+ * @example
+ * //   node .devenv/tools/gh/auth/status.mjs
  */
 
 import { execFileSync } from "node:child_process";
@@ -43,6 +49,12 @@ import {
  *
  * @param {{ args?: string[] }} [options] - Extra argv after `gh auth status`.
  * @returns {GhAuthStatusResult} Status payload.
+ *
+ * @example
+ * const status = ghAuthStatus();
+ * if (status.ok) {
+ *   console.log(status.login);
+ * }
  */
 export function ghAuthStatus(options = {}) {
   const args = ["auth", "status", ...(options.args ?? [])];

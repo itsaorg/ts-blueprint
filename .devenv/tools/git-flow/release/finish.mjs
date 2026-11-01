@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🚀 Git Flow release finish
+ * 🚀 Release PR finish
  * ---------------------------------------------------------------
- * PR-first finish for a release branch.
- * Pushes the branch and opens a pull request into main.
- * Never runs git flow release finish.
+ * PR-first finish for a release branch: push, then open a pull
+ * request into `main` (override with `--base`). Never runs
+ * `git flow release finish` — merges stay on GitHub so CI runs.
+ * After merge, delete the topic branch locally and on origin.
  *
  * HOW TO RUN:
  *   node .devenv/tools/git-flow/release/finish.mjs
+ *   node .devenv/tools/git-flow/release/finish.mjs --base main
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -20,6 +22,10 @@
  * PR-first finish for a Git Flow release branch.
  *
  * @module git-flow-release-finish
+ *
+ * @example
+ * // On release/1.2.0:
+ * //   node .devenv/tools/git-flow/release/finish.mjs
  */
 
 import path from "node:path";
@@ -32,6 +38,10 @@ import { finishWithPullRequest } from "../finish-pr.mjs";
  *
  * @param {{ base?: string }} [options] - Optional base override.
  * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * finishRelease();
+ * finishRelease({ base: "main" });
  */
 export function finishRelease(options = {}) {
   return finishWithPullRequest("release", { base: options.base || "main" });

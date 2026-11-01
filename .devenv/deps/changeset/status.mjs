@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 📝 Changeset status
+ * 📋 Changeset status
  * ---------------------------------------------------------------
- * Shows pending Changesets.
+ * Prints pending Changesets in verbose form so you can see which
+ * packages would bump and why. Useful before `changeset:version`
+ * or opening a release PR. Extra flags forward after `--`.
  *
  * HOW TO RUN:
  *   npm run changeset:status
+ *   node .devenv/deps/changeset/status.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -15,9 +18,13 @@
  * ============================================================== */
 
 /**
- * npm script `changeset:status` — Shows pending Changesets.
+ * npm script `changeset:status` — lists pending Changesets.
  *
  * @module changeset-status
+ *
+ * @example
+ * // Inspect what would ship in the next version bump:
+ * //   npm run changeset:status
  */
 
 import { forwardedArgs, runTool } from "../../lib/tool-lib.mjs";

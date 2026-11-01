@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🌟 Git Flow feature start
+ * 🌟 Feature branch start
  * ---------------------------------------------------------------
- * Starts a feature branch via git flow feature start.
- * Pass <number>-<slug>.
+ * Creates a new `feature/<number>-<slug>` branch from develop via
+ * `git flow feature start`. Requires Git Flow AVH. Name the branch
+ * after the issue number plus a short slug so history stays clear.
  *
  * HOW TO RUN:
  *   node .devenv/tools/git-flow/feature/start.mjs <number>-<slug>
+ *   node .devenv/tools/git-flow/feature/start.mjs 42-add-login
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -19,6 +21,9 @@
  * Starts a Git Flow feature branch.
  *
  * @module git-flow-feature-start
+ *
+ * @example
+ * //   node .devenv/tools/git-flow/feature/start.mjs 42-add-login
  */
 
 import path from "node:path";
@@ -29,8 +34,11 @@ import { runGitFlow } from "../command.mjs";
 /**
  * Runs `git flow feature start …`.
  *
- * @param {string[]} [args] - Arguments after start.
+ * @param {string[]} [args] - Arguments after start (`<number>-<slug>`).
  * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * startFeature(["42-add-login"]);
  */
 export function startFeature(args = []) {
   if (args.length === 0) {

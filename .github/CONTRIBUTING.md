@@ -6,7 +6,7 @@
   - [🗂️ Table Of Contents](#️-table-of-contents)
   - [🧰 Prerequisites](#-prerequisites)
   - [📥 Clone and install](#-clone-and-install)
-  - [🌿 Start a branch](#-start-a-branch)
+  - [🌱 Start a branch](#-start-a-branch)
   - [🧪 Scripts](#-scripts)
   - [📁 `.devenv` layout](#-devenv-layout)
   - [🐶 Prepare lifecycle](#-prepare-lifecycle)
@@ -28,7 +28,7 @@ Install these before you clone:
 1. Git.
 2. Node.js at the version in `.nvmrc`. Check with `node -v`.
 3. npm (it ships with Node).
-4. Git Flow AVH, only if you will start feature branches the way this repo expects (`git flow version`).
+4. Git Flow AVH, only if you will start topic branches the way this repo expects. Install from the [AVH wiki](https://github.com/petervanderdoes/gitflow-avh/wiki/Installation), then verify with `git flow version`. On Windows, use Git Bash. Missing AVH soft-skips `git-flow:setup` during prepare; start/publish/finish helpers print an install guide and exit.
 
 You do not need a global TypeScript install. Project tools live in `devDependencies` and run through `npm run`.
 
@@ -48,7 +48,7 @@ npm clean-install
 
 `npm clean-install` installs the exact lockfile (same as the old `npm ci` alias; this repo uses the long name). It runs `prepare` (Husky, local commit template, gh/npm auth when possible, label sync). Do not use `npm install` for a clean checkout unless a maintainer asked you to refresh the lockfile.
 
-## 🌿 Start a branch
+## 🌱 Start a branch
 
 Branches follow Git Flow AVH: `main`, `develop`, `feature/`, `bugfix/`, `release/`, `hotfix/`, `support/`. Tags use the prefix `v`.
 

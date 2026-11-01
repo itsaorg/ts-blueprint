@@ -3,11 +3,15 @@
 /** ==============================================================
  * 🐛 Create issue
  * ---------------------------------------------------------------
- * Creates a GitHub issue from .github/ISSUE_BODY.md.
- * Set DRY_RUN=true to print the command and skip creation.
+ * Creates a GitHub issue from `.github/ISSUE_BODY.md` (override
+ * with `BODY_FILE`). Prompts for a title when interactive. Set
+ * `DRY_RUN=true` to print the `gh` command and skip creation —
+ * use `issue/preview.mjs` for that path.
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/issue/create.mjs
+ *   DRY_RUN=true node .devenv/tools/gh/issue/create.mjs
+ *   node .devenv/tools/gh/issue/preview.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -19,6 +23,11 @@
  * Creates a GitHub issue from the issue body file.
  *
  * @module issue-create
+ *
+ * @example
+ * // Live create, or dry-run via preview:
+ * //   node .devenv/tools/gh/issue/create.mjs
+ * //   node .devenv/tools/gh/issue/preview.mjs
  */
 
 import { execFileSync } from "node:child_process";

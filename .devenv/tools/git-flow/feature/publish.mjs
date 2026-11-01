@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🌟 Git Flow feature publish
+ * 🌟 Feature branch publish
  * ---------------------------------------------------------------
- * Publishes a feature branch via git flow feature publish.
- * Omit the name to use the current branch.
+ * Pushes a feature branch to origin via `git flow feature publish`
+ * so others (and CI) can see it. Omit the name to publish the
+ * current `feature/…` branch. Requires Git Flow AVH on PATH.
  *
  * HOW TO RUN:
+ *   node .devenv/tools/git-flow/feature/publish.mjs
  *   node .devenv/tools/git-flow/feature/publish.mjs [<name>]
  *
  * ---------------------------------------------------------------
@@ -19,6 +21,10 @@
  * Publishes a Git Flow feature branch.
  *
  * @module git-flow-feature-publish
+ *
+ * @example
+ * // On feature/42-add-login:
+ * //   node .devenv/tools/git-flow/feature/publish.mjs
  */
 
 import path from "node:path";
@@ -31,6 +37,10 @@ import { currentBranch, runGitFlow, stripTypePrefix } from "../command.mjs";
  *
  * @param {string[]} [args] - Optional name; defaults to current branch.
  * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * publishFeature(); // uses current feature/ branch
+ * publishFeature(["42-add-login"]);
  */
 export function publishFeature(args = []) {
   let nameArgs = args;

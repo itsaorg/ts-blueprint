@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🔧 Git check
+ * 🧰 Git check
  * ---------------------------------------------------------------
- * Reports whether git is on PATH.
+ * Reports whether `git` is on PATH and prints its version string.
+ * Does not install git and does not change any git config. Other
+ * git tools call this first so they can soft-skip when missing.
  *
  * HOW TO RUN:
  *   node .devenv/tools/git/isInstalled.mjs
+ *   npm run git:setup
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -15,9 +18,16 @@
  * ============================================================== */
 
 /**
- * Verifies that git is on PATH.
+ * Verifies that git is on PATH and returns its version.
+ *
+ * Used by `setupGit` / `git:setup` before configure. CLI exits 1
+ * when git is missing.
  *
  * @module git-is-installed
+ *
+ * @example
+ * // CLI check (exits 1 when missing):
+ * //   node .devenv/tools/git/isInstalled.mjs
  */
 
 import path from "node:path";
@@ -32,6 +42,12 @@ import { boxBanner, boxDone, logError, logGo, logOk, run } from "../../lib/tool-
  * Checks whether `git` is on PATH.
  *
  * @returns {GitInstalledResult} Version when installed.
+ *
+ * @example
+ * const result = isGitInstalled();
+ * if (!result.ok) {
+ *   // Soft-skip configure; or exit 1 from CLI main.
+ * }
  */
 export function isGitInstalled() {
   logGo("git --version");

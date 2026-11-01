@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 📜 Changelog
+ * 📜 Changelog generate
  * ---------------------------------------------------------------
- * Turns conventional-changelog output into Keep a Changelog sections
- * under ## [Unreleased]. Pass --preview to print without writing.
+ * Reads conventional commits via `conventional-changelog` and
+ * folds them into Keep a Changelog headings under
+ * `## [Unreleased]` in `CHANGELOG.md`. Pass `--preview` to print
+ * without writing. Optional `--release-count <n>` controls how
+ * many releases the generator walks (default `0` = unreleased).
  *
  * HOW TO RUN:
  *   node .devenv/deps/changelog/generate.mjs --preview
+ *   node .devenv/deps/changelog/generate.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -16,9 +20,13 @@
  * ============================================================== */
 
 /**
- * Updates CHANGELOG.md from conventional commits.
+ * Updates `CHANGELOG.md` from conventional commits (or previews them).
  *
  * @module changelog-generate
+ *
+ * @example
+ * // Preview categorized entries without touching the file:
+ * //   node .devenv/deps/changelog/generate.mjs --preview
  */
 
 import { readFileSync, writeFileSync } from "node:fs";

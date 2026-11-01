@@ -3,11 +3,14 @@
 /** ==============================================================
  * 🧰 Tool library
  * ---------------------------------------------------------------
- * Shared helpers for package-agnostic `.devenv` scripts: boxed emoji
- * logs, repo identity, command runners, and TTY prompts.
+ * Shared helpers for every package-agnostic `.devenv` script:
+ * boxed emoji logs, repo-root discovery, `package.json` identity,
+ * shell / npm runners, TTY yes/no prompts, and npm/GitHub helpers.
+ * Import from sibling tools — do not duplicate logging here.
  *
  * HOW TO RUN:
  *   node .devenv/lib/tool-lib.mjs
+ *   (most callers `import { … } from "../lib/tool-lib.mjs"`)
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -22,6 +25,11 @@
  * Safe to copy into any repo. The root is the nearest parent with `package.json`.
  *
  * @module tool-lib
+ *
+ * @example
+ * import { boxBanner, logOk, run } from "./tool-lib.mjs";
+ * boxBanner("demo");
+ * logOk(run("git --version", { inherit: false }));
  */
 
 import { execSync } from "node:child_process";
@@ -38,6 +46,9 @@ import { stdin as input, stdout as output } from "node:process";
  * @param {string} startDir - Directory to start from.
  * @returns {string} Absolute repository root.
  * @throws {Error} When no `package.json` exists above `startDir`.
+ *
+ * @example
+ * findRepoRoot(path.dirname(fileURLToPath(import.meta.url)));
  */
 export function findRepoRoot(startDir) {
   let dir = path.resolve(startDir);
@@ -278,13 +289,16 @@ export function boxDone(title) {
 }
 
 /**
- * Runs a CLI with boxed logs. Resolves the binary from `node_modules/.bin`.
+ * Runs a CLI with boxed logs via `npx --no -- <bin> …`.
  *
  * @param {object} options - Run options.
  * @param {string} options.label - Human label for logs (e.g. `tsc:typecheck`).
  * @param {string} options.bin - Binary name under `node_modules/.bin`.
  * @param {string[]} [options.args] - Arguments passed to the binary.
  * @returns {number} Process exit code.
+ *
+ * @example
+ * runTool({ label: "prettier:check", bin: "prettier", args: ["--check", "."] });
  */
 export function runTool(options) {
   const { label, bin, args = [] } = options;

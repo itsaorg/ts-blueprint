@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🌿 Git Flow command helper
+ * ⚙️ Git Flow command helper
  * ---------------------------------------------------------------
- * Shared runner for `git flow <type> <action> …`.
+ * Shared runner for `git flow <type> <action> …` plus small branch
+ * helpers (current name, strip type prefix, push with upstream).
+ * Requires Git Flow AVH on PATH. Used by feature/bugfix/release/
+ * hotfix/support start and publish modules — not for finish
+ * (finish is PR-first via `finish-pr.mjs`).
  *
  * HOW TO RUN:
  *   imported by git-flow branch modules
+ *   (no standalone CLI; use feature/start.mjs etc.)
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -15,9 +20,13 @@
  * ============================================================== */
 
 /**
- * Shared Git Flow CLI helpers.
+ * Shared Git Flow CLI helpers for start/publish wrappers.
  *
  * @module git-flow-command
+ *
+ * @example
+ * import { runGitFlow } from "../command.mjs";
+ * runGitFlow("feature", "start", ["42-add-login"]);
  */
 
 import { spawnSync } from "node:child_process";
@@ -31,10 +40,15 @@ import { isGitFlowInstalled } from "./isInstalled.mjs";
 /**
  * Runs `git flow <type> <action> …args`.
  *
+ * Checks AVH first; inherits stdio so git-flow prompts/output show.
+ *
  * @param {GitFlowType} type - Branch type.
  * @param {string} action - Subcommand (start, publish, …).
- * @param {string[]} [args] - Extra argv.
+ * @param {string[]} [args] - Extra argv after the action.
  * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * runGitFlow("release", "start", ["1.2.0"]);
  */
 export function runGitFlow(type, action, args = []) {
   const installed = isGitFlowInstalled();
@@ -56,6 +70,9 @@ export function runGitFlow(type, action, args = []) {
  * Current git branch name, or empty string.
  *
  * @returns {string} Branch name.
+ *
+ * @example
+ * const branch = currentBranch(); // "feature/42-add-login"
  */
 export function currentBranch() {
   try {
@@ -71,6 +88,9 @@ export function currentBranch() {
  * @param {GitFlowType} type - Branch type.
  * @param {string} branch - Full branch name.
  * @returns {string} Name without `type/` prefix.
+ *
+ * @example
+ * stripTypePrefix("feature", "feature/42-add-login"); // "42-add-login"
  */
 export function stripTypePrefix(type, branch) {
   const prefix = `${type}/`;
@@ -78,9 +98,12 @@ export function stripTypePrefix(type, branch) {
 }
 
 /**
- * Pushes the current branch to origin with upstream.
+ * Pushes the current branch to origin with upstream tracking.
  *
  * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * if (!pushCurrentBranch().ok) process.exit(1);
  */
 export function pushCurrentBranch() {
   const branch = currentBranch();

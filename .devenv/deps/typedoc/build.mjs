@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 📖 TypeDoc
+ * 📖 TypeDoc build
  * ---------------------------------------------------------------
- * Generates API docs, then syncs community docs into docs/media.
+ * Generates API documentation with TypeDoc (`configs/typedoc.json`),
+ * then copies selected community guides from `.github/` into
+ * `docs/media/` so the site can link them. Prefer `docify:typedoc`
+ * when you also want a clean `docs/` wipe first.
  *
  * HOW TO RUN:
  *   npm run typedoc:build
+ *   node .devenv/deps/typedoc/build.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -15,9 +19,13 @@
  * ============================================================== */
 
 /**
- * npm script `typedoc:build` — Generates API docs and media copies.
+ * npm script `typedoc:build` — API docs plus `docs/media` sync.
  *
  * @module typedoc
+ *
+ * @example
+ * // Build docs and refresh media copies:
+ * //   npm run typedoc:build
  */
 
 import { copyFileSync, mkdirSync } from "node:fs";
@@ -40,6 +48,9 @@ mkdirSync(mediaDir, { recursive: true });
 const copies = [
   [".github/CONTRIBUTING.md", "docs/media/CONTRIBUTING.md"],
   [".github/HOW-TO.md", "docs/media/HOW-TO.md"],
+  [".github/SECURITY.md", "docs/media/SECURITY.md"],
+  [".github/CODE_OF_CONDUCT.md", "docs/media/CODE_OF_CONDUCT.md"],
+  ["LICENSE", "docs/media/LICENSE"],
 ];
 logGo("Sync docs/media from .github");
 for (const [fromRel, toRel] of copies) {

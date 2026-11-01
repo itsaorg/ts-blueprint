@@ -3,11 +3,14 @@
 /** ==============================================================
  * 📐 Layout check
  * ---------------------------------------------------------------
- * Fails when a non-index TypeScript file declares more than one
- * principal (class, interface, enum, or type).
+ * Walks `src/` and fails when a non-`index.ts` file declares more
+ * than one principal (class, interface, enum, or type alias).
+ * Keeps source files focused and easy to navigate. Part of the
+ * `check` gate.
  *
  * HOW TO RUN:
  *   npm run layout:check
+ *   node .devenv/deps/layout/check.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -16,9 +19,13 @@
  * ============================================================== */
 
 /**
- * npm script `layout:check` — one principal per non-index `.ts` source file.
+ * npm script `layout:check` — one principal per non-index `.ts` file.
  *
  * @module layout-check
+ *
+ * @example
+ * // Ensure each source file stays single-purpose:
+ * //   npm run layout:check
  */
 
 import fs from "node:fs";
@@ -35,7 +42,7 @@ import {
 const principals = /^(?:export\s+)?(?:abstract\s+)?(?:class|interface|enum|type)\s+/gm;
 
 /**
- * Walks a directory for TypeScript sources.
+ * Walks a directory for TypeScript sources and flags multi-principal files.
  *
  * @param {string} dir - Absolute or repo-relative directory.
  * @returns {void}

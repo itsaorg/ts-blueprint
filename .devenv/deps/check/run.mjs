@@ -3,11 +3,14 @@
 /** ==============================================================
  * ✅ Check
  * ---------------------------------------------------------------
- * CI gate. Order: tsc:typecheck, prettier:check, eslint:lint,
- * layout:check, vitest:run, tsc:build. Does not collect coverage.
+ * Local/CI quality gate. Runs scripts in order: `tsc:typecheck`,
+ * `prettier:check`, `eslint:lint`, `layout:check`, `vitest:run`,
+ * then `tsc:build`. Stops at the first failure. Does not collect
+ * coverage — use `vitest:coverage` separately when you need it.
  *
  * HOW TO RUN:
  *   npm run check
+ *   node .devenv/deps/check/run.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -16,9 +19,13 @@
  * ============================================================== */
 
 /**
- * npm script `check` — CI gate (no vitest:coverage).
+ * npm script `check` — full CI-style gate (no coverage).
  *
  * @module check
+ *
+ * @example
+ * // Run the same gate CI expects before pushing:
+ * //   npm run check
  */
 
 import {

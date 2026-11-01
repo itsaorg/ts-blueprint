@@ -5,11 +5,11 @@
 - [Security](#security)
   - [🗂️ Table Of Contents](#️-table-of-contents)
   - [🛡️ What this covers](#️-what-this-covers)
-  - [📌 Supported versions](#-supported-versions)
+  - [📊 Supported versions](#-supported-versions)
   - [🔒 Report a vulnerability in private](#-report-a-vulnerability-in-private)
   - [📝 What to include](#-what-to-include)
   - [🚫 What not to post in public](#-what-not-to-post-in-public)
-  - [🛠️ What maintainers do next](#️-what-maintainers-do-next)
+  - [🔧 What maintainers do next](#-what-maintainers-do-next)
   - [🧭 Out of scope](#-out-of-scope)
 
 ## 🛡️ What this covers
@@ -18,7 +18,7 @@ This policy is only for this repository and the npm package named in `package.js
 
 A vulnerability is a flaw that lets someone break confidentiality, integrity, or availability of this package or of a project that depends on it. Ordinary bugs and feature ideas are not security reports.
 
-## 📌 Supported versions
+## 📊 Supported versions
 
 | Version                            | Supported |
 | ---------------------------------- | --------- |
@@ -64,7 +64,7 @@ You do not need a finished exploit. A clear description is enough to start.
 
 Public bug and feature templates are for non-security work. See `.github/ISSUE_TEMPLATE/`.
 
-## 🛠️ What maintainers do next
+## 🔧 What maintainers do next
 
 1. Read the private report and reply to confirm it was received.
 2. Reproduce the problem and decide severity.

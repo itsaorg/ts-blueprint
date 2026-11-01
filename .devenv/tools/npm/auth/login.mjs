@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🔐 npm login
+ * 🔑 npm login
  * ---------------------------------------------------------------
- * Logs in to npm. Skips in CI or without a TTY.
+ * Runs interactive `npm login` so publish scripts can talk to the
+ * registry. Soft-skips in CI or when stdin is not a TTY (no prompt
+ * possible). Does not change package.json or publish anything.
  *
  * HOW TO RUN:
  *   node .devenv/tools/npm/auth/login.mjs
+ *   npm run npm:setup
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -15,9 +18,12 @@
  * ============================================================== */
 
 /**
- * Wraps `npm login`.
+ * Wraps `npm login` with CI / non-TTY guards.
  *
  * @module npm-auth-login
+ *
+ * @example
+ * //   node .devenv/tools/npm/auth/login.mjs
  */
 
 import path from "node:path";
@@ -41,6 +47,12 @@ import {
  * Runs `npm login` when interactive and not in CI.
  *
  * @returns {NpmLoginResult} Outcome.
+ *
+ * @example
+ * const result = npmLogin();
+ * if (!result.ok && result.reason === "no-tty") {
+ *   // Soft-skip — caller may continue without auth.
+ * }
  */
 export function npmLogin() {
   if (process.env.CI || process.env.GITHUB_ACTIONS) {

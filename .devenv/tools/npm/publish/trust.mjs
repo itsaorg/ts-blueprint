@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🔐 npm trust
+ * 🛡️ npm trust
  * ---------------------------------------------------------------
- * Links Trusted Publishing to the release workflow.
+ * Links npm Trusted Publishing (OIDC) to this repo's GitHub
+ * Actions release workflow (`release.yml`). Confirms interactively
+ * unless you pass `-y`. Requires npm auth and a detectable
+ * owner/repo. Does not publish a package by itself.
  *
  * HOW TO RUN:
  *   npm run npm:trust
+ *   node .devenv/tools/npm/publish/trust.mjs
+ *   node .devenv/tools/npm/publish/trust.mjs -y
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,6 +23,11 @@
  * npm script `npm:trust` — configure npm Trusted Publishing for GitHub Actions.
  *
  * @module npm-trust
+ *
+ * @example
+ * // Interactive (confirm) or non-interactive with -y:
+ * //   npm run npm:trust
+ * //   node .devenv/tools/npm/publish/trust.mjs -y
  */
 
 import {

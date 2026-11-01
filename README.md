@@ -1,29 +1,34 @@
 # @itsaorg/ts-blueprint
 
+[![CI](https://github.com/itsaorg/ts-blueprint/actions/workflows/ci.yml/badge.svg)](https://github.com/itsaorg/ts-blueprint/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-26-brightgreen.svg)](https://nodejs.org/)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-0A66C2.svg)](https://itsaorg.github.io/ts-blueprint/)
+
 GitHub template for Itsa TypeScript libraries. Clone from this repository, rename the package identity, then start product code under `src/`.
 
 ## 🗂️ Table Of Contents
 
 - [@itsaorg/ts-blueprint](#itsaorgts-blueprint)
   - [🗂️ Table Of Contents](#️-table-of-contents)
-  - [Requirements](#requirements)
-  - [Use this template](#use-this-template)
-  - [Rename checklist](#rename-checklist)
-  - [Template maintainers (remaining)](#template-maintainers-remaining)
-  - [Layout](#layout)
-  - [Key scripts](#key-scripts)
-  - [Links](#links)
+  - [📋 Requirements](#-requirements)
+  - [🏗️ Use this template](#️-use-this-template)
+  - [✏️ Rename checklist](#️-rename-checklist)
+  - [🧱 Template maintainers (remaining)](#-template-maintainers-remaining)
+  - [🗺️ Layout](#️-layout)
+  - [⌨️ Key scripts](#️-key-scripts)
+  - [🔗 Links](#-links)
 
-## Requirements
+## 📋 Requirements
 
 - Node.js 26 (see `.nvmrc`)
 - npm (ships with Node)
 - Git
-- Git Flow AVH, if you start branches with `git flow`
+- Git Flow AVH, if you start topic branches with `git flow` or the `.devenv/tools/git-flow/*` helpers
 
-On Windows, use Git Bash. Install Node from [nodejs.org](https://nodejs.org/), nvm-windows, or fnm. Install Git Flow AVH from the [AVH wiki](https://github.com/petervanderdoes/gitflow-avh/wiki/Installation).
+On Windows, use Git Bash. Install Node from [nodejs.org](https://nodejs.org/), nvm-windows, or fnm. Install Git Flow AVH from the [AVH wiki](https://github.com/petervanderdoes/gitflow-avh/wiki/Installation), then verify with `git flow version`. Prepare soft-skips init when AVH is missing; start/publish/finish helpers print the same install guide and exit.
 
-## Use this template
+## 🏗️ Use this template
 
 1. Open [itsaorg/ts-blueprint](https://github.com/itsaorg/ts-blueprint) on GitHub.
 2. Click **Use this template** → **Create a new repository**.
@@ -52,7 +57,7 @@ npm run setup
 
 `npm clean-install` runs `prepare` (Husky, commit template, gh/npm auth when possible, label sync, git-flow init with tag prefix `v`). Prefer `npm clean-install` for a clean checkout (long form of the old `npm ci` alias). Use `npm install` only when refreshing the lockfile.
 
-## Rename checklist
+## ✏️ Rename checklist
 
 Replace blueprint identity with your package before you publish or open Trusted Publishing:
 
@@ -71,7 +76,7 @@ Replace blueprint identity with your package before you publish or open Trusted 
 
 Do not change portable paths under `.devenv` or the community policy files under `.github/` unless you mean to fork the toolchain.
 
-## Template maintainers (remaining)
+## 🧱 Template maintainers (remaining)
 
 P0 gaps for this pass are closed (git-flow init flags, `develop` docs, `docs/media` sync, rename-safe consumer test). Still open for a sharper org blueprint:
 
@@ -81,7 +86,7 @@ P0 gaps for this pass are closed (git-flow init flags, `develop` docs, `docs/med
 - Document release/hotfix develop back-merge as a mandatory second PR
 - Optional: CODEOWNERS, FUNDING/SUPPORT, devenv unit tests
 
-## Layout
+## 🗺️ Layout
 
 ```text
 .devenv/            Script library (prepare, setup, lib, tools, deps, utils)
@@ -95,7 +100,7 @@ tests/              Consumer and unit tests
 
 `docs/` is the TypeDoc GitHub Pages site. Regenerate with `npm run docify:typedoc` and commit when the public API changes.
 
-## Key scripts
+## ⌨️ Key scripts
 
 | Script                   | Purpose                                                             |
 | ------------------------ | ------------------------------------------------------------------- |
@@ -107,7 +112,7 @@ tests/              Consumer and unit tests
 
 The full script table and prepare/setup order live in [CONTRIBUTING](.github/CONTRIBUTING.md). Tutorials are in [HOW-TO](.github/HOW-TO.md).
 
-## Links
+## 🔗 Links
 
 - [Contributing](.github/CONTRIBUTING.md)
 - [How-to FAQ](.github/HOW-TO.md)

@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🔐 gh auth setup-git
+ * 🔗 gh auth setup-git
  * ---------------------------------------------------------------
- * Configures git to use GitHub CLI as a credential helper.
+ * Configures git to use the GitHub CLI as a credential helper
+ * (`gh auth setup-git`). Helps `git push` / `git pull` reuse your
+ * `gh` login. Forwards extra CLI flags. Requires `gh` auth already.
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/auth/setup-git.mjs
@@ -18,6 +20,9 @@
  * Wraps `gh auth setup-git`.
  *
  * @module gh-auth-setup-git
+ *
+ * @example
+ * //   node .devenv/tools/gh/auth/setup-git.mjs
  */
 
 import { spawnSync } from "node:child_process";
@@ -38,6 +43,9 @@ import {
  *
  * @param {{ args?: string[] }} [options] - Extra argv after `gh auth setup-git`.
  * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * ghAuthSetupGit();
  */
 export function ghAuthSetupGit(options = {}) {
   const args = ["auth", "setup-git", ...(options.args ?? [])];

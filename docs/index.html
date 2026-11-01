@@ -9,31 +9,35 @@
 <div class="tsd-page-title">
 <h1>@itsaorg/ts-blueprint</h1></div>
 <div class="tsd-panel tsd-typography"><h1 id="itsaorgts-blueprint" class="tsd-anchor-link">@itsaorg/ts-blueprint<a href="#itsaorgts-blueprint" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p><a href="https://github.com/itsaorg/ts-blueprint/actions/workflows/ci.yml"><img src="https://github.com/itsaorg/ts-blueprint/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+<a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License"></a>
+<a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-26-brightgreen.svg" alt="Node"></a>
+<a href="https://itsaorg.github.io/ts-blueprint/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-0A66C2.svg" alt="Docs"></a></p>
 <p>GitHub template for Itsa TypeScript libraries. Clone from this repository, rename the package identity, then start product code under <code>src/</code>.</p>
 <h2 id="🗂️-table-of-contents" class="tsd-anchor-link">🗂️ Table Of Contents<a href="#🗂️-table-of-contents" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <ul>
 <li><a href="#itsaorgts-blueprint">@itsaorg/ts-blueprint</a>
 <ul>
 <li><a href="#%EF%B8%8F-table-of-contents">🗂️ Table Of Contents</a></li>
-<li><a href="#requirements">Requirements</a></li>
-<li><a href="#use-this-template">Use this template</a></li>
-<li><a href="#rename-checklist">Rename checklist</a></li>
-<li><a href="#template-maintainers-remaining">Template maintainers (remaining)</a></li>
-<li><a href="#layout">Layout</a></li>
-<li><a href="#key-scripts">Key scripts</a></li>
-<li><a href="#links">Links</a></li>
+<li><a href="#-requirements">📋 Requirements</a></li>
+<li><a href="#%EF%B8%8F-use-this-template">🏗️ Use this template</a></li>
+<li><a href="#%EF%B8%8F-rename-checklist">✏️ Rename checklist</a></li>
+<li><a href="#-template-maintainers-remaining">🧱 Template maintainers (remaining)</a></li>
+<li><a href="#%EF%B8%8F-layout">🗺️ Layout</a></li>
+<li><a href="#%EF%B8%8F-key-scripts">⌨️ Key scripts</a></li>
+<li><a href="#-links">🔗 Links</a></li>
 </ul>
 </li>
 </ul>
-<h2 id="requirements" class="tsd-anchor-link">Requirements<a href="#requirements" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h2 id="📋-requirements" class="tsd-anchor-link">📋 Requirements<a href="#📋-requirements" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <ul>
 <li>Node.js 26 (see <code>.nvmrc</code>)</li>
 <li>npm (ships with Node)</li>
 <li>Git</li>
-<li>Git Flow AVH, if you start branches with <code>git flow</code></li>
+<li>Git Flow AVH, if you start topic branches with <code>git flow</code> or the <code>.devenv/tools/git-flow/*</code> helpers</li>
 </ul>
-<p>On Windows, use Git Bash. Install Node from <a href="https://nodejs.org/">nodejs.org</a>, nvm-windows, or fnm. Install Git Flow AVH from the <a href="https://github.com/petervanderdoes/gitflow-avh/wiki/Installation">AVH wiki</a>.</p>
-<h2 id="use-this-template" class="tsd-anchor-link">Use this template<a href="#use-this-template" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>On Windows, use Git Bash. Install Node from <a href="https://nodejs.org/">nodejs.org</a>, nvm-windows, or fnm. Install Git Flow AVH from the <a href="https://github.com/petervanderdoes/gitflow-avh/wiki/Installation">AVH wiki</a>, then verify with <code>git flow version</code>. Prepare soft-skips init when AVH is missing; start/publish/finish helpers print the same install guide and exit.</p>
+<h2 id="🏗️-use-this-template" class="tsd-anchor-link">🏗️ Use this template<a href="#🏗️-use-this-template" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <ol>
 <li>Open <a href="https://github.com/itsaorg/ts-blueprint">itsaorg/ts-blueprint</a> on GitHub.</li>
 <li>Click <strong>Use this template</strong> → <strong>Create a new repository</strong>.</li>
@@ -54,7 +58,7 @@
 </code><button type="button">Copy</button></pre>
 
 <p><code>npm clean-install</code> runs <code>prepare</code> (Husky, commit template, gh/npm auth when possible, label sync, git-flow init with tag prefix <code>v</code>). Prefer <code>npm clean-install</code> for a clean checkout (long form of the old <code>npm ci</code> alias). Use <code>npm install</code> only when refreshing the lockfile.</p>
-<h2 id="rename-checklist" class="tsd-anchor-link">Rename checklist<a href="#rename-checklist" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h2 id="✏️-rename-checklist" class="tsd-anchor-link">✏️ Rename checklist<a href="#✏️-rename-checklist" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>Replace blueprint identity with your package before you publish or open Trusted Publishing:</p>
 <table>
 <thead>
@@ -107,7 +111,7 @@
 </tbody>
 </table>
 <p>Do not change portable paths under <code>.devenv</code> or the community policy files under <code>.github/</code> unless you mean to fork the toolchain.</p>
-<h2 id="template-maintainers-remaining" class="tsd-anchor-link">Template maintainers (remaining)<a href="#template-maintainers-remaining" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h2 id="🧱-template-maintainers-remaining" class="tsd-anchor-link">🧱 Template maintainers (remaining)<a href="#🧱-template-maintainers-remaining" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>P0 gaps for this pass are closed (git-flow init flags, <code>develop</code> docs, <code>docs/media</code> sync, rename-safe consumer test). Still open for a sharper org blueprint:</p>
 <ul>
 <li>Decide Changesets vs tag-only release and finish one path</li>
@@ -116,7 +120,7 @@
 <li>Document release/hotfix develop back-merge as a mandatory second PR</li>
 <li>Optional: CODEOWNERS, FUNDING/SUPPORT, devenv unit tests</li>
 </ul>
-<h2 id="layout" class="tsd-anchor-link">Layout<a href="#layout" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h2 id="🗺️-layout" class="tsd-anchor-link">🗺️ Layout<a href="#🗺️-layout" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <pre><code class="text">.devenv/            Script library (prepare, setup, lib, tools, deps, utils)
 .husky/             Git hooks (Husky)
 .github/            Issues, PRs, workflows, labels, CONTRIBUTING
@@ -127,7 +131,7 @@ tests/              Consumer and unit tests
 </code><button type="button">Copy</button></pre>
 
 <p><code>docs/</code> is the TypeDoc GitHub Pages site. Regenerate with <code>npm run docify:typedoc</code> and commit when the public API changes.</p>
-<h2 id="key-scripts" class="tsd-anchor-link">Key scripts<a href="#key-scripts" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h2 id="⌨️-key-scripts" class="tsd-anchor-link">⌨️ Key scripts<a href="#⌨️-key-scripts" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <table>
 <thead>
 <tr>
@@ -159,7 +163,7 @@ tests/              Consumer and unit tests
 </tbody>
 </table>
 <p>The full script table and prepare/setup order live in <a href="media/CONTRIBUTING.md">CONTRIBUTING</a>. Tutorials are in <a href="media/HOW-TO.md">HOW-TO</a>.</p>
-<h2 id="links" class="tsd-anchor-link">Links<a href="#links" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h2 id="🔗-links" class="tsd-anchor-link">🔗 Links<a href="#🔗-links" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <ul>
 <li><a href="media/CONTRIBUTING.md">Contributing</a></li>
 <li><a href="media/HOW-TO.md">How-to FAQ</a></li>
@@ -185,13 +189,13 @@ tests/              Consumer and unit tests
 <div class="tsd-accordion-details"><a href="#itsaorgts-blueprint"><span>@itsaorg/ts-<wbr/>blueprint</span></a>
 <ul>
 <li><a href="#🗂️-table-of-contents"><span>🗂️ <wbr/>Table <wbr/>Of <wbr/>Contents</span></a></li>
-<li><a href="#requirements"><span>Requirements</span></a></li>
-<li><a href="#use-this-template"><span>Use this template</span></a></li>
-<li><a href="#rename-checklist"><span>Rename checklist</span></a></li>
-<li><a href="#template-maintainers-remaining"><span>Template maintainers (remaining)</span></a></li>
-<li><a href="#layout"><span>Layout</span></a></li>
-<li><a href="#key-scripts"><span>Key scripts</span></a></li>
-<li><a href="#links"><span>Links</span></a></li></ul></div></details></div>
+<li><a href="#📋-requirements"><span>📋 <wbr/>Requirements</span></a></li>
+<li><a href="#🏗️-use-this-template"><span>🏗️ <wbr/>Use this template</span></a></li>
+<li><a href="#✏️-rename-checklist"><span>✏️ <wbr/>Rename checklist</span></a></li>
+<li><a href="#🧱-template-maintainers-remaining"><span>🧱 <wbr/>Template maintainers (remaining)</span></a></li>
+<li><a href="#🗺️-layout"><span>🗺️ <wbr/>Layout</span></a></li>
+<li><a href="#⌨️-key-scripts"><span>⌨️ <wbr/>Key scripts</span></a></li>
+<li><a href="#🔗-links"><span>🔗 <wbr/>Links</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="modules.html">@itsaorg/ts-blueprint</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">

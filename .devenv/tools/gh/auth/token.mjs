@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🔐 gh auth token
+ * 🎫 gh auth token
  * ---------------------------------------------------------------
- * Prints the authentication token gh uses for a host and account.
+ * Prints the authentication token `gh` uses for a host/account.
+ * Treat the output as a secret — do not commit or paste into
+ * tickets. Forwards extra CLI flags. Prefer OIDC / Trusted
+ * Publishing in CI instead of copying tokens by hand.
  *
  * HOW TO RUN:
  *   node .devenv/tools/gh/auth/token.mjs
+ *   node .devenv/tools/gh/auth/token.mjs --hostname github.com
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,6 +22,10 @@
  * Wraps `gh auth token`.
  *
  * @module gh-auth-token
+ *
+ * @example
+ * // Print token for scripting (keep stdout private):
+ * //   node .devenv/tools/gh/auth/token.mjs
  */
 
 import { execFileSync } from "node:child_process";
@@ -38,6 +46,12 @@ import {
  *
  * @param {{ args?: string[] }} [options] - Extra argv after `gh auth token`.
  * @returns {{ ok: true, token: string } | { ok: false }} Outcome.
+ *
+ * @example
+ * const result = ghAuthToken();
+ * if (result.ok) {
+ *   // Use result.token carefully — never log it.
+ * }
  */
 export function ghAuthToken(options = {}) {
   const args = ["auth", "token", ...(options.args ?? [])];

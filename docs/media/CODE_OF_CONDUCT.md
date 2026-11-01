@@ -6,7 +6,7 @@
   - [🗂️ Table Of Contents](#️-table-of-contents)
   - [🤝 Expected behavior](#-expected-behavior)
   - [⛔ Unacceptable behavior](#-unacceptable-behavior)
-  - [📍 Where this applies](#-where-this-applies)
+  - [🌐 Where this applies](#-where-this-applies)
   - [📣 How to report](#-how-to-report)
   - [⚖️ What maintainers may do](#️-what-maintainers-may-do)
 
@@ -31,7 +31,7 @@ The following are not accepted in this repository:
 
 A strong technical critique is fine. A critique of the person is not.
 
-## 📍 Where this applies
+## 🌐 Where this applies
 
 This policy covers every public and private space for this repository:
 

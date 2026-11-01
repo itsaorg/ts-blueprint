@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🔧 Git configure
+ * 📝 Git configure
  * ---------------------------------------------------------------
- * Sets this repo's local commit.template to the project template.
- * Does not set user.name or user.email. Idempotent.
+ * Points this repo's local `commit.template` at
+ * `.github/COMMIT_TEMPLATE/commit.txt`. Never sets `user.name` or
+ * `user.email` (those stay personal). Idempotent: skips when the
+ * template already matches. Requires git on PATH.
  *
  * HOW TO RUN:
  *   node .devenv/tools/git/configure.mjs
+ *   npm run git:setup
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -16,9 +19,15 @@
  * ============================================================== */
 
 /**
- * Configures local git commit.template for this repository.
+ * Configures local git `commit.template` for this repository.
+ *
+ * Local-only (`git config --local`). Safe to re-run; no-ops when
+ * already pointed at the project template.
  *
  * @module git-configure
+ *
+ * @example
+ * //   node .devenv/tools/git/configure.mjs
  */
 
 import path from "node:path";
@@ -37,9 +46,15 @@ import {
 const TEMPLATE = ".github/COMMIT_TEMPLATE/commit.txt";
 
 /**
- * Sets local commit.template when needed.
+ * Sets local `commit.template` when needed.
  *
  * @returns {{ ok: boolean, skipped?: boolean }} Outcome.
+ *
+ * @example
+ * const result = configureGit();
+ * if (result.skipped) {
+ *   // Already configured.
+ * }
  */
 export function configureGit() {
   const templatePath = path.join(repoRoot, TEMPLATE);
