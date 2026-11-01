@@ -63,10 +63,10 @@ git pull origin develop
 ```
 
 ```bash
-git flow feature start <number>-<slug>
+node .devenv/tools/git-flow/feature/start.mjs <number>-<slug>
 ```
 
-Replace `<number>` with the issue number and `<slug>` with a few words, for example `git flow feature start 12-page-address`. Finish topic branches with a pull request — see [HOW-TO.md](HOW-TO.md).
+Replace `<number>` with the issue number and `<slug>` with a few words, for example `12-page-address`. Finish topic branches with a pull request via `node .devenv/tools/git-flow/feature/finish.mjs` (never `git flow feature finish`) — see [HOW-TO.md](HOW-TO.md).
 
 Put product types under `src/`. Do not add a root `types/` directory. The published entry is `dist/`.
 

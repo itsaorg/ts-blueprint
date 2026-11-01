@@ -45,6 +45,16 @@ Install Git Flow AVH if that command fails and you will start topic branches wit
 
 ## What do I do after cloning?
 
+If this repository was created from the GitHub template, ensure **all branches** were included so `develop` exists on the remote (CI and Git Flow need it). If `develop` is missing:
+
+```bash
+git fetch origin
+git checkout develop
+git push -u origin develop
+```
+
+Then clone (or continue in an existing clone):
+
 ```bash
 git clone <repository HTTPS URL>
 ```
