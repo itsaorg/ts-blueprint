@@ -26,6 +26,9 @@ runs:
         node-version-file: .nvmrc
         # 💾 cache: enable npm dependency caching keyed by lockfile
         cache: npm
+        # 📦 registry-url: required for npm Trusted Publishing (OIDC) on release
+        registry-url: https://registry.npmjs.org
+
     # 📦 npm clean-install: clean install from package-lock.json (fails if out of sync)
     - run: npm clean-install
       # 🐚 shell: required for composite run steps

@@ -4,8 +4,9 @@
  * 📋 Changeset status
  * ---------------------------------------------------------------
  * Prints pending Changesets in verbose form so you can see which
- * packages would bump and why. Useful before `changeset:version`
- * or opening a release PR. Extra flags forward after `--`.
+ * packages would bump and why. Run before `changeset:version` on a
+ * `release/*` or `hotfix/*` branch (version refuses develop/main).
+ * Extra flags forward after `--`.
  *
  * HOW TO RUN:
  *   npm run changeset:status

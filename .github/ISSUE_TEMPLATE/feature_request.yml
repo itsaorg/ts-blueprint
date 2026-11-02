@@ -2,7 +2,6 @@
 # ✨ Feature request — GitHub issue form for contract changes
 # =============================================================================
 # 📌 Purpose: interactive form for public API or docs contract proposals.
-# ⚠️ Keep label text identical to feature_request.md headings.
 # ▶️ Example: a reporter fills Problem, Proposed change, and Acceptance criteria.
 # =============================================================================
 

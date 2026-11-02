@@ -2,7 +2,6 @@
 # 🧹 Chore or docs — GitHub issue form for maintenance
 # =============================================================================
 # 📌 Purpose: tooling, docs, or maintenance that does not change public contracts.
-# ⚠️ Keep label text identical to chore_docs.md headings.
 # ▶️ Example: a reporter fills Change and Motivation, then submits.
 # =============================================================================
 
@@ -22,7 +21,7 @@ body:
     attributes:
       # 📃 value: intro shown above the fields
       value: |
-        Use this for tooling, docs, or maintenance that does not change the public storage contracts.
+        Use this for tooling, docs, or maintenance that does not change the public package contracts.
         This form applies the 🧹 Chore label. See CONTRIBUTING.md for the label guide.
         Contract changes belong on a feature request.
   # 📝 textarea: the update itself

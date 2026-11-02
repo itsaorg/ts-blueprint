@@ -31,6 +31,10 @@
 import { copyFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { forwardedArgs, logGo, logOk, repoRoot, runTool } from "../../lib/tool-lib.mjs";
+import { applyTypedocMinimatch11Patch } from "./apply-minimatch11-patch.mjs";
+
+logGo("typedoc minimatch 11 patch");
+applyTypedocMinimatch11Patch();
 
 const args = ["--options", "configs/typedoc.json"].concat(forwardedArgs());
 const code = runTool({
@@ -50,6 +54,7 @@ const copies = [
   [".github/HOW-TO.md", "docs/media/HOW-TO.md"],
   [".github/SECURITY.md", "docs/media/SECURITY.md"],
   [".github/CODE_OF_CONDUCT.md", "docs/media/CODE_OF_CONDUCT.md"],
+  [".github/SUPPORT.md", "docs/media/SUPPORT.md"],
   ["LICENSE", "docs/media/LICENSE"],
 ];
 logGo("Sync docs/media from .github");

@@ -3,7 +3,6 @@
 # =============================================================================
 # 📌 Purpose: interactive form on the New issue page. On submit, GitHub turns
 #    each field label into a Markdown heading in the issue body.
-# ⚠️ Keep label text identical to .github/ISSUE_TEMPLATE/bug_report.md headings.
 # ▶️ Example: a reporter fills Summary and Steps to reproduce, then submits.
 # =============================================================================
 
@@ -37,7 +36,7 @@ body:
       # 💬 description: help text under the label
       description: What is broken, in one or two sentences.
       # ✏️ placeholder: grey hint inside the empty box
-      placeholder: Page address parsing rejects a valid offset when …
+      placeholder: The public export returns the wrong value when …
     # ✅ validations: submit rules
     validations:
       # 🔒 required: true blocks submit when empty
@@ -52,7 +51,7 @@ body:
       # 💬 description: contract or docs behavior
       description: What the contract or docs say should happen.
       # ✏️ placeholder: example of a correct result
-      placeholder: The call should return … / throw StorageError with code …
+      placeholder: The call should return … / throw the documented error type …
     validations:
       # 🔒 required: reporter must fill this in
       required: true

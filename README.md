@@ -14,7 +14,8 @@ GitHub template for Itsa TypeScript libraries. Clone from this repository, renam
   - [📋 Requirements](#-requirements)
   - [🏗️ Use this template](#️-use-this-template)
   - [✏️ Rename checklist](#️-rename-checklist)
-  - [🧱 Template maintainers (remaining)](#-template-maintainers-remaining)
+  - [✅ Readiness](#-readiness)
+    - [P2 backlog (later)](#p2-backlog-later)
   - [🗺️ Layout](#️-layout)
   - [⌨️ Key scripts](#️-key-scripts)
   - [🔗 Links](#-links)
@@ -41,7 +42,7 @@ git checkout develop
 git push -u origin develop
 ```
 
-5. Clone your new repository and install:
+1. Clone your new repository and install:
 
 ```bash
 git clone <your-repo-HTTPS-URL>
@@ -73,18 +74,48 @@ Replace blueprint identity with your package before you publish or open Trusted 
 | npm Trusted Publishing              | `npm run npm:trust` after the GitHub repo and `release.yml` exist       |
 | Labels                              | `npm run gh:label:sync` when `gh` is authenticated                      |
 | GitHub repo settings                | Description, topics, Pages (if you publish `docs/`)                     |
+| `.github/CODEOWNERS`                | Replace default owners with your org/team                               |
+| `.github/SUPPORT.md`                | Point issue links at your repository                                    |
 
 Do not change portable paths under `.devenv` or the community policy files under `.github/` unless you mean to fork the toolchain.
 
-## 🧱 Template maintainers (remaining)
+## ✅ Readiness
 
-P0 gaps for this pass are closed (git-flow init flags, `develop` docs, `docs/media` sync, rename-safe consumer test). Still open for a sharper org blueprint:
+**Ready to use (P0/P1):** clone as a GitHub template for day-to-day library work. Audit is clean via `overrides.minimatch`, YAML issue forms only, Changesets + `v*` tag publish, Git Flow PR-first finish, `prepublishOnly` → `tsc:build`, OIDC `registry-url` on setup-node, CODEOWNERS + SUPPORT, mandatory `main` → `develop` back-merge after release/hotfix.
 
-- Decide Changesets vs tag-only release and finish one path
-- Align issue templates (drop `.md`/`.yml` twins; neutralize foreign placeholders)
-- Add `prepublishOnly` → `tsc:build`; optional Actions `registry-url` for OIDC
-- Document release/hotfix develop back-merge as a mandatory second PR
-- Optional: CODEOWNERS, FUNDING/SUPPORT, devenv unit tests
+Release model: accumulate Changesets files on `develop` → run `changeset:version` only on `release/*` or `hotfix/*` → PR into `main` → tag `v<version>` → `release.yml` publishes → PR `main` into `develop`.
+
+### P2 backlog (later)
+
+**Community / GitHub polish**:
+
+- [ ] `.github/FUNDING.yml` — e.g. `github: [astitvsingh]` and/or org sponsors when real
+- [ ] Optional `.github/DISCUSSION_TEMPLATE/` if Discussions are enabled
+- [ ] `.github/CITATION.cff` if the package should be citable
+- [ ] Extra support links in SUPPORT (Discord/forum) if the org has them
+
+**Release / automation**:
+
+- [ ] Optional Changesets GitHub Action that still respects version-branch rules
+- [ ] Scripted tag helper after merge (docs already show `git tag v$(node -p …)`)
+- [ ] Branch protection guidance for `main`/`develop` (org settings)
+- [ ] Dependabot/Renovate tuning for the eslint/typedoc stack
+- [ ] npm provenance badge after the first real publish
+- [ ] Confirm Trusted Publisher binding after `npm:trust` on a renamed package
+
+**Quality / toolchain**:
+
+- [ ] devenv unit tests (`tool-lib`, git-flow guards, label sync dry-run)
+- [ ] Node matrix in CI if more than `.nvmrc` major is supported
+- [ ] `prepublishOnly` smoke path in CI
+- [ ] Drop or document `.devenv/deps/changelog/generate.mjs` vs Changesets-owned CHANGELOG
+- [ ] Remove `minimatch` override + TypeDoc patch when upstream supports minimatch >=11.0.1
+
+**Template product**:
+
+- [ ] Consumer clone dry-run checklist (rename → setup → feature → release dry-run)
+- [ ] Org-level template defaults (topics, Pages `docs/`, default branch policy)
+- [ ] Optional monorepo notes (out of scope until needed)
 
 ## 🗺️ Layout
 
@@ -116,6 +147,7 @@ The full script table and prepare/setup order live in [CONTRIBUTING](.github/CON
 
 - [Contributing](.github/CONTRIBUTING.md)
 - [How-to FAQ](.github/HOW-TO.md)
+- [Support](.github/SUPPORT.md)
 - [Code of Conduct](.github/CODE_OF_CONDUCT.md)
 - [Security](.github/SECURITY.md)
 - [License](LICENSE)

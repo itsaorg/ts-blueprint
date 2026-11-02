@@ -66,7 +66,9 @@ git pull origin develop
 node .devenv/tools/git-flow/feature/start.mjs <number>-<slug>
 ```
 
-Replace `<number>` with the issue number and `<slug>` with a few words, for example `12-page-address`. Finish topic branches with a pull request via `node .devenv/tools/git-flow/feature/finish.mjs` (never `git flow feature finish`) — see [HOW-TO.md](HOW-TO.md).
+Replace `<number>` with the issue number and `<slug>` with a few words, for example `12-add-export`. Finish topic branches with a pull request via `node .devenv/tools/git-flow/feature/finish.mjs` (never `git flow feature finish`) — see [HOW-TO.md](HOW-TO.md).
+
+When the change should bump the published package, add a Changesets file in the same PR (`npx changeset`). Semver type follows API impact (feature ≈ minor/major, bugfix/chore ≈ patch). Run `npm run changeset:version` only later on `release/*` or `hotfix/*` — never on `develop` or `main`. Tags (`v*`) trigger `.github/workflows/release.yml`.
 
 Put product types under `src/`. Do not add a root `types/` directory. The published entry is `dist/`.
 
@@ -99,7 +101,7 @@ Every `package.json` script name starts with the tool, then an action (`tsc:type
 | `npm run typedoc:build`             | Generate API docs into `docs/`                                                                                 | Yes, `docs/`                                       |
 | `npm run docify:typedoc`            | `clean:docs`, then `typedoc:build` (regenerate GitHub Pages site)                                              | Yes, replaces `docs/`                              |
 | `npm run changeset:status`          | Show pending Changesets                                                                                        | No                                                 |
-| `npm run changeset:version`         | Apply Changesets to the version and changelog                                                                  | Yes, `package.json`, `CHANGELOG.md`, `.changeset/` |
+| `npm run changeset:version`         | Apply Changesets on `release/*` or `hotfix/*` only (refuses `develop`/`main`)                                  | Yes, `package.json`, `CHANGELOG.md`, `.changeset/` |
 | `npm run husky:prepare`             | Install git hooks                                                                                              | Yes, `.husky/_` internals                          |
 | `npm run prepare`                   | Husky, then idempotent git/node/gh/npm/git-flow setups                                                         | Yes, hooks, local git config, labels when allowed  |
 | `npm run git:setup`                 | Ensure git is installed and local `commit.template` is set                                                     | Yes, local git config                              |

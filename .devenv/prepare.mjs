@@ -36,6 +36,7 @@
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { applyTypedocMinimatch11Patch } from "./deps/typedoc/apply-minimatch11-patch.mjs";
 import { boxBanner, boxDone, logError, logGo, runNpmScript } from "./lib/tool-lib.mjs";
 import { setupGh } from "./tools/gh/setup.mjs";
 import { setupGit } from "./tools/git/setup.mjs";
@@ -79,6 +80,14 @@ export function runPrepare() {
 
   logGo("git-flow setup");
   setupGitFlow();
+
+  logGo("typedoc minimatch 11 patch");
+  try {
+    applyTypedocMinimatch11Patch();
+  } catch (error) {
+    logError(error instanceof Error ? error.message : String(error));
+    return 1;
+  }
 
   boxDone("prepare");
   return 0;

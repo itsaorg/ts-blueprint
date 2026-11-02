@@ -73,6 +73,7 @@
     "npm:trust": "node .devenv/tools/npm/publish/trust.mjs",
     "npm:deprecate:reservation": "node .devenv/tools/npm/publish/deprecate-reservation.mjs",
     "npm:release": "node .devenv/tools/npm/publish/release.mjs",
+    "prepublishOnly": "npm run tsc:build",
     "setup": "node .devenv/setup.mjs",
     "git:setup": "node .devenv/tools/git/setup.mjs",
     "node:setup": "node .devenv/tools/node/setup.mjs",
@@ -98,6 +99,9 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.71.1",
     "vitest": "^5.0.3"
+  },
+  "overrides": {
+    "minimatch": "^11.0.1"
   },
   "lint-staged": {
     "*.{ts,js,mjs,cjs,json,md,yml,yaml}": "prettier --config configs/.prettierrc.json --ignore-path configs/prettierignore --write",

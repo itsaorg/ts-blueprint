@@ -6,18 +6,20 @@ Use **`npm clean-install`** for lockfile installs (same command as the old `npm 
 
 ## 🗂️ Table of contents
 
-- [🖥️ What do I do before cloning?](#️-what-do-i-do-before-cloning)
-- [🌱 What do I do after cloning?](#-what-do-i-do-after-cloning)
-- [🔄 What does `npm prepare` run?](#-what-does-npm-prepare-run)
-- [🎫 When do I open which issue?](#-when-do-i-open-which-issue)
-- [📌 What do I do after the issue exists?](#-what-do-i-do-after-the-issue-exists)
-- [🌲 Which Git Flow branch type do I use?](#-which-git-flow-branch-type-do-i-use)
-- [💻 How do I work day to day on a topic branch?](#-how-do-i-work-day-to-day-on-a-topic-branch)
-- [✨ How do I finish a feature or bugfix?](#-how-do-i-finish-a-feature-or-bugfix)
-- [📦 How do I finish a release?](#-how-do-i-finish-a-release)
-- [🚑 How do I finish a hotfix?](#-how-do-i-finish-a-hotfix)
-- [🛟 When do I use a support branch?](#-when-do-i-use-a-support-branch)
-- [⏭️ How do I skip hooks once?](#️-how-do-i-skip-hooks-once)
+- [How-to FAQ](#how-to-faq)
+  - [🗂️ Table of contents](#️-table-of-contents)
+  - [🖥️ What do I do before cloning?](#️-what-do-i-do-before-cloning)
+  - [🌱 What do I do after cloning?](#-what-do-i-do-after-cloning)
+  - [🔄 What does `npm prepare` run?](#-what-does-npm-prepare-run)
+  - [🎫 When do I open which issue?](#-when-do-i-open-which-issue)
+  - [📌 What do I do after the issue exists?](#-what-do-i-do-after-the-issue-exists)
+  - [🌲 Which Git Flow branch type do I use?](#-which-git-flow-branch-type-do-i-use)
+  - [💻 How do I work day to day on a topic branch?](#-how-do-i-work-day-to-day-on-a-topic-branch)
+  - [✨ How do I finish a feature or bugfix?](#-how-do-i-finish-a-feature-or-bugfix)
+  - [📦 How do I finish a release?](#-how-do-i-finish-a-release)
+  - [🚑 How do I finish a hotfix?](#-how-do-i-finish-a-hotfix)
+  - [🛟 When do I use a support branch?](#-when-do-i-use-a-support-branch)
+  - [⏭️ How do I skip hooks once?](#️-how-do-i-skip-hooks-once)
 
 ## 🖥️ What do I do before cloning?
 
@@ -69,7 +71,7 @@ Prefer a lockfile install:
 npm clean-install
 ```
 
-That runs the `prepare` lifecycle (Husky, git commit template, gh/npm auth when possible, label sync). See [What does `npm prepare` run?](#what-does-npm-prepare-run).
+That runs the `prepare` lifecycle (Husky, git commit template, gh/npm auth when possible, label sync). See [What does `npm prepare` run?](#-what-does-npm-prepare-run).
 
 For machine probes, install, and the CI gate in one step:
 
@@ -195,6 +197,8 @@ Use `bugfix/` in those names when finishing a bugfix.
 
 ## 📦 How do I finish a release?
 
+Release uses **Changesets for the version bump** and a **git tag to publish**. Feature/bugfix/chore PRs into `develop` should include a Changesets file when the published package should bump. Semver type follows API impact (not branch name): features are usually minor/major; bugfixes and chores are often patch.
+
 ```bash
 git checkout develop
 ```
@@ -204,16 +208,26 @@ git pull origin develop
 ```
 
 ```bash
+npm run changeset:status
+```
+
+```bash
 node .devenv/tools/git-flow/release/start.mjs <x.y.z>
 ```
 
-Stabilize on `release/<x.y.z>` (version bumps, changelog, docs as needed).
+On `release/<x.y.z>` only (never on `develop` or `main`):
+
+```bash
+npm run changeset:version
+```
+
+Confirm `package.json` version matches the intended cut. Then PR-first finish into `main`:
 
 ```bash
 node .devenv/tools/git-flow/release/finish.mjs
 ```
 
-That opens a pull request into `main`. After it merges and CI is green on `main`, tag:
+After the PR merges and CI is green on `main`, tag **exactly** the version in `package.json`:
 
 ```bash
 git checkout main
@@ -224,16 +238,20 @@ git pull origin main
 ```
 
 ```bash
-git tag v<x.y.z>
+git tag "v$(node -p "require('./package.json').version")"
 ```
 
 ```bash
-git push origin v<x.y.z>
+git push origin "v$(node -p "require('./package.json').version")"
 ```
 
-Bring `develop` up to date with a PR from `main` or the release branch into `develop` so integration stays current. Delete the local/remote `release/` branch after both lines have the release commits.
+Pushing the `v*` tag runs `.github/workflows/release.yml` (check → `npm:release` → GitHub Release).
+
+**Mandatory:** open a second pull request from `main` into `develop` so integration stays current. Merge that PR before deleting the local/remote `release/` branch.
 
 ## 🚑 How do I finish a hotfix?
+
+Hotfixes almost always use a **patch** Changeset. Start from `main`:
 
 ```bash
 git checkout main
@@ -247,13 +265,21 @@ git pull origin main
 node .devenv/tools/git-flow/hotfix/start.mjs <x.y.z>
 ```
 
-Fix, then PR-first finish into `main`:
+Add a patch Changeset for the fix, then on the hotfix branch only:
+
+```bash
+npm run changeset:version
+```
+
+PR-first finish into `main`:
 
 ```bash
 node .devenv/tools/git-flow/hotfix/finish.mjs
 ```
 
-After merge, tag `v<x.y.z>` on `main` if this cut ships. Open a second PR (or merge-back) so `develop` receives the same fix. Delete the hotfix branch after both merges.
+After merge and green CI on `main`, tag the `package.json` version and push the `v*` tag (same commands as release). `release.yml` publishes.
+
+**Mandatory:** open a second PR from `main` into `develop` so the fix is not lost. Delete the hotfix branch only after both merges.
 
 ## 🛟 When do I use a support branch?
 
