@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🌟 Feature PR finish
+ * 🌟 Feature post-merge finish
  * ---------------------------------------------------------------
- * PR-first finish for a feature branch: push, then open a pull
- * request into `develop` (override with `--base`). Never runs
- * `git flow feature finish` — merges stay on GitHub so CI runs.
- * After merge, delete the topic branch locally and on origin.
+ * After the feature PR into `develop` is reviewed and merged:
+ * verify merge + approval + issue link (`Closes #N` from the
+ * `feature/<number>-…` name), then delete the topic branch locally
+ * and on origin. Never creates a PR (that is publish). Never runs
+ * `git flow feature finish`.
  *
  * HOW TO RUN:
+ *   npm run git:flow:feature:finish
  *   node .devenv/tools/git-flow/feature/finish.mjs
  *   node .devenv/tools/git-flow/feature/finish.mjs --base develop
  *
@@ -19,22 +21,22 @@
  * ============================================================== */
 
 /**
- * PR-first finish for a Git Flow feature branch.
+ * Post-merge finish for a Git Flow feature branch.
  *
  * @module git-flow-feature-finish
  *
  * @example
- * // On feature/42-add-login:
- * //   node .devenv/tools/git-flow/feature/finish.mjs
+ * // After the PR is merged on GitHub, still on feature/42-add-login:
+ * //   npm run git:flow:feature:finish
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logError } from "../../../lib/tool-lib.mjs";
-import { finishWithPullRequest } from "../finish-pr.mjs";
+import { finishAfterMerge, parseBaseArgs } from "../finish-merged.mjs";
 
 /**
- * Pushes the current feature branch and opens a PR into develop.
+ * Verifies remote merge gates and cleans up the feature branch.
  *
  * @param {{ base?: string }} [options] - Optional base override.
  * @returns {{ ok: boolean }} Outcome.
@@ -44,16 +46,14 @@ import { finishWithPullRequest } from "../finish-pr.mjs";
  * finishFeature({ base: "develop" });
  */
 export function finishFeature(options = {}) {
-  return finishWithPullRequest("feature", { base: options.base || "develop" });
+  return finishAfterMerge("feature", { base: options.base || "develop" });
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   boxBanner("🌟 feature finish");
-  const args = forwardedArgs();
-  const baseFlag = args.indexOf("--base");
-  const base = baseFlag === -1 ? undefined : args[baseFlag + 1];
-  if (baseFlag !== -1 && !base) {
+  const { base } = parseBaseArgs(forwardedArgs());
+  if (forwardedArgs().includes("--base") && !base) {
     logError("Pass --base <branch>.");
     process.exit(1);
   }

@@ -68,7 +68,7 @@ node .devenv/tools/git-flow/feature/start.mjs <number>-<slug>
 
 Replace `<number>` with the issue number and `<slug>` with a few words, for example `12-add-export`. Finish topic branches with a pull request via `node .devenv/tools/git-flow/feature/finish.mjs` (never `git flow feature finish`) — see [HOW-TO.md](HOW-TO.md).
 
-When the change should bump the published package, add a Changesets file in the same PR (`npx changeset`). Semver type follows API impact (feature ≈ minor/major, bugfix/chore ≈ patch). Run `npm run changeset:version` only later on `release/*` or `hotfix/*` — never on `develop` or `main`. Tags (`v*`) trigger `.github/workflows/release.yml`.
+When the change should bump the published package, run `npm run changeset:add` on the topic branch and include the pending `.changeset/*.md` file in the same PR (publish refuses to open a PR without one). Semver type follows API impact (feature ≈ minor/major, bugfix/chore ≈ patch). Run `npm run changeset:version` only later on `release/*` or `hotfix/*` — never on `develop` or `main`. Tags (`v*`) trigger `.github/workflows/release.yml`.
 
 Put product types under `src/`. Do not add a root `types/` directory. The published entry is `dist/`.
 
@@ -100,8 +100,24 @@ Every `package.json` script name starts with the tool, then an action (`tsc:type
 | `npm run lint-staged`               | Prettier and ESLint on staged files                                                                            | Yes, staged files                                  |
 | `npm run typedoc:build`             | Generate API docs into `docs/`                                                                                 | Yes, `docs/`                                       |
 | `npm run docify:typedoc`            | `clean:docs`, then `typedoc:build` (regenerate GitHub Pages site)                                              | Yes, replaces `docs/`                              |
+| `npm run changeset:add`             | Interactive pending Changeset note (refuses `main`/`develop`/`release/*`)                                      | Yes, `.changeset/*.md`                             |
 | `npm run changeset:status`          | Show pending Changesets                                                                                        | No                                                 |
 | `npm run changeset:version`         | Apply Changesets on `release/*` or `hotfix/*` only (refuses `develop`/`main`)                                  | Yes, `package.json`, `CHANGELOG.md`, `.changeset/` |
+| `npm run git:flow:feature:start`    | Start `feature/<number>-<slug>`                                                                                | Yes, local branch                                  |
+| `npm run git:flow:feature:publish`  | Pending-changeset gate, push, open/ensure PR into `develop`                                                    | Yes, remote branch + GitHub PR                     |
+| `npm run git:flow:feature:finish`   | After merged+approved+issue-linked PR: delete topic branch                                                     | Yes, deletes local/remote topic branch             |
+| `npm run git:flow:bugfix:start`     | Start `bugfix/<number>-<slug>`                                                                                 | Yes, local branch                                  |
+| `npm run git:flow:bugfix:publish`   | Pending-changeset gate, push, open/ensure PR into `develop`                                                    | Yes, remote branch + GitHub PR                     |
+| `npm run git:flow:bugfix:finish`    | After merged+approved+issue-linked PR: delete topic branch                                                     | Yes, deletes local/remote topic branch             |
+| `npm run git:flow:hotfix:start`     | Start `hotfix/<x.y.z>` from `main`                                                                             | Yes, local branch                                  |
+| `npm run git:flow:hotfix:publish`   | Pending or versioned gate, push, open/ensure PR into `main`                                                    | Yes, remote branch + GitHub PR                     |
+| `npm run git:flow:hotfix:finish`    | After merged+approved (+ version gates): delete hotfix branch                                                  | Yes, deletes local/remote hotfix branch            |
+| `npm run git:flow:release:start`    | Start `release/<x.y.z>` from `develop`                                                                         | Yes, local branch                                  |
+| `npm run git:flow:release:publish`  | Pending or versioned gate, push, open/ensure PR into `main`                                                    | Yes, remote branch + GitHub PR                     |
+| `npm run git:flow:release:finish`   | After merged+approved (+ version gates): delete release branch                                                 | Yes, deletes local/remote release branch           |
+| `npm run git:flow:support:start`    | Start `support/<name>` from `<base>` (AVH)                                                                     | Yes, local branch                                  |
+| `npm run git:flow:support:publish`  | Pending-changeset gate, `git push -u`, open/ensure PR (interactive base)                                       | Yes, remote branch + GitHub PR                     |
+| `npm run git:flow:support:finish`   | After merged+approved PR: delete support branch when retiring the line                                         | Yes, deletes local/remote support branch           |
 | `npm run husky:prepare`             | Install git hooks                                                                                              | Yes, `.husky/_` internals                          |
 | `npm run prepare`                   | Husky, then idempotent git/node/gh/npm/git-flow setups                                                         | Yes, hooks, local git config, labels when allowed  |
 | `npm run git:setup`                 | Ensure git is installed and local `commit.template` is set                                                     | Yes, local git config                              |
@@ -136,7 +152,7 @@ Every development script is ESM (`.mjs`). Git hooks stay in `.husky`. Call packa
 .devenv/utils/clean.mjs      Shared path cleaner
 ```
 
-`tools/` holds runtimes a machine needs. `deps/` holds repo commands such as tsc and prettier. Scripts under `.devenv/tools/**` export functions for import and also run as CLIs. Root `prepare.mjs` / `setup.mjs` orchestrate multi-tool flows. Under `tools/gh/`, use `auth/` (mirrors `gh auth` subcommands), `label/`, `issue/`, `pr/`, plus `setup.mjs` and `isInstalled.mjs`. Under `tools/npm/`, use `auth/` (whoami/login/logout), `publish/` (local/worker/release/deprecate-reservation/trust), plus `setup.mjs` — no `isInstalled` (npm ships with Node). Under `tools/git-flow/`, use `init.mjs`, `setup.mjs`, `isInstalled.mjs`, and per-type `start` / `publish` / `finish` (PR-first; never local `git flow finish`).
+`tools/` holds runtimes a machine needs. `deps/` holds repo commands such as tsc and prettier. Scripts under `.devenv/tools/**` export functions for import and also run as CLIs. Root `prepare.mjs` / `setup.mjs` orchestrate multi-tool flows. Under `tools/gh/`, use `auth/` (mirrors `gh auth` subcommands), `label/`, `issue/`, `pr/`, plus `setup.mjs` and `isInstalled.mjs`. Under `tools/npm/`, use `auth/` (whoami/login/logout), `publish/` (local/worker/release/deprecate-reservation/trust), plus `setup.mjs` — no `isInstalled` (npm ships with Node). Under `tools/git-flow/`, use `init.mjs`, `setup.mjs`, `isInstalled.mjs`, `publish-flow.mjs`, `finish-merged.mjs`, and per-type `start` / `publish` / `finish` for feature, bugfix, hotfix, release, and support. **Publish** opens the PR (after a pending-changeset gate). **Finish** only runs after the PR is reviewed and merged (never local `git flow finish`).
 
 ## 🐶 Prepare lifecycle
 
@@ -221,13 +237,13 @@ Use that only when a maintainer agrees. Do not edit files under `.husky/_/`. Tho
 
 Blank issues are off (`.github/ISSUE_TEMPLATE/config.yml`). GitHub only offers the templates.
 
-| Kind            | YAML form (website chooser) | Markdown twin (same headings) |
-| --------------- | --------------------------- | ----------------------------- |
-| Defect          | `bug_report.yml`            | `bug_report.md`               |
-| Contract change | `feature_request.yml`       | `feature_request.md`          |
-| Tooling or docs | `chore_docs.yml`            | `chore_docs.md`               |
+| Kind            | YAML form (website chooser) |
+| --------------- | --------------------------- |
+| Defect          | `bug_report.yml`            |
+| Contract change | `feature_request.yml`       |
+| Tooling or docs | `chore_docs.yml`            |
 
-The YAML form is the interactive page. On submit, GitHub turns each field label into a Markdown heading. The `.md` file is a second card with those same headings. Editing one does not update the other. Keep the headings identical when you change them.
+The YAML form is the interactive page. On submit, GitHub turns each field label into a Markdown heading. This template uses forms only (no Markdown twin cards).
 
 Security and conduct reports do not use these templates. Use `.github/SECURITY.md`.
 
@@ -235,9 +251,9 @@ Security and conduct reports do not use these templates. Use `.github/SECURITY.m
 
 The template applies the type label. Do not also invent a label name.
 
-1. Bug report: both the Markdown card and the YAML form apply `🐞 Bug Report`.
-2. Feature request: both formats apply `✨ Feature Request`.
-3. Chore or docs: both formats apply `🧹 Chore`. Add `📚 Documentation` by hand when the change is docs and not tooling.
+1. Bug report: the YAML form applies `🐞 Bug Report`.
+2. Feature request: the YAML form applies `✨ Feature Request`.
+3. Chore or docs: the YAML form applies `🧹 Chore`. Add `📚 Documentation` by hand when the change is docs and not tooling.
 4. Do not open a public issue for a vulnerability or a conduct report, and do not add a security label. Use `.github/SECURITY.md`.
 5. Maintainers apply Status, Priority, and Git Flow labels. Contributors do not need to set those.
 6. `good first issue` and `help wanted` are the exact names GitHub's Contribute and help-wanted views read (no emoji prefix). Dependabot applies `🔗 Dependencies` and opens branches under `dependabot/`.
@@ -246,14 +262,14 @@ The full set lives in `.github/labels.json`. `npm run gh:label:sync` is exclusiv
 
 ## 🔀 Open a pull request
 
-Push your `feature/` branch and open a pull request into `develop`. GitHub fills the description from `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md`. There is no YAML form for pull requests. Fill these sections:
+Add a pending Changeset (`npm run changeset:add`), then run the matching **publish** script (for example `npm run git:flow:feature:publish`). That pushes the branch and opens/ensures a pull request (seeds `Closes #N` from `feature/<number>-…` when present). GitHub also offers `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md` for manual creates. Fill these sections:
 
 1. **Summary.** Why the change is needed.
 2. **Linked issues.** `Closes #123` when this pull request finishes that issue.
 3. **Test plan.** Commands you ran. Code changes should include `npm run check`.
 4. **Checklist.** Conventional Commits, public contract notes, and docs.
 
-Wait for the `ci` workflow. It runs `npm run check` on the pull request. Finish and merge procedures for each Git Flow type are in [HOW-TO.md](HOW-TO.md).
+Wait for the `ci` workflow. It runs `npm run check` on the pull request. After merge + approval, run the matching **finish** script. Full procedures for each Git Flow type are in [HOW-TO.md](HOW-TO.md).
 
 ## ✅ Required check
 

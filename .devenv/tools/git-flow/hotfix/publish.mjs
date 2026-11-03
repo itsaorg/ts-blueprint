@@ -1,15 +1,18 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🩹 Hotfix branch publish
+ * 🚑 Hotfix branch publish
  * ---------------------------------------------------------------
- * Pushes a hotfix branch to origin via `git flow hotfix publish`.
- * Omit the version to publish the current `hotfix/…` branch.
- * Requires Git Flow AVH on PATH.
+ * Pending-changeset gate → `git flow hotfix publish` → ensure a
+ * pull request into `main`. On the hotfix branch, run
+ * `changeset:version` before publish when you are ready to cut the
+ * patch version. Requires Git Flow AVH and pending `.changeset/*.md`
+ * until version consumes them (re-add if you still need notes).
  *
  * HOW TO RUN:
+ *   npm run git:flow:hotfix:publish
  *   node .devenv/tools/git-flow/hotfix/publish.mjs
- *   node .devenv/tools/git-flow/hotfix/publish.mjs [<x.y.z>]
+ *   node .devenv/tools/git-flow/hotfix/publish.mjs --base main
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,47 +21,49 @@
  * ============================================================== */
 
 /**
- * Publishes a Git Flow hotfix branch.
+ * Publishes a Git Flow hotfix branch and opens/ensures a PR.
  *
  * @module git-flow-hotfix-publish
  *
  * @example
- * // On hotfix/1.2.1:
- * //   node .devenv/tools/git-flow/hotfix/publish.mjs
+ * // On hotfix/1.2.1 after changeset:add (and usually changeset:version):
+ * //   npm run git:flow:hotfix:publish
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logError } from "../../../lib/tool-lib.mjs";
-import { currentBranch, runGitFlow, stripTypePrefix } from "../command.mjs";
+import { parseBaseArgs, publishWithPullRequest } from "../publish-flow.mjs";
 
 /**
- * Runs `git flow hotfix publish …`.
+ * Publishes the current hotfix branch (pending gate + push + PR).
  *
- * @param {string[]} [args] - Optional version; defaults to current branch.
- * @returns {{ ok: boolean }} Outcome.
+ * @param {{ base?: string, nameArgs?: string[] }} [options] - Overrides.
+ * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
- * publishHotfix();
- * publishHotfix(["1.2.1"]);
+ * await publishHotfix();
  */
-export function publishHotfix(args = []) {
-  let nameArgs = args;
-  if (nameArgs.length === 0) {
-    const branch = currentBranch();
-    if (!branch.startsWith("hotfix/")) {
-      logError(`Current branch "${branch}" is not a hotfix/ branch. Pass a name.`);
-      return { ok: false };
-    }
-    nameArgs = [stripTypePrefix("hotfix", branch)];
-  }
-  return runGitFlow("hotfix", "publish", nameArgs);
+export async function publishHotfix(options = {}) {
+  return publishWithPullRequest("hotfix", {
+    base: options.base || "main",
+    nameArgs: options.nameArgs,
+  });
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
-  boxBanner("🩹 hotfix publish");
-  if (!publishHotfix(forwardedArgs()).ok) {
+  boxBanner("🚑 hotfix publish");
+  const { base, rest } = parseBaseArgs(forwardedArgs());
+  if (forwardedArgs().includes("--base") && !base) {
+    logError("Pass --base <branch>.");
+    process.exit(1);
+  }
+  const result = await publishHotfix({
+    base,
+    nameArgs: rest.length > 0 ? rest : undefined,
+  });
+  if (!result.ok) {
     process.exit(1);
   }
   boxDone("hotfix publish");

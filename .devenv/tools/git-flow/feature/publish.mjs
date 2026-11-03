@@ -3,13 +3,15 @@
 /** ==============================================================
  * 🌟 Feature branch publish
  * ---------------------------------------------------------------
- * Pushes a feature branch to origin via `git flow feature publish`
- * so others (and CI) can see it. Omit the name to publish the
- * current `feature/…` branch. Requires Git Flow AVH on PATH.
+ * Pending-changeset gate → `git flow feature publish` → ensure a
+ * pull request into `develop` (override with `--base`). Seeds
+ * `Closes #N` when the branch is `feature/<number>-<slug>`.
+ * Requires Git Flow AVH on PATH and pending `.changeset/*.md`.
  *
  * HOW TO RUN:
+ *   npm run git:flow:feature:publish
  *   node .devenv/tools/git-flow/feature/publish.mjs
- *   node .devenv/tools/git-flow/feature/publish.mjs [<name>]
+ *   node .devenv/tools/git-flow/feature/publish.mjs --base develop
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,47 +20,50 @@
  * ============================================================== */
 
 /**
- * Publishes a Git Flow feature branch.
+ * Publishes a Git Flow feature branch and opens/ensures a PR.
  *
  * @module git-flow-feature-publish
  *
  * @example
- * // On feature/42-add-login:
- * //   node .devenv/tools/git-flow/feature/publish.mjs
+ * // On feature/42-add-login (after npm run changeset:add):
+ * //   npm run git:flow:feature:publish
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logError } from "../../../lib/tool-lib.mjs";
-import { currentBranch, runGitFlow, stripTypePrefix } from "../command.mjs";
+import { parseBaseArgs, publishWithPullRequest } from "../publish-flow.mjs";
 
 /**
- * Runs `git flow feature publish …`.
+ * Publishes the current feature branch (pending gate + push + PR).
  *
- * @param {string[]} [args] - Optional name; defaults to current branch.
- * @returns {{ ok: boolean }} Outcome.
+ * @param {{ base?: string, nameArgs?: string[] }} [options] - Overrides.
+ * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
- * publishFeature(); // uses current feature/ branch
- * publishFeature(["42-add-login"]);
+ * await publishFeature();
+ * await publishFeature({ base: "develop" });
  */
-export function publishFeature(args = []) {
-  let nameArgs = args;
-  if (nameArgs.length === 0) {
-    const branch = currentBranch();
-    if (!branch.startsWith("feature/")) {
-      logError(`Current branch "${branch}" is not a feature/ branch. Pass a name.`);
-      return { ok: false };
-    }
-    nameArgs = [stripTypePrefix("feature", branch)];
-  }
-  return runGitFlow("feature", "publish", nameArgs);
+export async function publishFeature(options = {}) {
+  return publishWithPullRequest("feature", {
+    base: options.base || "develop",
+    nameArgs: options.nameArgs,
+  });
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   boxBanner("🌟 feature publish");
-  if (!publishFeature(forwardedArgs()).ok) {
+  const { base, rest } = parseBaseArgs(forwardedArgs());
+  if (forwardedArgs().includes("--base") && !base) {
+    logError("Pass --base <branch>.");
+    process.exit(1);
+  }
+  const result = await publishFeature({
+    base,
+    nameArgs: rest.length > 0 ? rest : undefined,
+  });
+  if (!result.ok) {
     process.exit(1);
   }
   boxDone("feature publish");

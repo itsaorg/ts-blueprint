@@ -3,13 +3,15 @@
 /** ==============================================================
  * 🐛 Bugfix branch publish
  * ---------------------------------------------------------------
- * Pushes a bugfix branch to origin via `git flow bugfix publish`.
- * Omit the name to publish the current `bugfix/…` branch.
- * Requires Git Flow AVH on PATH.
+ * Pending-changeset gate → `git flow bugfix publish` → ensure a
+ * pull request into `develop`. Seeds `Closes #N` when the branch
+ * is `bugfix/<number>-<slug>`. Requires Git Flow AVH and pending
+ * `.changeset/*.md` files.
  *
  * HOW TO RUN:
+ *   npm run git:flow:bugfix:publish
  *   node .devenv/tools/git-flow/bugfix/publish.mjs
- *   node .devenv/tools/git-flow/bugfix/publish.mjs [<name>]
+ *   node .devenv/tools/git-flow/bugfix/publish.mjs --base develop
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -18,47 +20,49 @@
  * ============================================================== */
 
 /**
- * Publishes a Git Flow bugfix branch.
+ * Publishes a Git Flow bugfix branch and opens/ensures a PR.
  *
  * @module git-flow-bugfix-publish
  *
  * @example
- * // On bugfix/99-null-guard:
- * //   node .devenv/tools/git-flow/bugfix/publish.mjs
+ * // On bugfix/99-null-guard (after npm run changeset:add):
+ * //   npm run git:flow:bugfix:publish
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logError } from "../../../lib/tool-lib.mjs";
-import { currentBranch, runGitFlow, stripTypePrefix } from "../command.mjs";
+import { parseBaseArgs, publishWithPullRequest } from "../publish-flow.mjs";
 
 /**
- * Runs `git flow bugfix publish …`.
+ * Publishes the current bugfix branch (pending gate + push + PR).
  *
- * @param {string[]} [args] - Optional name; defaults to current branch.
- * @returns {{ ok: boolean }} Outcome.
+ * @param {{ base?: string, nameArgs?: string[] }} [options] - Overrides.
+ * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
- * publishBugfix();
- * publishBugfix(["99-null-guard"]);
+ * await publishBugfix();
  */
-export function publishBugfix(args = []) {
-  let nameArgs = args;
-  if (nameArgs.length === 0) {
-    const branch = currentBranch();
-    if (!branch.startsWith("bugfix/")) {
-      logError(`Current branch "${branch}" is not a bugfix/ branch. Pass a name.`);
-      return { ok: false };
-    }
-    nameArgs = [stripTypePrefix("bugfix", branch)];
-  }
-  return runGitFlow("bugfix", "publish", nameArgs);
+export async function publishBugfix(options = {}) {
+  return publishWithPullRequest("bugfix", {
+    base: options.base || "develop",
+    nameArgs: options.nameArgs,
+  });
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   boxBanner("🐛 bugfix publish");
-  if (!publishBugfix(forwardedArgs()).ok) {
+  const { base, rest } = parseBaseArgs(forwardedArgs());
+  if (forwardedArgs().includes("--base") && !base) {
+    logError("Pass --base <branch>.");
+    process.exit(1);
+  }
+  const result = await publishBugfix({
+    base,
+    nameArgs: rest.length > 0 ? rest : undefined,
+  });
+  if (!result.ok) {
     process.exit(1);
   }
   boxDone("bugfix publish");

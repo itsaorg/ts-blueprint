@@ -24,6 +24,9 @@
   },
   "files": [
     "dist/",
+    "package.json",
+    "package-lock.json",
+    "CHANGELOG.md",
     "NOTICE",
     "LICENSE",
     "README.md"
@@ -66,6 +69,7 @@
     "clean:all": "npm run clean:dist && npm run clean:coverage && npm run clean:docs && npm run clean:modules",
     "docify:typedoc": "npm run clean:docs && npm run typedoc:build",
     "typedoc:build": "node .devenv/deps/typedoc/build.mjs",
+    "changeset:add": "node .devenv/deps/changeset/add.mjs",
     "changeset:status": "node .devenv/deps/changeset/status.mjs",
     "changeset:version": "node .devenv/deps/changeset/version.mjs",
     "npm:publish:local": "node .devenv/tools/npm/publish/local.mjs",
@@ -80,7 +84,22 @@
     "npm:setup": "node .devenv/tools/npm/setup.mjs",
     "git-flow:setup": "node .devenv/tools/git-flow/setup.mjs",
     "gh:setup": "node .devenv/tools/gh/setup.mjs",
-    "gh:label:sync": "node .devenv/tools/gh/label/sync.mjs"
+    "gh:label:sync": "node .devenv/tools/gh/label/sync.mjs",
+    "git:flow:feature:start": "node .devenv/tools/git-flow/feature/start.mjs",
+    "git:flow:feature:publish": "node .devenv/tools/git-flow/feature/publish.mjs",
+    "git:flow:feature:finish": "node .devenv/tools/git-flow/feature/finish.mjs",
+    "git:flow:bugfix:start": "node .devenv/tools/git-flow/bugfix/start.mjs",
+    "git:flow:bugfix:publish": "node .devenv/tools/git-flow/bugfix/publish.mjs",
+    "git:flow:bugfix:finish": "node .devenv/tools/git-flow/bugfix/finish.mjs",
+    "git:flow:hotfix:start": "node .devenv/tools/git-flow/hotfix/start.mjs",
+    "git:flow:hotfix:publish": "node .devenv/tools/git-flow/hotfix/publish.mjs",
+    "git:flow:hotfix:finish": "node .devenv/tools/git-flow/hotfix/finish.mjs",
+    "git:flow:release:start": "node .devenv/tools/git-flow/release/start.mjs",
+    "git:flow:release:publish": "node .devenv/tools/git-flow/release/publish.mjs",
+    "git:flow:release:finish": "node .devenv/tools/git-flow/release/finish.mjs",
+    "git:flow:support:start": "node .devenv/tools/git-flow/support/start.mjs",
+    "git:flow:support:publish": "node .devenv/tools/git-flow/support/publish.mjs",
+    "git:flow:support:finish": "node .devenv/tools/git-flow/support/finish.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",

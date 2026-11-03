@@ -1,14 +1,17 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🩹 Hotfix PR finish
+ * 🚑 Hotfix post-merge finish
  * ---------------------------------------------------------------
- * PR-first finish for a hotfix branch: push, then open a pull
- * request into `main` (override with `--base`). Never runs
- * `git flow hotfix finish` — merges stay on GitHub so CI runs.
- * After merge, delete the topic branch locally and on origin.
+ * After the hotfix PR into `main` is reviewed and merged: verify
+ * merge + approval, confirm `changeset:version` already applied
+ * (no leftover pending files; package.json matches branch version),
+ * then delete the hotfix branch locally and on origin. Also open a
+ * follow-up PR from `main` into `develop` when needed (manual).
+ * Never creates a PR. Never runs `git flow hotfix finish`.
  *
  * HOW TO RUN:
+ *   npm run git:flow:hotfix:finish
  *   node .devenv/tools/git-flow/hotfix/finish.mjs
  *   node .devenv/tools/git-flow/hotfix/finish.mjs --base main
  *
@@ -19,46 +22,44 @@
  * ============================================================== */
 
 /**
- * PR-first finish for a Git Flow hotfix branch.
+ * Post-merge finish for a Git Flow hotfix branch.
  *
  * @module git-flow-hotfix-finish
  *
  * @example
- * // On hotfix/1.2.1:
- * //   node .devenv/tools/git-flow/hotfix/finish.mjs
+ * // After the PR is merged on GitHub:
+ * //   npm run git:flow:hotfix:finish
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { boxBanner, boxDone, forwardedArgs, logError } from "../../../lib/tool-lib.mjs";
-import { finishWithPullRequest } from "../finish-pr.mjs";
+import { boxBanner, boxDone, forwardedArgs, logError, logInfo } from "../../../lib/tool-lib.mjs";
+import { finishAfterMerge, parseBaseArgs } from "../finish-merged.mjs";
 
 /**
- * Pushes the current hotfix branch and opens a PR into main.
+ * Verifies remote merge gates and cleans up the hotfix branch.
  *
  * @param {{ base?: string }} [options] - Optional base override.
  * @returns {{ ok: boolean }} Outcome.
  *
  * @example
  * finishHotfix();
- * finishHotfix({ base: "main" });
  */
 export function finishHotfix(options = {}) {
-  return finishWithPullRequest("hotfix", { base: options.base || "main" });
+  return finishAfterMerge("hotfix", { base: options.base || "main" });
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
-  boxBanner("🩹 hotfix finish");
-  const args = forwardedArgs();
-  const baseFlag = args.indexOf("--base");
-  const base = baseFlag === -1 ? undefined : args[baseFlag + 1];
-  if (baseFlag !== -1 && !base) {
+  boxBanner("🚑 hotfix finish");
+  const { base } = parseBaseArgs(forwardedArgs());
+  if (forwardedArgs().includes("--base") && !base) {
     logError("Pass --base <branch>.");
     process.exit(1);
   }
   if (!finishHotfix(base ? { base } : {}).ok) {
     process.exit(1);
   }
+  logInfo("Mandatory: open a PR from main into develop so the fix is not lost.");
   boxDone("hotfix finish");
 }

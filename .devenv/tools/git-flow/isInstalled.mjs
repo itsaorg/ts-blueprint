@@ -22,8 +22,9 @@
 /**
  * Verifies that Git Flow AVH is on PATH and shares the install guide.
  *
- * Branch start/publish need AVH. Finish still opens a PR via
- * `finish-pr.mjs` and never runs `git flow * finish`.
+ * Branch start/publish need AVH (`support publish` is our push
+ * wrapper). Finish uses `finish-merged.mjs` after GitHub merge and
+ * never runs `git flow * finish`.
  *
  * @module git-flow-is-installed
  *

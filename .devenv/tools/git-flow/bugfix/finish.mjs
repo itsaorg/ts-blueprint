@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🐛 Bugfix PR finish
+ * 🐛 Bugfix post-merge finish
  * ---------------------------------------------------------------
- * PR-first finish for a bugfix branch: push, then open a pull
- * request into `develop` (override with `--base`). Never runs
- * `git flow bugfix finish` — merges stay on GitHub so CI runs.
- * After merge, delete the topic branch locally and on origin.
+ * After the bugfix PR into `develop` is reviewed and merged:
+ * verify merge + approval + issue link, then delete the topic
+ * branch locally and on origin. Never creates a PR (publish does).
+ * Never runs `git flow bugfix finish`.
  *
  * HOW TO RUN:
+ *   npm run git:flow:bugfix:finish
  *   node .devenv/tools/git-flow/bugfix/finish.mjs
  *   node .devenv/tools/git-flow/bugfix/finish.mjs --base develop
  *
@@ -19,41 +20,38 @@
  * ============================================================== */
 
 /**
- * PR-first finish for a Git Flow bugfix branch.
+ * Post-merge finish for a Git Flow bugfix branch.
  *
  * @module git-flow-bugfix-finish
  *
  * @example
- * // On bugfix/99-null-guard:
- * //   node .devenv/tools/git-flow/bugfix/finish.mjs
+ * // After the PR is merged on GitHub:
+ * //   npm run git:flow:bugfix:finish
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logError } from "../../../lib/tool-lib.mjs";
-import { finishWithPullRequest } from "../finish-pr.mjs";
+import { finishAfterMerge, parseBaseArgs } from "../finish-merged.mjs";
 
 /**
- * Pushes the current bugfix branch and opens a PR into develop.
+ * Verifies remote merge gates and cleans up the bugfix branch.
  *
  * @param {{ base?: string }} [options] - Optional base override.
  * @returns {{ ok: boolean }} Outcome.
  *
  * @example
  * finishBugfix();
- * finishBugfix({ base: "develop" });
  */
 export function finishBugfix(options = {}) {
-  return finishWithPullRequest("bugfix", { base: options.base || "develop" });
+  return finishAfterMerge("bugfix", { base: options.base || "develop" });
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   boxBanner("🐛 bugfix finish");
-  const args = forwardedArgs();
-  const baseFlag = args.indexOf("--base");
-  const base = baseFlag === -1 ? undefined : args[baseFlag + 1];
-  if (baseFlag !== -1 && !base) {
+  const { base } = parseBaseArgs(forwardedArgs());
+  if (forwardedArgs().includes("--base") && !base) {
     logError("Pass --base <branch>.");
     process.exit(1);
   }

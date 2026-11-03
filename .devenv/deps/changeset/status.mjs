@@ -26,13 +26,40 @@
  * @example
  * // Inspect what would ship in the next version bump:
  * //   npm run changeset:status
+ *
+ * @example
+ * import { statusChangeset } from "./status.mjs";
+ * process.exitCode = statusChangeset([]);
  */
 
-import { forwardedArgs, runTool } from "../../lib/tool-lib.mjs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { boxBanner, boxDone, forwardedArgs, runTool } from "../../lib/tool-lib.mjs";
 
-const args = ["status", "--verbose"].concat(forwardedArgs());
-process.exitCode = runTool({
-  label: "changeset:status",
-  bin: "changeset",
-  args,
-});
+/**
+ * Runs `changeset status --verbose` plus any forwarded args.
+ *
+ * @param {string[]} [args] - Extra CLI args after `status --verbose`.
+ * @returns {number} Process exit code (`0` = success).
+ *
+ * @example
+ * statusChangeset([]);
+ */
+export function statusChangeset(args = []) {
+  const cliArgs = ["status", "--verbose"].concat(args);
+  return runTool({
+    label: "changeset:status",
+    bin: "changeset",
+    args: cliArgs,
+  });
+}
+
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+  boxBanner("📋 changeset status");
+  const code = statusChangeset(forwardedArgs());
+  if (code === 0) {
+    boxDone("changeset status");
+  }
+  process.exitCode = code;
+}

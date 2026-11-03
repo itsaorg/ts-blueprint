@@ -81,9 +81,9 @@ Do not change portable paths under `.devenv` or the community policy files under
 
 ## ✅ Readiness
 
-**Ready to use (P0/P1):** clone as a GitHub template for day-to-day library work. Audit is clean via `overrides.minimatch`, YAML issue forms only, Changesets + `v*` tag publish, Git Flow PR-first finish, `prepublishOnly` → `tsc:build`, OIDC `registry-url` on setup-node, CODEOWNERS + SUPPORT, mandatory `main` → `develop` back-merge after release/hotfix.
+**Ready to use (P0/P1):** clone as a GitHub template for day-to-day library work. Audit is clean via `overrides.minimatch`, YAML issue forms only, Changesets + `v*` tag publish, Git Flow publish (PR create + pending-changeset gate) / finish (post-merge gates), full support start/publish/finish, quiet exclusive label sync, `prepublishOnly` → `tsc:build`, OIDC `registry-url` on setup-node, CODEOWNERS + SUPPORT, mandatory `main` → `develop` back-merge after release/hotfix.
 
-Release model: accumulate Changesets files on `develop` → run `changeset:version` only on `release/*` or `hotfix/*` → PR into `main` → tag `v<version>` → `release.yml` publishes → PR `main` into `develop`.
+Release model: `changeset:add` on topic branches → publish opens the PR → merge → finish cleans up → on `release/*` or `hotfix/*` run `changeset:version` → publish into `main` → tag `v<version>` → `release.yml` publishes → PR `main` into `develop`.
 
 ### P2 backlog (later)
 

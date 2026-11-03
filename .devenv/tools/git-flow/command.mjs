@@ -5,13 +5,14 @@
  * ---------------------------------------------------------------
  * Shared runner for `git flow <type> <action> …` plus small branch
  * helpers (current name, strip type prefix, push with upstream).
- * Requires Git Flow AVH on PATH. Used by feature/bugfix/release/
- * hotfix/support start and publish modules — not for finish
- * (finish is PR-first via `finish-pr.mjs`).
+ * Requires Git Flow AVH on PATH for `runGitFlow`. Used by
+ * feature/bugfix/release/hotfix/support start and publish modules.
+ * Finish uses `finish-merged.mjs` (post-merge gates); publish uses
+ * `publish-flow.mjs` (pending changesets + PR create).
  *
  * HOW TO RUN:
  *   imported by git-flow branch modules
- *   (no standalone CLI; use feature/start.mjs etc.)
+ *   node .devenv/tools/git-flow/command.mjs --show-branch
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -25,12 +26,25 @@
  * @module git-flow-command
  *
  * @example
- * import { runGitFlow } from "../command.mjs";
+ * import { runGitFlow, currentBranch } from "../command.mjs";
  * runGitFlow("feature", "start", ["42-add-login"]);
+ * console.log(currentBranch());
  */
 
 import { spawnSync } from "node:child_process";
-import { logError, logGo, logOk, repoRoot, run } from "../../lib/tool-lib.mjs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import {
+  boxBanner,
+  boxDone,
+  forwardedArgs,
+  logError,
+  logGo,
+  logInfo,
+  logOk,
+  repoRoot,
+  run,
+} from "../../lib/tool-lib.mjs";
 import { isGitFlowInstalled } from "./isInstalled.mjs";
 
 /**
@@ -49,6 +63,7 @@ import { isGitFlowInstalled } from "./isInstalled.mjs";
  *
  * @example
  * runGitFlow("release", "start", ["1.2.0"]);
+ * runGitFlow("feature", "publish", ["42-add-login"]);
  */
 export function runGitFlow(type, action, args = []) {
   const installed = isGitFlowInstalled();
@@ -120,4 +135,22 @@ export function pushCurrentBranch() {
     logError(`Failed to push ${branch}`);
     return { ok: false };
   }
+}
+
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+  boxBanner("⚙️ git-flow command");
+  const args = forwardedArgs();
+  if (args.includes("--show-branch")) {
+    const branch = currentBranch();
+    if (!branch) {
+      logError("Could not determine current branch");
+      process.exit(1);
+    }
+    logInfo(branch);
+    boxDone("git-flow command");
+    process.exit(0);
+  }
+  logInfo("Helper module. Use type start/publish/finish scripts, or pass --show-branch.");
+  boxDone("git-flow command");
 }

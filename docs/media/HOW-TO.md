@@ -6,18 +6,22 @@ Use **`npm clean-install`** for lockfile installs (same command as the old `npm 
 
 ## 🗂️ Table of contents
 
-- [🖥️ What do I do before cloning?](#️-what-do-i-do-before-cloning)
-- [🌱 What do I do after cloning?](#-what-do-i-do-after-cloning)
-- [🔄 What does `npm prepare` run?](#-what-does-npm-prepare-run)
-- [🎫 When do I open which issue?](#-when-do-i-open-which-issue)
-- [📌 What do I do after the issue exists?](#-what-do-i-do-after-the-issue-exists)
-- [🌲 Which Git Flow branch type do I use?](#-which-git-flow-branch-type-do-i-use)
-- [💻 How do I work day to day on a topic branch?](#-how-do-i-work-day-to-day-on-a-topic-branch)
-- [✨ How do I finish a feature or bugfix?](#-how-do-i-finish-a-feature-or-bugfix)
-- [📦 How do I finish a release?](#-how-do-i-finish-a-release)
-- [🚑 How do I finish a hotfix?](#-how-do-i-finish-a-hotfix)
-- [🛟 When do I use a support branch?](#-when-do-i-use-a-support-branch)
-- [⏭️ How do I skip hooks once?](#️-how-do-i-skip-hooks-once)
+- [How-to FAQ](#how-to-faq)
+  - [🗂️ Table of contents](#️-table-of-contents)
+  - [🖥️ What do I do before cloning?](#️-what-do-i-do-before-cloning)
+  - [🌱 What do I do after cloning?](#-what-do-i-do-after-cloning)
+  - [🔄 What does `npm prepare` run?](#-what-does-npm-prepare-run)
+  - [🎫 When do I open which issue?](#-when-do-i-open-which-issue)
+  - [📌 What do I do after the issue exists?](#-what-do-i-do-after-the-issue-exists)
+  - [🌲 Which Git Flow branch type do I use?](#-which-git-flow-branch-type-do-i-use)
+  - [💻 How do I work day to day on a topic branch?](#-how-do-i-work-day-to-day-on-a-topic-branch)
+  - [🚀 How do I publish a feature or bugfix (open the PR)?](#-how-do-i-publish-a-feature-or-bugfix-open-the-pr)
+  - [✨ How do I finish a feature or bugfix (after merge)?](#-how-do-i-finish-a-feature-or-bugfix-after-merge)
+  - [📦 How do I cut a release?](#-how-do-i-cut-a-release)
+  - [🚑 How do I finish a hotfix?](#-how-do-i-finish-a-hotfix)
+  - [🛟 When do I use a support branch?](#-when-do-i-use-a-support-branch)
+  - [📝 What is `changeset:add` vs `CHANGELOG.md`?](#-what-is-changesetadd-vs-changelogmd)
+  - [⏭️ How do I skip hooks once?](#️-how-do-i-skip-hooks-once)
 
 ## 🖥️ What do I do before cloning?
 
@@ -69,7 +73,7 @@ Prefer a lockfile install:
 npm clean-install
 ```
 
-That runs the `prepare` lifecycle (Husky, git commit template, gh/npm auth when possible, label sync). See [What does `npm prepare` run?](#what-does-npm-prepare-run).
+That runs the `prepare` lifecycle (Husky, git commit template, gh/npm auth when possible, label sync). See [What does `npm prepare` run?](#-what-does-npm-prepare-run).
 
 For machine probes, install, and the CI gate in one step:
 
@@ -139,7 +143,11 @@ Tags use the `v` prefix (for example `v0.1.0`).
 
 ## 💻 How do I work day to day on a topic branch?
 
-Edit under `src/` (and tests). Commit with Conventional Commits.
+Edit under `src/` (and tests). Commit with Conventional Commits. When the published package should bump, add a pending Changeset on the topic branch (not on `main`, `develop`, or `release/*`):
+
+```bash
+npm run changeset:add
+```
 
 ```bash
 git add -A
@@ -153,49 +161,39 @@ git commit
 npm run check
 ```
 
+## 🚀 How do I publish a feature or bugfix (open the PR)?
+
+**Publish** opens the pull request. **Finish** only cleans up after merge. Do **not** use `git flow feature finish` / `git flow bugfix finish` to merge locally — that bypasses GitHub review and CI.
+
+Publish requires at least one pending `.changeset/*.md` file:
+
 ```bash
-git push -u origin HEAD
+npm run git:flow:feature:publish
 ```
 
-## ✨ How do I finish a feature or bugfix?
-
-Use a **pull request**. Do **not** use `git flow feature finish` or `git flow bugfix finish` to merge locally — that bypasses GitHub review and CI.
+That runs the pending-changeset gate, `git flow feature publish`, and `gh pr create` into `develop` (seeds `Closes #N` from `feature/<number>-…` when present). For bugfix:
 
 ```bash
-node .devenv/tools/git-flow/feature/finish.mjs
+npm run git:flow:bugfix:publish
 ```
 
-That pushes the branch and runs `gh pr create --base develop --fill` when `gh` is authenticated. For bugfix:
+Wait for the `ci` workflow. Request review. Merge on GitHub when green and approved.
+
+## ✨ How do I finish a feature or bugfix (after merge)?
+
+Stay on the topic branch until finish succeeds. Finish checks that the remote PR is **merged**, **approved**, and **linked** to the issue number from the branch name, then deletes the local and remote topic branch and checks out `develop`:
 
 ```bash
-node .devenv/tools/git-flow/bugfix/finish.mjs
-```
-
-Wait for the `ci` workflow. Merge on GitHub when green.
-
-Then update local `develop` and delete the topic branch:
-
-```bash
-git checkout develop
-```
-
-```bash
-git pull origin develop
+npm run git:flow:feature:finish
 ```
 
 ```bash
-git branch -d feature/<number>-<slug>
+npm run git:flow:bugfix:finish
 ```
 
-```bash
-git push origin --delete feature/<number>-<slug>
-```
+## 📦 How do I cut a release?
 
-Use `bugfix/` in those names when finishing a bugfix.
-
-## 📦 How do I finish a release?
-
-Release uses **Changesets for the version bump** and a **git tag to publish**. Feature/bugfix/chore PRs into `develop` should include a Changesets file when the published package should bump. Semver type follows API impact (not branch name): features are usually minor/major; bugfixes and chores are often patch.
+Release uses **Changesets for the version bump** and a **git tag to publish**. Feature/bugfix PRs into `develop` should include a Changesets file when the published package should bump. Semver type follows API impact (not branch name): features are usually minor/major; bugfixes and chores are often patch.
 
 ```bash
 git checkout develop
@@ -210,7 +208,7 @@ npm run changeset:status
 ```
 
 ```bash
-node .devenv/tools/git-flow/release/start.mjs <x.y.z>
+npm run git:flow:release:start -- <x.y.z>
 ```
 
 On `release/<x.y.z>` only (never on `develop` or `main`):
@@ -219,13 +217,19 @@ On `release/<x.y.z>` only (never on `develop` or `main`):
 npm run changeset:version
 ```
 
-Confirm `package.json` version matches the intended cut. Then PR-first finish into `main`:
+Confirm `package.json` version matches the branch name. Publish opens the PR into `main` (pending files **or** version already applied):
 
 ```bash
-node .devenv/tools/git-flow/release/finish.mjs
+npm run git:flow:release:publish
 ```
 
-After the PR merges and CI is green on `main`, tag **exactly** the version in `package.json`:
+After review + merge on GitHub:
+
+```bash
+npm run git:flow:release:finish
+```
+
+Finish refuses leftover pending changesets and requires `package.json` version to match `release/<x.y.z>`. Then on `main`, tag **exactly** the version in `package.json`:
 
 ```bash
 git checkout main
@@ -245,7 +249,7 @@ git push origin "v$(node -p "require('./package.json').version")"
 
 Pushing the `v*` tag runs `.github/workflows/release.yml` (check → `npm:release` → GitHub Release).
 
-**Mandatory:** open a second pull request from `main` into `develop` so integration stays current. Merge that PR before deleting the local/remote `release/` branch.
+**Mandatory:** open a second pull request from `main` into `develop` so integration stays current.
 
 ## 🚑 How do I finish a hotfix?
 
@@ -260,32 +264,62 @@ git pull origin main
 ```
 
 ```bash
-node .devenv/tools/git-flow/hotfix/start.mjs <x.y.z>
+npm run git:flow:hotfix:start -- <x.y.z>
 ```
 
-Add a patch Changeset for the fix, then on the hotfix branch only:
+```bash
+npm run changeset:add
+```
 
 ```bash
 npm run changeset:version
 ```
 
-PR-first finish into `main`:
-
 ```bash
-node .devenv/tools/git-flow/hotfix/finish.mjs
+npm run git:flow:hotfix:publish
 ```
 
-After merge and green CI on `main`, tag the `package.json` version and push the `v*` tag (same commands as release). `release.yml` publishes.
+After review + merge on GitHub:
 
-**Mandatory:** open a second PR from `main` into `develop` so the fix is not lost. Delete the hotfix branch only after both merges.
+```bash
+npm run git:flow:hotfix:finish
+```
+
+After green CI on `main`, tag the `package.json` version and push the `v*` tag (same commands as release). `release.yml` publishes.
+
+**Mandatory:** open a second PR from `main` into `develop` so the fix is not lost.
 
 ## 🛟 When do I use a support branch?
 
-Use `support/<name>` for a long-lived maintenance line that must stay separate from current `develop` work. Start it from the appropriate base commit, open PRs **into that support branch**, and do not mix unrelated `develop` features onto it.
+Use `support/<name>` for a long-lived maintenance line that must stay separate from current `develop` work. Start it from the appropriate base commit. Day-to-day maintenance opens feature/bugfix PRs **into that support branch**. Git Flow AVH only has `support start`; this repo adds `publish` / `finish` wrappers for syncing or retiring the line itself.
 
 ```bash
-node .devenv/tools/git-flow/support/start.mjs <name> <base>
+npm run git:flow:support:start -- <name> <base>
 ```
+
+```bash
+npm run changeset:add
+```
+
+```bash
+npm run git:flow:support:publish
+```
+
+(Default PR base is `main`; pass `--base` or answer the interactive prompt.)
+
+After review + merge when retiring/syncing the line:
+
+```bash
+npm run git:flow:support:finish
+```
+
+## 📝 What is `changeset:add` vs `CHANGELOG.md`?
+
+`npm run changeset:add` creates a pending note under `.changeset/` (which package, which semver bump, and a short summary). It does **not** edit `package.json` or `CHANGELOG.md`. Refuse to run it on `main`, `develop`, or `release/*`.
+
+`npm run git:flow:<type>:publish` requires those pending files (except `release`/`hotfix` when `changeset:version` already matched `package.json` to the branch version).
+
+`npm run changeset:version` (only on `release/*` or `hotfix/*`) consumes pending notes into `CHANGELOG.md`, bumps `package.json`, and deletes the pending files.
 
 ## ⏭️ How do I skip hooks once?
 
