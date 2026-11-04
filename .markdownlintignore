@@ -1,0 +1,10 @@
+# =============================================================================
+# 📝 .markdownlintignore — Markdown files markdownlint must skip
+# =============================================================================
+# 📌 Purpose: skip generated or tool-owned Markdown that should not be linted.
+# ⚠️ Path is REQUIRED: repo-root `.markdownlintignore`.
+# ▶️ Example: a Changeset file under .changeset/ is not linted.
+# =============================================================================
+
+# 📦 .changeset/: Changesets CLI files, not hand-written docs
+.changeset/

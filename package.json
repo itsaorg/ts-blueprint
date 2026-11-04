@@ -1,0 +1,139 @@
+{
+  "name": "@itsaorg/ts-blueprint",
+  "description": "TypeScript library blueprint / GitHub template for Itsa repos",
+  "version": "0.0.0",
+  "author": {
+    "name": "Astitv Singh",
+    "url": "https://github.com/astitvsingh"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/astitvsingh"
+  },
+  "keywords": [
+    "typescript",
+    "library",
+    "blueprint",
+    "github",
+    "template"
+  ],
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itsaorg/ts-blueprint.git"
+  },
+  "bugs": "https://github.com/itsaorg/ts-blueprint/issues",
+  "homepage": "https://itsaorg.github.io/ts-blueprint/",
+  "engines": {
+    "node": "26"
+  },
+  "files": [
+    "dist/",
+    "package.json",
+    "CHANGELOG.md",
+    "NOTICE",
+    "LICENSE",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "prepare": "node .devenv/prepare.mjs",
+    "husky:prepare": "node .devenv/deps/husky/prepare.mjs",
+    "tsc:typecheck": "node .devenv/deps/tsc/typecheck.mjs",
+    "tsc:emit": "node .devenv/deps/tsc/emit.mjs",
+    "tsc:build": "node .devenv/deps/tsc/build.mjs",
+    "format": "npm run format:check && npm run format:fix",
+    "format:fix": "npm run prettier:write && npm run eslint:fix",
+    "format:write": "npm run prettier:write && npm run eslint:fix && npm run layout:check",
+    "format:check": "npm run prettier:check && npm run eslint:lint && npm run layout:check",
+    "prettier:write": "node .devenv/deps/prettier/write.mjs",
+    "prettier:check": "node .devenv/deps/prettier/check.mjs",
+    "eslint:lint": "node .devenv/deps/eslint/lint.mjs",
+    "eslint:fix": "node .devenv/deps/eslint/fix.mjs",
+    "layout:check": "node .devenv/deps/layout/check.mjs",
+    "vitest": "node .devenv/deps/vitest/watch.mjs",
+    "vitest:run": "node .devenv/deps/vitest/run.mjs",
+    "vitest:coverage": "node .devenv/deps/vitest/coverage.mjs",
+    "vitest:verbose": "node .devenv/deps/vitest/verbose.mjs",
+    "check": "node .devenv/deps/check/run.mjs",
+    "commitlint": "node .devenv/deps/commitlint/lint.mjs",
+    "lint-staged": "node .devenv/deps/lint-staged/run.mjs",
+    "clean:dist": "node .devenv/utils/clean.mjs --path dist --recursive",
+    "clean:coverage": "node .devenv/utils/clean.mjs --path coverage --recursive",
+    "clean:docs": "node .devenv/utils/clean.mjs --path docs --recursive",
+    "clean:modules": "node .devenv/utils/clean.mjs --path node_modules --recursive",
+    "clean:all": "npm run clean:dist && npm run clean:coverage && npm run clean:docs && npm run clean:modules",
+    "docify:typedoc": "npm run clean:docs && npm run typedoc:build",
+    "typedoc:build": "node .devenv/deps/typedoc/build.mjs",
+    "changeset:add": "node .devenv/deps/changeset/add.mjs",
+    "changeset:status": "node .devenv/deps/changeset/status.mjs",
+    "changeset:version": "node .devenv/deps/changeset/version.mjs",
+    "npm:publish:local": "node .devenv/tools/npm/publish/local.mjs",
+    "npm:publish:worker": "node .devenv/tools/npm/publish/worker.mjs",
+    "npm:trust": "node .devenv/tools/npm/publish/trust.mjs",
+    "npm:deprecate:reservation": "node .devenv/tools/npm/publish/deprecate-reservation.mjs",
+    "npm:release": "node .devenv/tools/npm/publish/release.mjs",
+    "npm:pack:smoke": "node .devenv/tools/npm/pack/smoke.mjs",
+    "prepublishOnly": "npm run tsc:build",
+    "setup": "node .devenv/setup.mjs",
+    "git:setup": "node .devenv/tools/git/setup.mjs",
+    "git:tag:version": "node .devenv/tools/git/tag-version.mjs",
+    "node:setup": "node .devenv/tools/node/setup.mjs",
+    "npm:setup": "node .devenv/tools/npm/setup.mjs",
+    "git-flow:setup": "node .devenv/tools/git-flow/setup.mjs",
+    "gh:setup": "node .devenv/tools/gh/setup.mjs",
+    "gh:label:sync": "node .devenv/tools/gh/label/sync.mjs",
+    "git:flow:feature:start": "node .devenv/tools/git-flow/feature/start.mjs",
+    "git:flow:feature:publish": "node .devenv/tools/git-flow/feature/publish.mjs",
+    "git:flow:feature:finish": "node .devenv/tools/git-flow/feature/finish.mjs",
+    "git:flow:bugfix:start": "node .devenv/tools/git-flow/bugfix/start.mjs",
+    "git:flow:bugfix:publish": "node .devenv/tools/git-flow/bugfix/publish.mjs",
+    "git:flow:bugfix:finish": "node .devenv/tools/git-flow/bugfix/finish.mjs",
+    "git:flow:hotfix:start": "node .devenv/tools/git-flow/hotfix/start.mjs",
+    "git:flow:hotfix:publish": "node .devenv/tools/git-flow/hotfix/publish.mjs",
+    "git:flow:hotfix:finish": "node .devenv/tools/git-flow/hotfix/finish.mjs",
+    "git:flow:release:start": "node .devenv/tools/git-flow/release/start.mjs",
+    "git:flow:release:publish": "node .devenv/tools/git-flow/release/publish.mjs",
+    "git:flow:release:finish": "node .devenv/tools/git-flow/release/finish.mjs",
+    "git:flow:support:start": "node .devenv/tools/git-flow/support/start.mjs",
+    "git:flow:support:publish": "node .devenv/tools/git-flow/support/publish.mjs",
+    "git:flow:support:finish": "node .devenv/tools/git-flow/support/finish.mjs"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^3.0.3",
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.5",
+    "@vitest/coverage-v8": "^5.0.3",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.10",
+    "typedoc": "^0.28.20",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.3"
+  },
+  "overrides": {
+    "minimatch": "^11.0.1"
+  },
+  "lint-staged": {
+    "*.{ts,js,mjs,cjs,json,md,yml,yaml}": "prettier --config configs/.prettierrc.json --ignore-path configs/prettierignore --write",
+    "*.ts": "eslint --config configs/eslint.config.js --fix"
+  }
+}

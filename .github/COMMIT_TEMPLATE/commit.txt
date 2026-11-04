@@ -1,0 +1,9 @@
+<type>(<scope>): <subject>
+
+# type: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+# scope: area of the change, such as github, devenv, changeset, husky, configs, src, tests or src/types etc.
+# subject: short description of the change
+# Leave one blank line, then the body. Say why the change is needed.
+# Each body line must be 100 characters or fewer. Commitlint rejects longer lines.
+# GitHub labels belong on the issue or pull request, not in this message.
+# See .github/CONTRIBUTING.md for which template applies which label.

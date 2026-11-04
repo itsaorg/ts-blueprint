@@ -1,0 +1,261 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@itsaorg/ts-blueprint</title><meta name="description" content="Documentation for @itsaorg/ts-blueprint"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="index.html" class="title">@itsaorg/ts-blueprint</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<h1>@itsaorg/ts-blueprint</h1></div>
+<div class="tsd-panel tsd-typography"><h1 id="itsaorgts-blueprint" class="tsd-anchor-link">@itsaorg/ts-blueprint<a href="#itsaorgts-blueprint" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<p><a href="https://github.com/itsaorg/ts-blueprint/actions/workflows/ci.yml"><img src="https://github.com/itsaorg/ts-blueprint/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+<a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License"></a>
+<a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-26-brightgreen.svg" alt="Node"></a>
+<a href="https://itsaorg.github.io/ts-blueprint/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-0A66C2.svg" alt="Docs"></a></p>
+<p>GitHub template for Itsa TypeScript libraries. Clone from this repository, rename the package identity, then start product code under <code>src/</code>.</p>
+<h2 id="🗂️-table-of-contents" class="tsd-anchor-link">🗂️ Table Of Contents<a href="#🗂️-table-of-contents" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li><a href="#itsaorgts-blueprint">@itsaorg/ts-blueprint</a>
+<ul>
+<li><a href="#%EF%B8%8F-table-of-contents">🗂️ Table Of Contents</a></li>
+<li><a href="#-requirements">📋 Requirements</a></li>
+<li><a href="#%EF%B8%8F-use-this-template">🏗️ Use this template</a></li>
+<li><a href="#%EF%B8%8F-rename-checklist">✏️ Rename checklist</a></li>
+<li><a href="#%EF%B8%8F-operator--github-settings">⚙️ Operator / GitHub settings</a></li>
+<li><a href="#-readiness">✅ Readiness</a>
+<ul>
+<li><a href="#p2-backlog-later">P2 backlog (later)</a></li>
+</ul>
+</li>
+<li><a href="#%EF%B8%8F-layout">🗺️ Layout</a></li>
+<li><a href="#%EF%B8%8F-key-scripts">⌨️ Key scripts</a></li>
+<li><a href="#-links">🔗 Links</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="📋-requirements" class="tsd-anchor-link">📋 Requirements<a href="#📋-requirements" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li>Node.js 26 (see <code>.nvmrc</code>; CI and <code>engines.node</code> are this major only)</li>
+<li>npm (ships with Node)</li>
+<li>Git</li>
+<li>Git Flow AVH, if you start topic branches with <code>git flow</code> or the <code>.devenv/tools/git-flow/*</code> helpers</li>
+</ul>
+<p>On Windows, use Git Bash. Install Node from <a href="https://nodejs.org/">nodejs.org</a>, nvm-windows, or fnm. Install Git Flow AVH from the <a href="https://github.com/petervanderdoes/gitflow-avh/wiki/Installation">AVH wiki</a>, then verify with <code>git flow version</code>. Prepare soft-skips init when AVH is missing; start/publish/finish helpers print the same install guide and exit.</p>
+<h2 id="🏗️-use-this-template" class="tsd-anchor-link">🏗️ Use this template<a href="#🏗️-use-this-template" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ol>
+<li>Open <a href="https://github.com/itsaorg/ts-blueprint">itsaorg/ts-blueprint</a> on GitHub.</li>
+<li>Click <strong>Use this template</strong> → <strong>Create a new repository</strong>.</li>
+<li>Choose owner, name, and visibility. Create the repository.</li>
+<li>On the template dialog, <strong>include all branches</strong> (not only the default). This repo’s CI and Git Flow expect a <code>develop</code> branch on the remote. If you already created the repo without it, push <code>develop</code> from this template before day-to-day work:</li>
+</ol>
+<pre><code class="bash"><span class="hl-0">git</span><span class="hl-1"> </span><span class="hl-2">fetch</span><span class="hl-1"> </span><span class="hl-2">origin</span><br/><span class="hl-0">git</span><span class="hl-1"> </span><span class="hl-2">checkout</span><span class="hl-1"> </span><span class="hl-2">develop</span><br/><span class="hl-0">git</span><span class="hl-1"> </span><span class="hl-2">push</span><span class="hl-1"> </span><span class="hl-3">-u</span><span class="hl-1"> </span><span class="hl-2">origin</span><span class="hl-1"> </span><span class="hl-2">develop</span>
+</code><button type="button">Copy</button></pre>
+
+<ol start="5">
+<li>Clone your new repository and install:</li>
+</ol>
+<pre><code class="bash"><span class="hl-0">git</span><span class="hl-1"> </span><span class="hl-2">clone</span><span class="hl-1"> &lt;</span><span class="hl-2">your-repo-HTTPS-UR</span><span class="hl-1">L&gt;</span><br/><span class="hl-0">cd</span><span class="hl-1"> &lt;</span><span class="hl-2">your-repo-director</span><span class="hl-1">y&gt;</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">clean-install</span>
+</code><button type="button">Copy</button></pre>
+
+<ol start="6">
+<li>For machine probes, install, and the CI gate:</li>
+</ol>
+<pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">setup</span>
+</code><button type="button">Copy</button></pre>
+
+<p><code>npm clean-install</code> runs <code>prepare</code> (Husky, commit template, gh/npm auth when possible, label sync, git-flow init with tag prefix <code>v</code>). Prefer <code>npm clean-install</code> for a clean checkout (long form of the old <code>npm ci</code> alias). Use <code>npm install</code> only when refreshing the lockfile.</p>
+<h2 id="✏️-rename-checklist" class="tsd-anchor-link">✏️ Rename checklist<a href="#✏️-rename-checklist" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Replace blueprint identity with your package before you publish or open Trusted Publishing:</p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>What to change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>package.json</code></td>
+<td><code>name</code>, <code>description</code>, <code>keywords</code>, <code>repository.url</code>, <code>bugs</code>, <code>homepage</code>, <code>author</code>, <code>funding</code></td>
+</tr>
+<tr>
+<td><code>package-lock.json</code></td>
+<td>Refresh via <code>npm install</code> after renaming <code>package.json</code></td>
+</tr>
+<tr>
+<td><code>NOTICE</code></td>
+<td>Package name and one-line description</td>
+</tr>
+<tr>
+<td><code>CHANGELOG.md</code></td>
+<td>Clear or rewrite for your first release (Changesets owns later entries)</td>
+</tr>
+<tr>
+<td><code>.github/CITATION.cff</code></td>
+<td>Title, authors, <code>repository-code</code>, <code>url</code></td>
+</tr>
+<tr>
+<td><code>.github/FUNDING.yml</code></td>
+<td>Sponsors handle</td>
+</tr>
+<tr>
+<td><code>configs/typedoc.json</code></td>
+<td><code>&quot;name&quot;</code></td>
+</tr>
+<tr>
+<td><code>src/**</code> file banners and examples</td>
+<td>Package import name</td>
+</tr>
+<tr>
+<td><code>tests/consumer/public-api.test.ts</code></td>
+<td>Uses <code>package.json</code> <code>name</code> automatically; no edit needed after rename</td>
+</tr>
+<tr>
+<td>npm Trusted Publishing</td>
+<td><code>npm run npm:trust</code> after the GitHub repo and <code>release.yml</code> exist</td>
+</tr>
+<tr>
+<td>Labels</td>
+<td><code>npm run gh:label:sync</code> when <code>gh</code> is authenticated</td>
+</tr>
+<tr>
+<td>GitHub repo settings</td>
+<td>See <a href="#%EF%B8%8F-operator--github-settings">Operator / GitHub settings</a></td>
+</tr>
+<tr>
+<td><code>.github/CODEOWNERS</code></td>
+<td>Replace default owners with your org/team</td>
+</tr>
+<tr>
+<td><code>.github/SUPPORT.md</code></td>
+<td>Point issue links at your repository</td>
+</tr>
+</tbody>
+</table>
+<p>Do not change portable paths under <code>.devenv</code> or the community policy files under <code>.github/</code> unless you mean to fork the toolchain.</p>
+<h2 id="⚙️-operator-github-settings" class="tsd-anchor-link">⚙️ Operator / GitHub settings<a href="#⚙️-operator-github-settings" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>These cannot live only in git. After creating the repo from the template:</p>
+<ul>
+<li>[ ] Mark the repository as a <strong>Template repository</strong> (Settings → General) if clones should offer “Use this template”</li>
+<li>[ ] Enable <strong>GitHub Pages</strong> from the <code>/docs</code> folder on <code>main</code> (or your docs branch)</li>
+<li>[ ] Protect <code>main</code> and <code>develop</code> (required checks: <code>ci</code> / <code>check</code>; dismiss stale reviews as you prefer)</li>
+<li>[ ] Bind npm <strong>Trusted Publisher</strong> to this repo’s <code>.github/workflows/release.yml</code> (<code>npm run npm:trust</code> after rename)</li>
+<li>[ ] Optionally enable <strong>Discussions</strong> so <code>.github/DISCUSSION_TEMPLATE/</code> forms appear</li>
+<li>[ ] Set description, topics, and homepage URL to match the renamed package</li>
+</ul>
+<h2 id="✅-readiness" class="tsd-anchor-link">✅ Readiness<a href="#✅-readiness" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p><strong>Ready to use (P0/P1 + closed P2 gaps in-repo):</strong> clone as a GitHub template for day-to-day library work through PR → Changesets → tag → npm Trusted Publishing. Includes publish/finish gate bypasses (policy C), <code>git:tag:version</code>, <code>npm:pack:smoke</code> in CI, FUNDING/CITATION/Discussion templates, package.json polish (<code>author</code>/<code>funding</code>/<code>sideEffects</code>, no lockfile in tarball), and Changesets-only CHANGELOG ownership.</p>
+<p>Release model: <code>changeset:add</code> on topic branches → publish opens the PR → merge → finish cleans up → on <code>release/*</code> or <code>hotfix/*</code> run <code>changeset:version</code> → publish into <code>main</code> → <code>npm run git:tag:version -- --push</code> → <code>release.yml</code> publishes → PR <code>main</code> into <code>develop</code>.</p>
+<p>Chore/docs or empty support publish without a bump: <code>npm run git:flow:&lt;type&gt;:publish -- --allow-no-changeset</code> (or confirm on a TTY). Solo finish without an approving review: <code>npm run git:flow:&lt;type&gt;:finish -- --allow-unapproved</code> (or confirm on a TTY). Merged + issue-link gates stay hard.</p>
+<h3 id="p2-backlog-later" class="tsd-anchor-link">P2 backlog (later)<a href="#p2-backlog-later" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p><strong>Still open (upstream / org / optional):</strong></p>
+<ul>
+<li>[ ] Extra support links in SUPPORT (Discord/forum) if the org has them</li>
+<li>[ ] Optional Changesets GitHub Action that still respects version-branch rules</li>
+<li>[ ] Dependabot/Renovate tuning for the eslint/typedoc stack</li>
+<li>[ ] npm provenance badge after the first real publish</li>
+<li>[ ] Confirm Trusted Publisher binding after <code>npm:trust</code> on a renamed package</li>
+<li>[ ] Node matrix in CI if <code>engines.node</code> ever allows more than <code>.nvmrc</code> major <code>26</code></li>
+<li>[ ] Remove <code>minimatch</code> override + TypeDoc patch when upstream supports minimatch &gt;=11.0.1 (<strong>retained, blocked on upstream</strong>)</li>
+<li>[ ] Consumer clone dry-run checklist (rename → setup → feature → release dry-run)</li>
+<li>[ ] Org-level template defaults (topics, Pages <code>docs/</code>, default branch policy)</li>
+<li>[ ] Optional monorepo notes (out of scope until needed)</li>
+</ul>
+<p><strong>Closed in this pass:</strong> FUNDING.yml, CITATION.cff, DISCUSSION_TEMPLATE, tag helper, pack smoke in CI, dual <code>changelog/generate.mjs</code> removed, devenv helper tests, gate bypasses, package.json polish, operator checklist, README numbering.</p>
+<h2 id="🗺️-layout" class="tsd-anchor-link">🗺️ Layout<a href="#🗺️-layout" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<pre><code class="text">.devenv/            Script library (prepare, setup, lib, tools, deps, utils)
+.husky/             Git hooks (Husky)
+.github/            Issues, PRs, workflows, labels, CONTRIBUTING, FUNDING, CITATION
+configs/            ESLint, Prettier, Vitest, TypeDoc, tsconfig pieces
+docs/               TypeDoc GitHub Pages site (tracked)
+src/                Library source (`base/`, `types/`, package root)
+tests/              Consumer, unit, and devenv helper tests
+</code><button type="button">Copy</button></pre>
+
+<p><code>docs/</code> is the TypeDoc GitHub Pages site. Regenerate with <code>npm run docify:typedoc</code> and commit when the public API changes.</p>
+<h2 id="⌨️-key-scripts" class="tsd-anchor-link">⌨️ Key scripts<a href="#⌨️-key-scripts" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<table>
+<thead>
+<tr>
+<th>Script</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>npm run setup</code></td>
+<td>Git/Node checks, <code>npm clean-install</code> (runs <code>prepare</code>), then <code>check</code></td>
+</tr>
+<tr>
+<td><code>npm run gh:label:sync</code></td>
+<td>Sync <code>.github/labels.json</code> with <code>gh</code></td>
+</tr>
+<tr>
+<td><code>npm run gh:setup</code></td>
+<td>Ensure <code>gh</code> auth, then sync labels</td>
+</tr>
+<tr>
+<td><code>npm run check</code></td>
+<td>Typecheck, format, lint, layout, tests, build</td>
+</tr>
+<tr>
+<td><code>npm run npm:pack:smoke</code></td>
+<td>Dry-run pack asserts <code>dist/</code> is in the publish tarball</td>
+</tr>
+<tr>
+<td><code>npm run git:tag:version</code></td>
+<td>Create (and optionally <code>--push</code>) <code>v*</code> from <code>package.json</code> on <code>main</code></td>
+</tr>
+<tr>
+<td><code>npm run docify:typedoc</code></td>
+<td>Regenerate the Pages site into <code>docs/</code></td>
+</tr>
+</tbody>
+</table>
+<p>The full script table and prepare/setup order live in <a href="media/CONTRIBUTING.md">CONTRIBUTING</a>. Tutorials are in <a href="media/HOW-TO.md">HOW-TO</a>.</p>
+<h2 id="🔗-links" class="tsd-anchor-link">🔗 Links<a href="#🔗-links" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<ul>
+<li><a href="media/CONTRIBUTING.md">Contributing</a></li>
+<li><a href="media/HOW-TO.md">How-to FAQ</a></li>
+<li><a href="media/SUPPORT.md">Support</a></li>
+<li><a href="media/CODE_OF_CONDUCT.md">Code of Conduct</a></li>
+<li><a href="media/SECURITY.md">Security</a></li>
+<li><a href="media/CITATION.cff">Citation</a></li>
+<li><a href="media/LICENSE">License</a></li>
+</ul>
+</div></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details"><a href="#itsaorgts-blueprint"><span>@itsaorg/ts-<wbr/>blueprint</span></a>
+<ul>
+<li><a href="#🗂️-table-of-contents"><span>🗂️ <wbr/>Table <wbr/>Of <wbr/>Contents</span></a></li>
+<li><a href="#📋-requirements"><span>📋 <wbr/>Requirements</span></a></li>
+<li><a href="#🏗️-use-this-template"><span>🏗️ <wbr/>Use this template</span></a></li>
+<li><a href="#✏️-rename-checklist"><span>✏️ <wbr/>Rename checklist</span></a></li>
+<li><a href="#⚙️-operator-github-settings"><span>⚙️ <wbr/>Operator / <wbr/>Git<wbr/>Hub settings</span></a></li>
+<li><a href="#✅-readiness"><span>✅ <wbr/>Readiness</span></a></li>
+<li>
+<ul>
+<li><a href="#p2-backlog-later"><span>P2 backlog (later)</span></a></li></ul></li>
+<li><a href="#🗺️-layout"><span>🗺️ <wbr/>Layout</span></a></li>
+<li><a href="#⌨️-key-scripts"><span>⌨️ <wbr/>Key scripts</span></a></li>
+<li><a href="#🔗-links"><span>🔗 <wbr/>Links</span></a></li></ul></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="modules.html">@itsaorg/ts-blueprint</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>

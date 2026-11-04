@@ -1,0 +1,172 @@
+[
+  {
+    "name": "🐞 Bug Report",
+    "description": "Issue Type: Bug or unexpected behavior. Applied by the bug report templates.",
+    "color": "d73a4a"
+  },
+  {
+    "name": "✨ Feature Request",
+    "description": "Issue Type: New feature or enhancement. Applied by the feature request templates.",
+    "color": "a2eeef"
+  },
+  {
+    "name": "📚 Documentation",
+    "description": "Issue Type: Documentation improvements. Hand-applied when the change is docs only.",
+    "color": "0075ca"
+  },
+  {
+    "name": "🧹 Chore",
+    "description": "Issue Type: Tooling or maintenance. Applied by the chore template and release notes.",
+    "color": "c5def5"
+  },
+  {
+    "name": "❓ Question",
+    "description": "Issue Type: Question or discussion",
+    "color": "d876e3"
+  },
+  {
+    "name": "♻️ Refactor",
+    "description": "Issue Type: Code refactoring",
+    "color": "fbca04"
+  },
+  {
+    "name": "⚡ Performance",
+    "description": "Issue Type: Performance improvement",
+    "color": "5319e7"
+  },
+  {
+    "name": "🧪 Testing",
+    "description": "Issue Type: Testing related changes",
+    "color": "e11d21"
+  },
+  {
+    "name": "🎨 Style",
+    "description": "Issue Type: Code style changes (formatting, and similar)",
+    "color": "fef2c0"
+  },
+  {
+    "name": "🗂️ Status: Backlog",
+    "description": "Status: In backlog, not yet prioritized",
+    "color": "e3e3e3"
+  },
+  {
+    "name": "✅ Status: To Do",
+    "description": "Status: Ready to be worked on",
+    "color": "0075ca"
+  },
+  {
+    "name": "🛠️ Status: In Progress",
+    "description": "Status: Actively being worked on",
+    "color": "1d76db"
+  },
+  {
+    "name": "🔍 Status: In Review",
+    "description": "Status: Awaiting peer or maintainer review",
+    "color": "dbab09"
+  },
+  {
+    "name": "🧫 Status: Testing",
+    "description": "Status: Under testing or QA review",
+    "color": "e11d21"
+  },
+  {
+    "name": "🏁 Status: Done",
+    "description": "Status: Completed and verified",
+    "color": "0e8a16"
+  },
+  {
+    "name": "⛔ Status: Blocked",
+    "description": "Status: Blocked by dependencies or other issues",
+    "color": "f4c542"
+  },
+  {
+    "name": "🚨 Priority: Critical",
+    "description": "Priority: Requires immediate attention",
+    "color": "86181d"
+  },
+  {
+    "name": "🔥 Priority: High",
+    "description": "Priority: High priority task",
+    "color": "b60205"
+  },
+  {
+    "name": "🟠 Priority: Medium",
+    "description": "Priority: Medium priority task",
+    "color": "fbca04"
+  },
+  {
+    "name": "🟢 Priority: Low",
+    "description": "Priority: Low priority task",
+    "color": "0e8a16"
+  },
+  {
+    "name": "🌟 Git Flow: Feature",
+    "description": "Git Flow: Feature branch task",
+    "color": "61affe"
+  },
+  {
+    "name": "🐛 Git Flow: Bugfix",
+    "description": "Git Flow: Bug fix in development branch",
+    "color": "ffa500"
+  },
+  {
+    "name": "🩹 Git Flow: Hotfix",
+    "description": "Git Flow: Critical bug fix in production",
+    "color": "ff0000"
+  },
+  {
+    "name": "🚀 Git Flow: Release",
+    "description": "Git Flow: Release preparation task",
+    "color": "7d4b12"
+  },
+  {
+    "name": "🛟 Git Flow: Support",
+    "description": "Git Flow: Long-term support fixes",
+    "color": "ffa500"
+  },
+  {
+    "name": "good first issue",
+    "description": "Community: Exact name GitHub Contribute reads.",
+    "color": "7057ff"
+  },
+  {
+    "name": "help wanted",
+    "description": "Community: Exact name GitHub's help-wanted view reads.",
+    "color": "008672"
+  },
+  {
+    "name": "💥 Breaking Change",
+    "description": "Change: Contains breaking changes",
+    "color": "b60205"
+  },
+  {
+    "name": "📥 Needs Triage",
+    "description": "Change: Needs review and categorization",
+    "color": "d876e3"
+  },
+  {
+    "name": "🔗 Dependencies",
+    "description": "Change: Dependabot applies this label to dependency update pull requests.",
+    "color": "0366d6"
+  },
+  {
+    "name": "🏆 Epic",
+    "description": "Change: A broad task grouping smaller tasks",
+    "color": "a2b9d9"
+  },
+  {
+    "name": "➿ Duplicate",
+    "description": "Resolution: This issue or pull request already exists",
+    "color": "cfd3d7"
+  },
+  {
+    "name": "🚫 Invalid",
+    "description": "Resolution: This does not seem right",
+    "color": "e4e669"
+  },
+  {
+    "name": "❌ Won't Fix",
+    "description": "Resolution: This will not be worked on",
+    "color": "ffffff"
+  }
+]
