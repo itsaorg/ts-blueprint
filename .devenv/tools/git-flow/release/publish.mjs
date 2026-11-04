@@ -3,15 +3,13 @@
 /** ==============================================================
  * 📦 Release branch publish
  * ---------------------------------------------------------------
- * Pending-changeset gate → `git flow release publish` → ensure a
- * pull request into `main`. Run `changeset:version` on the release
- * branch before the final publish so CHANGELOG and package.json
- * ship in that PR. Requires Git Flow AVH.
+ * Pending-changeset gate (or version already applied) →
+ * `git flow release publish` → ensure a PR into `main`.
+ * Bypass with `--allow-no-changeset` or TTY confirm when needed.
  *
  * HOW TO RUN:
  *   npm run git:flow:release:publish
- *   node .devenv/tools/git-flow/release/publish.mjs
- *   node .devenv/tools/git-flow/release/publish.mjs --base main
+ *   node .devenv/tools/git-flow/release/publish.mjs --allow-no-changeset
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -27,8 +25,6 @@
  * @example
  * // On release/1.2.0 after changeset:version:
  * //   npm run git:flow:release:publish
- * // Gate passes when pending files exist OR package.json already
- * // matches the release/<x.y.z> version segment.
  */
 
 import path from "node:path";
@@ -39,7 +35,7 @@ import { parseBaseArgs, publishWithPullRequest } from "../publish-flow.mjs";
 /**
  * Publishes the current release branch (pending gate + push + PR).
  *
- * @param {{ base?: string, nameArgs?: string[] }} [options] - Overrides.
+ * @param {{ base?: string, nameArgs?: string[], allowNoChangeset?: boolean }} [options] - Overrides.
  * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
@@ -49,19 +45,22 @@ export async function publishRelease(options = {}) {
   return publishWithPullRequest("release", {
     base: options.base || "main",
     nameArgs: options.nameArgs,
+    allowNoChangeset: options.allowNoChangeset,
   });
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   boxBanner("📦 release publish");
-  const { base, rest } = parseBaseArgs(forwardedArgs());
-  if (forwardedArgs().includes("--base") && !base) {
+  const args = forwardedArgs();
+  const { base, allowNoChangeset, rest } = parseBaseArgs(args);
+  if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
     process.exit(1);
   }
   const result = await publishRelease({
     base,
+    allowNoChangeset,
     nameArgs: rest.length > 0 ? rest : undefined,
   });
   if (!result.ok) {

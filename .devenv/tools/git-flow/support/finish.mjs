@@ -3,17 +3,13 @@
 /** ==============================================================
  * 🛟 Support post-merge finish
  * ---------------------------------------------------------------
- * After the support PR (into `main` or your chosen base) is
- * reviewed and merged: verify merge + approval (+ issue link when
- * the name starts with `<number>-`), then delete the support branch
- * locally and on origin. Use when retiring the maintenance line.
- * Never creates a PR (publish does). Never runs a non-existent
- * `git flow support finish`.
+ * After the support PR is merged: verify merge + approval, then
+ * delete the support branch when retiring the line. Solo:
+ * `--allow-unapproved` or TTY confirm.
  *
  * HOW TO RUN:
  *   npm run git:flow:support:finish
- *   node .devenv/tools/git-flow/support/finish.mjs
- *   node .devenv/tools/git-flow/support/finish.mjs --base main
+ *   node .devenv/tools/git-flow/support/finish.mjs --allow-unapproved
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -27,7 +23,6 @@
  * @module git-flow-support-finish
  *
  * @example
- * // After the PR is merged on GitHub:
  * //   npm run git:flow:support:finish
  */
 
@@ -39,25 +34,33 @@ import { finishAfterMerge, parseBaseArgs } from "../finish-merged.mjs";
 /**
  * Verifies remote merge gates and cleans up the support branch.
  *
- * @param {{ base?: string }} [options] - Optional base override.
- * @returns {{ ok: boolean }} Outcome.
+ * @param {{ base?: string, allowUnapproved?: boolean }} [options] - Overrides.
+ * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
- * finishSupport({ base: "main" });
+ * await finishSupport({ allowUnapproved: true });
  */
-export function finishSupport(options = {}) {
-  return finishAfterMerge("support", { base: options.base || "main" });
+export async function finishSupport(options = {}) {
+  return finishAfterMerge("support", {
+    base: options.base || "main",
+    allowUnapproved: options.allowUnapproved,
+  });
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   boxBanner("🛟 support finish");
-  const { base } = parseBaseArgs(forwardedArgs());
-  if (forwardedArgs().includes("--base") && !base) {
+  const args = forwardedArgs();
+  const { base, allowUnapproved } = parseBaseArgs(args);
+  if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
     process.exit(1);
   }
-  if (!finishSupport(base ? { base } : {}).ok) {
+  const result = await finishSupport({
+    ...(base ? { base } : {}),
+    allowUnapproved,
+  });
+  if (!result.ok) {
     process.exit(1);
   }
   boxDone("support finish");

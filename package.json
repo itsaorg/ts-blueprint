@@ -2,6 +2,14 @@
   "name": "@itsaorg/ts-blueprint",
   "description": "TypeScript library blueprint / GitHub template for Itsa repos",
   "version": "0.0.0",
+  "author": {
+    "name": "Astitv Singh",
+    "url": "https://github.com/astitvsingh"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/astitvsingh"
+  },
   "keywords": [
     "typescript",
     "library",
@@ -11,6 +19,7 @@
   ],
   "license": "Apache-2.0",
   "type": "module",
+  "sideEffects": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": {
@@ -25,7 +34,6 @@
   "files": [
     "dist/",
     "package.json",
-    "package-lock.json",
     "CHANGELOG.md",
     "NOTICE",
     "LICENSE",
@@ -77,9 +85,11 @@
     "npm:trust": "node .devenv/tools/npm/publish/trust.mjs",
     "npm:deprecate:reservation": "node .devenv/tools/npm/publish/deprecate-reservation.mjs",
     "npm:release": "node .devenv/tools/npm/publish/release.mjs",
+    "npm:pack:smoke": "node .devenv/tools/npm/pack/smoke.mjs",
     "prepublishOnly": "npm run tsc:build",
     "setup": "node .devenv/setup.mjs",
     "git:setup": "node .devenv/tools/git/setup.mjs",
+    "git:tag:version": "node .devenv/tools/git/tag-version.mjs",
     "node:setup": "node .devenv/tools/node/setup.mjs",
     "npm:setup": "node .devenv/tools/npm/setup.mjs",
     "git-flow:setup": "node .devenv/tools/git-flow/setup.mjs",

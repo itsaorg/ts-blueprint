@@ -3,16 +3,13 @@
 /** ==============================================================
  * 🚑 Hotfix branch publish
  * ---------------------------------------------------------------
- * Pending-changeset gate → `git flow hotfix publish` → ensure a
- * pull request into `main`. On the hotfix branch, run
- * `changeset:version` before publish when you are ready to cut the
- * patch version. Requires Git Flow AVH and pending `.changeset/*.md`
- * until version consumes them (re-add if you still need notes).
+ * Pending-changeset gate (or version already applied) →
+ * `git flow hotfix publish` → ensure a PR into `main`.
+ * Bypass with `--allow-no-changeset` or TTY confirm when needed.
  *
  * HOW TO RUN:
  *   npm run git:flow:hotfix:publish
- *   node .devenv/tools/git-flow/hotfix/publish.mjs
- *   node .devenv/tools/git-flow/hotfix/publish.mjs --base main
+ *   node .devenv/tools/git-flow/hotfix/publish.mjs --allow-no-changeset
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -26,7 +23,6 @@
  * @module git-flow-hotfix-publish
  *
  * @example
- * // On hotfix/1.2.1 after changeset:add (and usually changeset:version):
  * //   npm run git:flow:hotfix:publish
  */
 
@@ -38,7 +34,7 @@ import { parseBaseArgs, publishWithPullRequest } from "../publish-flow.mjs";
 /**
  * Publishes the current hotfix branch (pending gate + push + PR).
  *
- * @param {{ base?: string, nameArgs?: string[] }} [options] - Overrides.
+ * @param {{ base?: string, nameArgs?: string[], allowNoChangeset?: boolean }} [options] - Overrides.
  * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
@@ -48,19 +44,22 @@ export async function publishHotfix(options = {}) {
   return publishWithPullRequest("hotfix", {
     base: options.base || "main",
     nameArgs: options.nameArgs,
+    allowNoChangeset: options.allowNoChangeset,
   });
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   boxBanner("🚑 hotfix publish");
-  const { base, rest } = parseBaseArgs(forwardedArgs());
-  if (forwardedArgs().includes("--base") && !base) {
+  const args = forwardedArgs();
+  const { base, allowNoChangeset, rest } = parseBaseArgs(args);
+  if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
     process.exit(1);
   }
   const result = await publishHotfix({
     base,
+    allowNoChangeset,
     nameArgs: rest.length > 0 ? rest : undefined,
   });
   if (!result.ok) {

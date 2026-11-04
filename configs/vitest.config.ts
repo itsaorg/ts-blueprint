@@ -25,6 +25,8 @@ export default defineConfig({
       "tests/unit/**/*.test.ts",
       "tests/integration/**/*.test.ts",
       "tests/consumer/**/*.test.ts",
+      "tests/devenv/**/*.test.ts",
+      "tests/devenv/**/*.test.mjs",
     ],
     coverage: {
       provider: "v8",

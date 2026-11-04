@@ -17,6 +17,7 @@
  * HOW TO RUN:
  *   imported by git-flow type finish.mjs modules
  *   node .devenv/tools/git-flow/finish-merged.mjs feature
+ *   node .devenv/tools/git-flow/finish-merged.mjs feature --allow-unapproved
  *   node .devenv/tools/git-flow/finish-merged.mjs support --base main
  *
  * ---------------------------------------------------------------
@@ -44,13 +45,16 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { listPendingChangesetFiles } from "../../deps/changeset/pending.mjs";
 import {
+  askYesNo,
   boxBanner,
   boxDone,
   forwardedArgs,
+  isInteractive,
   logError,
   logGo,
   logInfo,
   logOk,
+  logSkip,
   repoRoot,
   run,
 } from "../../lib/tool-lib.mjs";
@@ -269,17 +273,55 @@ export function cleanupTopicBranch(branch, base) {
 }
 
 /**
+ * Enforces the approving-review gate (policy C).
+ *
+ * Bypass: `--allow-unapproved` **or** interactive TTY confirm (default no).
+ * Non-TTY without the flag refuses.
+ *
+ * @param {object} pr - PR JSON from gh.
+ * @param {{ allowUnapproved?: boolean }} [options] - Bypass options.
+ * @returns {Promise<{ ok: boolean }>} Outcome.
+ *
+ * @example
+ * await requireApprovedReview(pr, { allowUnapproved: true });
+ */
+export async function requireApprovedReview(pr, options = {}) {
+  if (isPullRequestApproved(pr)) {
+    logOk("PR review gate passed (APPROVED).");
+    return { ok: true };
+  }
+
+  logError("Pull request has no approving review.");
+  logInfo("Solo maintainers: pass --allow-unapproved or confirm interactively.");
+
+  if (options.allowUnapproved) {
+    logSkip("Bypassing review gate (--allow-unapproved).");
+    return { ok: true };
+  }
+  if (isInteractive()) {
+    const yes = await askYesNo("Finish without an APPROVED review?", false);
+    if (yes) {
+      logSkip("Bypassing review gate (interactive confirm).");
+      return { ok: true };
+    }
+  } else {
+    logInfo("Non-interactive shell: re-run with --allow-unapproved to bypass.");
+  }
+  return { ok: false };
+}
+
+/**
  * Runs all finish gates, then cleans up the topic branch.
  *
  * @param {FinishableType} type - Branch type.
- * @param {{ base?: string }} [options] - Optional base override.
- * @returns {{ ok: boolean }} Outcome.
+ * @param {{ base?: string, allowUnapproved?: boolean }} [options] - Optional overrides.
+ * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
- * finishAfterMerge("feature");
- * finishAfterMerge("support", { base: "main" });
+ * await finishAfterMerge("feature");
+ * await finishAfterMerge("support", { base: "main", allowUnapproved: true });
  */
-export function finishAfterMerge(type, options = {}) {
+export async function finishAfterMerge(type, options = {}) {
   if (type !== "support" && !isGitFlowInstalled().ok) {
     return { ok: false };
   }
@@ -321,12 +363,11 @@ export function finishAfterMerge(type, options = {}) {
   }
   logOk(`PR merged: ${pr.url || `#${pr.number}`}`);
 
-  if (!isPullRequestApproved(pr)) {
-    logError("Pull request has no approving review.");
-    logInfo("Require at least one APPROVED review before finish cleanup.");
+  if (
+    !(await requireApprovedReview(pr, { allowUnapproved: Boolean(options.allowUnapproved) })).ok
+  ) {
     return { ok: false };
   }
-  logOk("PR review gate passed (APPROVED).");
 
   const issueNumber = parseIssueNumberFromName(shortName);
   if (issueNumber) {
@@ -351,27 +392,32 @@ export function finishAfterMerge(type, options = {}) {
 }
 
 /**
- * Parses `--base <branch>` from argv.
+ * Parses `--base <branch>` and `--allow-unapproved` from argv.
  *
  * @param {string[]} args - CLI args.
- * @returns {{ base?: string, rest: string[] }} Parsed pieces.
+ * @returns {{ base?: string, allowUnapproved: boolean, rest: string[] }} Parsed pieces.
  *
  * @example
- * parseBaseArgs(["--base", "main"]);
+ * parseBaseArgs(["--base", "main", "--allow-unapproved"]);
  */
 export function parseBaseArgs(args) {
   const rest = [];
   /** @type {string | undefined} */
   let base;
+  let allowUnapproved = false;
   for (let i = 0; i < args.length; i += 1) {
     if (args[i] === "--base") {
       base = args[i + 1];
       i += 1;
       continue;
     }
+    if (args[i] === "--allow-unapproved") {
+      allowUnapproved = true;
+      continue;
+    }
     rest.push(args[i]);
   }
-  return { base, rest };
+  return { base, allowUnapproved, rest };
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
@@ -384,12 +430,16 @@ if (isMain) {
     logError("Pass a type: feature | bugfix | release | hotfix | support");
     process.exit(1);
   }
-  const { base } = parseBaseArgs(args.slice(1));
+  const { base, allowUnapproved } = parseBaseArgs(args.slice(1));
   if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
     process.exit(1);
   }
-  if (!finishAfterMerge(type, base ? { base } : {}).ok) {
+  const result = await finishAfterMerge(type, {
+    ...(base ? { base } : {}),
+    allowUnapproved,
+  });
+  if (!result.ok) {
     process.exit(1);
   }
   boxDone("git-flow finish-merged");

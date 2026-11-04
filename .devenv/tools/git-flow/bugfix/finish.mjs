@@ -3,15 +3,12 @@
 /** ==============================================================
  * 🐛 Bugfix post-merge finish
  * ---------------------------------------------------------------
- * After the bugfix PR into `develop` is reviewed and merged:
- * verify merge + approval + issue link, then delete the topic
- * branch locally and on origin. Never creates a PR (publish does).
- * Never runs `git flow bugfix finish`.
+ * After the bugfix PR is merged: verify merge + approval + issue
+ * link, then delete the topic branch. Solo: `--allow-unapproved`.
  *
  * HOW TO RUN:
  *   npm run git:flow:bugfix:finish
- *   node .devenv/tools/git-flow/bugfix/finish.mjs
- *   node .devenv/tools/git-flow/bugfix/finish.mjs --base develop
+ *   node .devenv/tools/git-flow/bugfix/finish.mjs --allow-unapproved
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -25,7 +22,6 @@
  * @module git-flow-bugfix-finish
  *
  * @example
- * // After the PR is merged on GitHub:
  * //   npm run git:flow:bugfix:finish
  */
 
@@ -37,25 +33,33 @@ import { finishAfterMerge, parseBaseArgs } from "../finish-merged.mjs";
 /**
  * Verifies remote merge gates and cleans up the bugfix branch.
  *
- * @param {{ base?: string }} [options] - Optional base override.
- * @returns {{ ok: boolean }} Outcome.
+ * @param {{ base?: string, allowUnapproved?: boolean }} [options] - Overrides.
+ * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
- * finishBugfix();
+ * await finishBugfix();
  */
-export function finishBugfix(options = {}) {
-  return finishAfterMerge("bugfix", { base: options.base || "develop" });
+export async function finishBugfix(options = {}) {
+  return finishAfterMerge("bugfix", {
+    base: options.base || "develop",
+    allowUnapproved: options.allowUnapproved,
+  });
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   boxBanner("🐛 bugfix finish");
-  const { base } = parseBaseArgs(forwardedArgs());
-  if (forwardedArgs().includes("--base") && !base) {
+  const args = forwardedArgs();
+  const { base, allowUnapproved } = parseBaseArgs(args);
+  if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
     process.exit(1);
   }
-  if (!finishBugfix(base ? { base } : {}).ok) {
+  const result = await finishBugfix({
+    ...(base ? { base } : {}),
+    allowUnapproved,
+  });
+  if (!result.ok) {
     process.exit(1);
   }
   boxDone("bugfix finish");

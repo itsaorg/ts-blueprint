@@ -1,0 +1,24 @@
+# =============================================================================
+# 📚 CITATION.cff — how to cite this software
+# =============================================================================
+# 📌 Purpose: machine-readable citation metadata for the package.
+#    Clones should update title, authors, and repository-code after rename.
+# ▶️ Example: https://citation-file-format.github.io/
+# =============================================================================
+
+cff-version: 1.2.0
+message: "If you use this software, please cite it using these metadata."
+title: "@itsaorg/ts-blueprint"
+type: software
+authors:
+  - family-names: Singh
+    given-names: Astitv
+    alias: astitvsingh
+license: Apache-2.0
+repository-code: "https://github.com/itsaorg/ts-blueprint"
+url: "https://itsaorg.github.io/ts-blueprint/"
+keywords:
+  - typescript
+  - library
+  - blueprint
+  - github-template

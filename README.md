@@ -14,6 +14,7 @@ GitHub template for Itsa TypeScript libraries. Clone from this repository, renam
   - [📋 Requirements](#-requirements)
   - [🏗️ Use this template](#️-use-this-template)
   - [✏️ Rename checklist](#️-rename-checklist)
+  - [⚙️ Operator / GitHub settings](#️-operator--github-settings)
   - [✅ Readiness](#-readiness)
     - [P2 backlog (later)](#p2-backlog-later)
   - [🗺️ Layout](#️-layout)
@@ -22,7 +23,7 @@ GitHub template for Itsa TypeScript libraries. Clone from this repository, renam
 
 ## 📋 Requirements
 
-- Node.js 26 (see `.nvmrc`)
+- Node.js 26 (see `.nvmrc`; CI and `engines.node` are this major only)
 - npm (ships with Node)
 - Git
 - Git Flow AVH, if you start topic branches with `git flow` or the `.devenv/tools/git-flow/*` helpers
@@ -42,7 +43,7 @@ git checkout develop
 git push -u origin develop
 ```
 
-1. Clone your new repository and install:
+5. Clone your new repository and install:
 
 ```bash
 git clone <your-repo-HTTPS-URL>
@@ -50,7 +51,7 @@ cd <your-repo-directory>
 npm clean-install
 ```
 
-For machine probes, install, and the CI gate:
+6. For machine probes, install, and the CI gate:
 
 ```bash
 npm run setup
@@ -62,84 +63,86 @@ npm run setup
 
 Replace blueprint identity with your package before you publish or open Trusted Publishing:
 
-| Location                            | What to change                                                          |
-| ----------------------------------- | ----------------------------------------------------------------------- |
-| `package.json`                      | `name`, `description`, `keywords`, `repository.url`, `bugs`, `homepage` |
-| `package-lock.json`                 | Refresh via `npm install` after renaming `package.json`                 |
-| `NOTICE`                            | Package name and one-line description                                   |
-| `CHANGELOG.md`                      | Clear or rewrite for your first release                                 |
-| `configs/typedoc.json`              | `"name"`                                                                |
-| `src/**` file banners and examples  | Package import name                                                     |
-| `tests/consumer/public-api.test.ts` | Uses `package.json` `name` automatically; no edit needed after rename   |
-| npm Trusted Publishing              | `npm run npm:trust` after the GitHub repo and `release.yml` exist       |
-| Labels                              | `npm run gh:label:sync` when `gh` is authenticated                      |
-| GitHub repo settings                | Description, topics, Pages (if you publish `docs/`)                     |
-| `.github/CODEOWNERS`                | Replace default owners with your org/team                               |
-| `.github/SUPPORT.md`                | Point issue links at your repository                                    |
+| Location                            | What to change                                                                               |
+| ----------------------------------- | -------------------------------------------------------------------------------------------- |
+| `package.json`                      | `name`, `description`, `keywords`, `repository.url`, `bugs`, `homepage`, `author`, `funding` |
+| `package-lock.json`                 | Refresh via `npm install` after renaming `package.json`                                      |
+| `NOTICE`                            | Package name and one-line description                                                        |
+| `CHANGELOG.md`                      | Clear or rewrite for your first release (Changesets owns later entries)                      |
+| `.github/CITATION.cff`              | Title, authors, `repository-code`, `url`                                                     |
+| `.github/FUNDING.yml`               | Sponsors handle                                                                              |
+| `configs/typedoc.json`              | `"name"`                                                                                     |
+| `src/**` file banners and examples  | Package import name                                                                          |
+| `tests/consumer/public-api.test.ts` | Uses `package.json` `name` automatically; no edit needed after rename                        |
+| npm Trusted Publishing              | `npm run npm:trust` after the GitHub repo and `release.yml` exist                            |
+| Labels                              | `npm run gh:label:sync` when `gh` is authenticated                                           |
+| GitHub repo settings                | See [Operator / GitHub settings](#️-operator--github-settings)                                |
+| `.github/CODEOWNERS`                | Replace default owners with your org/team                                                    |
+| `.github/SUPPORT.md`                | Point issue links at your repository                                                         |
 
 Do not change portable paths under `.devenv` or the community policy files under `.github/` unless you mean to fork the toolchain.
 
+## ⚙️ Operator / GitHub settings
+
+These cannot live only in git. After creating the repo from the template:
+
+- [ ] Mark the repository as a **Template repository** (Settings → General) if clones should offer “Use this template”
+- [ ] Enable **GitHub Pages** from the `/docs` folder on `main` (or your docs branch)
+- [ ] Protect `main` and `develop` (required checks: `ci` / `check`; dismiss stale reviews as you prefer)
+- [ ] Bind npm **Trusted Publisher** to this repo’s `.github/workflows/release.yml` (`npm run npm:trust` after rename)
+- [ ] Optionally enable **Discussions** so `.github/DISCUSSION_TEMPLATE/` forms appear
+- [ ] Set description, topics, and homepage URL to match the renamed package
+
 ## ✅ Readiness
 
-**Ready to use (P0/P1):** clone as a GitHub template for day-to-day library work. Audit is clean via `overrides.minimatch`, YAML issue forms only, Changesets + `v*` tag publish, Git Flow publish (PR create + pending-changeset gate) / finish (post-merge gates), full support start/publish/finish, quiet exclusive label sync, `prepublishOnly` → `tsc:build`, OIDC `registry-url` on setup-node, CODEOWNERS + SUPPORT, mandatory `main` → `develop` back-merge after release/hotfix.
+**Ready to use (P0/P1 + closed P2 gaps in-repo):** clone as a GitHub template for day-to-day library work through PR → Changesets → tag → npm Trusted Publishing. Includes publish/finish gate bypasses (policy C), `git:tag:version`, `npm:pack:smoke` in CI, FUNDING/CITATION/Discussion templates, package.json polish (`author`/`funding`/`sideEffects`, no lockfile in tarball), and Changesets-only CHANGELOG ownership.
 
-Release model: `changeset:add` on topic branches → publish opens the PR → merge → finish cleans up → on `release/*` or `hotfix/*` run `changeset:version` → publish into `main` → tag `v<version>` → `release.yml` publishes → PR `main` into `develop`.
+Release model: `changeset:add` on topic branches → publish opens the PR → merge → finish cleans up → on `release/*` or `hotfix/*` run `changeset:version` → publish into `main` → `npm run git:tag:version -- --push` → `release.yml` publishes → PR `main` into `develop`.
+
+Chore/docs or empty support publish without a bump: `npm run git:flow:<type>:publish -- --allow-no-changeset` (or confirm on a TTY). Solo finish without an approving review: `npm run git:flow:<type>:finish -- --allow-unapproved` (or confirm on a TTY). Merged + issue-link gates stay hard.
 
 ### P2 backlog (later)
 
-**Community / GitHub polish**:
+**Still open (upstream / org / optional):**
 
-- [ ] `.github/FUNDING.yml` — e.g. `github: [astitvsingh]` and/or org sponsors when real
-- [ ] Optional `.github/DISCUSSION_TEMPLATE/` if Discussions are enabled
-- [ ] `.github/CITATION.cff` if the package should be citable
 - [ ] Extra support links in SUPPORT (Discord/forum) if the org has them
-
-**Release / automation**:
-
 - [ ] Optional Changesets GitHub Action that still respects version-branch rules
-- [ ] Scripted tag helper after merge (docs already show `git tag v$(node -p …)`)
-- [ ] Branch protection guidance for `main`/`develop` (org settings)
 - [ ] Dependabot/Renovate tuning for the eslint/typedoc stack
 - [ ] npm provenance badge after the first real publish
 - [ ] Confirm Trusted Publisher binding after `npm:trust` on a renamed package
-
-**Quality / toolchain**:
-
-- [ ] devenv unit tests (`tool-lib`, git-flow guards, label sync dry-run)
-- [ ] Node matrix in CI if more than `.nvmrc` major is supported
-- [ ] `prepublishOnly` smoke path in CI
-- [ ] Drop or document `.devenv/deps/changelog/generate.mjs` vs Changesets-owned CHANGELOG
-- [ ] Remove `minimatch` override + TypeDoc patch when upstream supports minimatch >=11.0.1
-
-**Template product**:
-
+- [ ] Node matrix in CI if `engines.node` ever allows more than `.nvmrc` major `26`
+- [ ] Remove `minimatch` override + TypeDoc patch when upstream supports minimatch >=11.0.1 (**retained, blocked on upstream**)
 - [ ] Consumer clone dry-run checklist (rename → setup → feature → release dry-run)
 - [ ] Org-level template defaults (topics, Pages `docs/`, default branch policy)
 - [ ] Optional monorepo notes (out of scope until needed)
+
+**Closed in this pass:** FUNDING.yml, CITATION.cff, DISCUSSION_TEMPLATE, tag helper, pack smoke in CI, dual `changelog/generate.mjs` removed, devenv helper tests, gate bypasses, package.json polish, operator checklist, README numbering.
 
 ## 🗺️ Layout
 
 ```text
 .devenv/            Script library (prepare, setup, lib, tools, deps, utils)
 .husky/             Git hooks (Husky)
-.github/            Issues, PRs, workflows, labels, CONTRIBUTING
+.github/            Issues, PRs, workflows, labels, CONTRIBUTING, FUNDING, CITATION
 configs/            ESLint, Prettier, Vitest, TypeDoc, tsconfig pieces
 docs/               TypeDoc GitHub Pages site (tracked)
 src/                Library source (`base/`, `types/`, package root)
-tests/              Consumer and unit tests
+tests/              Consumer, unit, and devenv helper tests
 ```
 
 `docs/` is the TypeDoc GitHub Pages site. Regenerate with `npm run docify:typedoc` and commit when the public API changes.
 
 ## ⌨️ Key scripts
 
-| Script                   | Purpose                                                             |
-| ------------------------ | ------------------------------------------------------------------- |
-| `npm run setup`          | Git/Node checks, `npm clean-install` (runs `prepare`), then `check` |
-| `npm run gh:label:sync`  | Sync `.github/labels.json` with `gh`                                |
-| `npm run gh:setup`       | Ensure `gh` auth, then sync labels                                  |
-| `npm run check`          | Typecheck, format, lint, layout, tests, build                       |
-| `npm run docify:typedoc` | Regenerate the Pages site into `docs/`                              |
+| Script                    | Purpose                                                             |
+| ------------------------- | ------------------------------------------------------------------- |
+| `npm run setup`           | Git/Node checks, `npm clean-install` (runs `prepare`), then `check` |
+| `npm run gh:label:sync`   | Sync `.github/labels.json` with `gh`                                |
+| `npm run gh:setup`        | Ensure `gh` auth, then sync labels                                  |
+| `npm run check`           | Typecheck, format, lint, layout, tests, build                       |
+| `npm run npm:pack:smoke`  | Dry-run pack asserts `dist/` is in the publish tarball              |
+| `npm run git:tag:version` | Create (and optionally `--push`) `v*` from `package.json` on `main` |
+| `npm run docify:typedoc`  | Regenerate the Pages site into `docs/`                              |
 
 The full script table and prepare/setup order live in [CONTRIBUTING](.github/CONTRIBUTING.md). Tutorials are in [HOW-TO](.github/HOW-TO.md).
 
@@ -150,4 +153,5 @@ The full script table and prepare/setup order live in [CONTRIBUTING](.github/CON
 - [Support](.github/SUPPORT.md)
 - [Code of Conduct](.github/CODE_OF_CONDUCT.md)
 - [Security](.github/SECURITY.md)
+- [Citation](.github/CITATION.cff)
 - [License](LICENSE)

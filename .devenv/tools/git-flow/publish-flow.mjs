@@ -45,6 +45,7 @@ import { fileURLToPath } from "node:url";
 import { readFileSync } from "node:fs";
 import { hasPendingChangesets, listPendingChangesetFiles } from "../../deps/changeset/pending.mjs";
 import {
+  askYesNo,
   boxBanner,
   boxDone,
   forwardedArgs,
@@ -159,21 +160,38 @@ export function readPackageVersion() {
 }
 
 /**
- * Fails publish when bump intent is missing.
+ * Whether argv includes `--allow-no-changeset`.
+ *
+ * @param {string[]} args - CLI args.
+ * @returns {boolean} True when the bypass flag is present.
+ *
+ * @example
+ * hasAllowNoChangesetFlag(["--allow-no-changeset"]); // true
+ */
+export function hasAllowNoChangesetFlag(args) {
+  return args.includes("--allow-no-changeset");
+}
+
+/**
+ * Fails publish when bump intent is missing (policy C).
  *
  * For `feature` / `bugfix` / `support`: require ≥1 pending `.changeset/*.md`.
  * For `release` / `hotfix`: pending files **or** `changeset:version` already
  * applied (`package.json` version matches the branch version segment).
  *
+ * Bypass: `--allow-no-changeset` **or** interactive TTY confirm (default no).
+ * Non-TTY without the flag refuses.
+ *
  * @param {PublishableType} type - Branch type.
  * @param {string} shortName - Name without `type/` prefix.
- * @returns {{ ok: boolean }} Outcome.
+ * @param {{ allowNoChangeset?: boolean }} [options] - Bypass options.
+ * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
- * if (!requirePublishChangesetGate("feature", "42-x").ok) return { ok: false };
- * if (!requirePublishChangesetGate("release", "1.2.0").ok) return { ok: false };
+ * if (!(await requirePublishChangesetGate("feature", "42-x")).ok) return { ok: false };
+ * await requirePublishChangesetGate("feature", "docs", { allowNoChangeset: true });
  */
-export function requirePublishChangesetGate(type, shortName) {
+export async function requirePublishChangesetGate(type, shortName, options = {}) {
   if (hasPendingChangesets()) {
     const files = listPendingChangesetFiles();
     logOk(`Pending changeset gate passed (${files.length} file(s)).`);
@@ -186,17 +204,28 @@ export function requirePublishChangesetGate(type, shortName) {
       logOk(`No pending changesets; package.json already at ${pkgVersion} (version applied).`);
       return { ok: true };
     }
-    logError(
-      "No pending .changeset/*.md files, and package.json version does not match the branch.",
-    );
-    logInfo("Either: npm run changeset:add (then version), or npm run changeset:version first.");
-    logInfo(`Expected package.json version "${shortName}" after version on this branch.`);
-    return { ok: false };
   }
 
-  logError("No pending .changeset/*.md files found.");
+  logError("No pending .changeset/*.md files found (or release/hotfix version mismatch).");
   logInfo("Create one first: npm run changeset:add");
-  logInfo("Then re-run publish. Publish will not open a PR without bump intent.");
+  if (type === "release" || type === "hotfix") {
+    logInfo(`Or run changeset:version so package.json matches "${shortName}".`);
+  }
+  logInfo("Chore/docs/empty support: pass --allow-no-changeset or confirm interactively.");
+
+  if (options.allowNoChangeset) {
+    logSkip("Bypassing pending-changeset gate (--allow-no-changeset).");
+    return { ok: true };
+  }
+  if (isInteractive()) {
+    const yes = await askYesNo("Publish without a pending changeset?", false);
+    if (yes) {
+      logSkip("Bypassing pending-changeset gate (interactive confirm).");
+      return { ok: true };
+    }
+  } else {
+    logInfo("Non-interactive shell: re-run with --allow-no-changeset to bypass.");
+  }
   return { ok: false };
 }
 
@@ -358,12 +387,12 @@ export async function resolvePublishBase(type, baseFlag) {
  * Full publish: pending gate → push → ensure PR.
  *
  * @param {PublishableType} type - Branch type.
- * @param {{ base?: string, nameArgs?: string[] }} [options] - Overrides.
+ * @param {{ base?: string, nameArgs?: string[], allowNoChangeset?: boolean }} [options] - Overrides.
  * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
  * await publishWithPullRequest("feature");
- * await publishWithPullRequest("support", { base: "main" });
+ * await publishWithPullRequest("support", { base: "main", allowNoChangeset: true });
  */
 export async function publishWithPullRequest(type, options = {}) {
   if (type !== "support" && !isGitFlowInstalled().ok) {
@@ -384,7 +413,13 @@ export async function publishWithPullRequest(type, options = {}) {
   }
 
   const shortName = stripTypePrefix(type, branch);
-  if (!requirePublishChangesetGate(type, shortName).ok) {
+  if (
+    !(
+      await requirePublishChangesetGate(type, shortName, {
+        allowNoChangeset: Boolean(options.allowNoChangeset),
+      })
+    ).ok
+  ) {
     return { ok: false };
   }
 
@@ -411,28 +446,33 @@ export async function publishWithPullRequest(type, options = {}) {
 }
 
 /**
- * Parses `--base <branch>` from forwarded argv.
+ * Parses `--base <branch>` and `--allow-no-changeset` from argv.
  *
  * @param {string[]} args - CLI args.
- * @returns {{ base?: string, rest: string[] }} Parsed pieces.
+ * @returns {{ base?: string, allowNoChangeset: boolean, rest: string[] }} Parsed pieces.
  *
  * @example
- * parseBaseArgs(["--base", "develop", "42-x"]);
- * // { base: "develop", rest: ["42-x"] }
+ * parseBaseArgs(["--base", "develop", "--allow-no-changeset", "42-x"]);
+ * // { base: "develop", allowNoChangeset: true, rest: ["42-x"] }
  */
 export function parseBaseArgs(args) {
   const rest = [];
   /** @type {string | undefined} */
   let base;
+  let allowNoChangeset = false;
   for (let i = 0; i < args.length; i += 1) {
     if (args[i] === "--base") {
       base = args[i + 1];
       i += 1;
       continue;
     }
+    if (args[i] === "--allow-no-changeset") {
+      allowNoChangeset = true;
+      continue;
+    }
     rest.push(args[i]);
   }
-  return { base, rest };
+  return { base, allowNoChangeset, rest };
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
@@ -445,13 +485,14 @@ if (isMain) {
     logError("Pass a type: feature | bugfix | release | hotfix | support");
     process.exit(1);
   }
-  const { base, rest } = parseBaseArgs(args.slice(1));
+  const { base, allowNoChangeset, rest } = parseBaseArgs(args.slice(1));
   if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
     process.exit(1);
   }
   const result = await publishWithPullRequest(type, {
     base,
+    allowNoChangeset,
     nameArgs: rest.length > 0 ? rest : undefined,
   });
   if (!result.ok) {

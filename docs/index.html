@@ -22,6 +22,7 @@
 <li><a href="#-requirements">📋 Requirements</a></li>
 <li><a href="#%EF%B8%8F-use-this-template">🏗️ Use this template</a></li>
 <li><a href="#%EF%B8%8F-rename-checklist">✏️ Rename checklist</a></li>
+<li><a href="#%EF%B8%8F-operator--github-settings">⚙️ Operator / GitHub settings</a></li>
 <li><a href="#-readiness">✅ Readiness</a>
 <ul>
 <li><a href="#p2-backlog-later">P2 backlog (later)</a></li>
@@ -35,7 +36,7 @@
 </ul>
 <h2 id="📋-requirements" class="tsd-anchor-link">📋 Requirements<a href="#📋-requirements" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <ul>
-<li>Node.js 26 (see <code>.nvmrc</code>)</li>
+<li>Node.js 26 (see <code>.nvmrc</code>; CI and <code>engines.node</code> are this major only)</li>
 <li>npm (ships with Node)</li>
 <li>Git</li>
 <li>Git Flow AVH, if you start topic branches with <code>git flow</code> or the <code>.devenv/tools/git-flow/*</code> helpers</li>
@@ -51,13 +52,15 @@
 <pre><code class="bash"><span class="hl-0">git</span><span class="hl-1"> </span><span class="hl-2">fetch</span><span class="hl-1"> </span><span class="hl-2">origin</span><br/><span class="hl-0">git</span><span class="hl-1"> </span><span class="hl-2">checkout</span><span class="hl-1"> </span><span class="hl-2">develop</span><br/><span class="hl-0">git</span><span class="hl-1"> </span><span class="hl-2">push</span><span class="hl-1"> </span><span class="hl-3">-u</span><span class="hl-1"> </span><span class="hl-2">origin</span><span class="hl-1"> </span><span class="hl-2">develop</span>
 </code><button type="button">Copy</button></pre>
 
-<ol>
+<ol start="5">
 <li>Clone your new repository and install:</li>
 </ol>
 <pre><code class="bash"><span class="hl-0">git</span><span class="hl-1"> </span><span class="hl-2">clone</span><span class="hl-1"> &lt;</span><span class="hl-2">your-repo-HTTPS-UR</span><span class="hl-1">L&gt;</span><br/><span class="hl-0">cd</span><span class="hl-1"> &lt;</span><span class="hl-2">your-repo-director</span><span class="hl-1">y&gt;</span><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">clean-install</span>
 </code><button type="button">Copy</button></pre>
 
-<p>For machine probes, install, and the CI gate:</p>
+<ol start="6">
+<li>For machine probes, install, and the CI gate:</li>
+</ol>
 <pre><code class="bash"><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-2">run</span><span class="hl-1"> </span><span class="hl-2">setup</span>
 </code><button type="button">Copy</button></pre>
 
@@ -74,7 +77,7 @@
 <tbody>
 <tr>
 <td><code>package.json</code></td>
-<td><code>name</code>, <code>description</code>, <code>keywords</code>, <code>repository.url</code>, <code>bugs</code>, <code>homepage</code></td>
+<td><code>name</code>, <code>description</code>, <code>keywords</code>, <code>repository.url</code>, <code>bugs</code>, <code>homepage</code>, <code>author</code>, <code>funding</code></td>
 </tr>
 <tr>
 <td><code>package-lock.json</code></td>
@@ -86,7 +89,15 @@
 </tr>
 <tr>
 <td><code>CHANGELOG.md</code></td>
-<td>Clear or rewrite for your first release</td>
+<td>Clear or rewrite for your first release (Changesets owns later entries)</td>
+</tr>
+<tr>
+<td><code>.github/CITATION.cff</code></td>
+<td>Title, authors, <code>repository-code</code>, <code>url</code></td>
+</tr>
+<tr>
+<td><code>.github/FUNDING.yml</code></td>
+<td>Sponsors handle</td>
 </tr>
 <tr>
 <td><code>configs/typedoc.json</code></td>
@@ -110,7 +121,7 @@
 </tr>
 <tr>
 <td>GitHub repo settings</td>
-<td>Description, topics, Pages (if you publish <code>docs/</code>)</td>
+<td>See <a href="#%EF%B8%8F-operator--github-settings">Operator / GitHub settings</a></td>
 </tr>
 <tr>
 <td><code>.github/CODEOWNERS</code></td>
@@ -123,48 +134,43 @@
 </tbody>
 </table>
 <p>Do not change portable paths under <code>.devenv</code> or the community policy files under <code>.github/</code> unless you mean to fork the toolchain.</p>
-<h2 id="✅-readiness" class="tsd-anchor-link">✅ Readiness<a href="#✅-readiness" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
-<p><strong>Ready to use (P0/P1):</strong> clone as a GitHub template for day-to-day library work. Audit is clean via <code>overrides.minimatch</code>, YAML issue forms only, Changesets + <code>v*</code> tag publish, Git Flow publish (PR create + pending-changeset gate) / finish (post-merge gates), full support start/publish/finish, quiet exclusive label sync, <code>prepublishOnly</code> → <code>tsc:build</code>, OIDC <code>registry-url</code> on setup-node, CODEOWNERS + SUPPORT, mandatory <code>main</code> → <code>develop</code> back-merge after release/hotfix.</p>
-<p>Release model: <code>changeset:add</code> on topic branches → publish opens the PR → merge → finish cleans up → on <code>release/*</code> or <code>hotfix/*</code> run <code>changeset:version</code> → publish into <code>main</code> → tag <code>v&lt;version&gt;</code> → <code>release.yml</code> publishes → PR <code>main</code> into <code>develop</code>.</p>
-<h3 id="p2-backlog-later" class="tsd-anchor-link">P2 backlog (later)<a href="#p2-backlog-later" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
-<p><strong>Community / GitHub polish</strong>:</p>
+<h2 id="⚙️-operator-github-settings" class="tsd-anchor-link">⚙️ Operator / GitHub settings<a href="#⚙️-operator-github-settings" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>These cannot live only in git. After creating the repo from the template:</p>
 <ul>
-<li>[ ] <code>.github/FUNDING.yml</code> — e.g. <code>github: [astitvsingh]</code> and/or org sponsors when real</li>
-<li>[ ] Optional <code>.github/DISCUSSION_TEMPLATE/</code> if Discussions are enabled</li>
-<li>[ ] <code>.github/CITATION.cff</code> if the package should be citable</li>
-<li>[ ] Extra support links in SUPPORT (Discord/forum) if the org has them</li>
+<li>[ ] Mark the repository as a <strong>Template repository</strong> (Settings → General) if clones should offer “Use this template”</li>
+<li>[ ] Enable <strong>GitHub Pages</strong> from the <code>/docs</code> folder on <code>main</code> (or your docs branch)</li>
+<li>[ ] Protect <code>main</code> and <code>develop</code> (required checks: <code>ci</code> / <code>check</code>; dismiss stale reviews as you prefer)</li>
+<li>[ ] Bind npm <strong>Trusted Publisher</strong> to this repo’s <code>.github/workflows/release.yml</code> (<code>npm run npm:trust</code> after rename)</li>
+<li>[ ] Optionally enable <strong>Discussions</strong> so <code>.github/DISCUSSION_TEMPLATE/</code> forms appear</li>
+<li>[ ] Set description, topics, and homepage URL to match the renamed package</li>
 </ul>
-<p><strong>Release / automation</strong>:</p>
+<h2 id="✅-readiness" class="tsd-anchor-link">✅ Readiness<a href="#✅-readiness" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p><strong>Ready to use (P0/P1 + closed P2 gaps in-repo):</strong> clone as a GitHub template for day-to-day library work through PR → Changesets → tag → npm Trusted Publishing. Includes publish/finish gate bypasses (policy C), <code>git:tag:version</code>, <code>npm:pack:smoke</code> in CI, FUNDING/CITATION/Discussion templates, package.json polish (<code>author</code>/<code>funding</code>/<code>sideEffects</code>, no lockfile in tarball), and Changesets-only CHANGELOG ownership.</p>
+<p>Release model: <code>changeset:add</code> on topic branches → publish opens the PR → merge → finish cleans up → on <code>release/*</code> or <code>hotfix/*</code> run <code>changeset:version</code> → publish into <code>main</code> → <code>npm run git:tag:version -- --push</code> → <code>release.yml</code> publishes → PR <code>main</code> into <code>develop</code>.</p>
+<p>Chore/docs or empty support publish without a bump: <code>npm run git:flow:&lt;type&gt;:publish -- --allow-no-changeset</code> (or confirm on a TTY). Solo finish without an approving review: <code>npm run git:flow:&lt;type&gt;:finish -- --allow-unapproved</code> (or confirm on a TTY). Merged + issue-link gates stay hard.</p>
+<h3 id="p2-backlog-later" class="tsd-anchor-link">P2 backlog (later)<a href="#p2-backlog-later" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p><strong>Still open (upstream / org / optional):</strong></p>
 <ul>
+<li>[ ] Extra support links in SUPPORT (Discord/forum) if the org has them</li>
 <li>[ ] Optional Changesets GitHub Action that still respects version-branch rules</li>
-<li>[ ] Scripted tag helper after merge (docs already show <code>git tag v$(node -p …)</code>)</li>
-<li>[ ] Branch protection guidance for <code>main</code>/<code>develop</code> (org settings)</li>
 <li>[ ] Dependabot/Renovate tuning for the eslint/typedoc stack</li>
 <li>[ ] npm provenance badge after the first real publish</li>
 <li>[ ] Confirm Trusted Publisher binding after <code>npm:trust</code> on a renamed package</li>
-</ul>
-<p><strong>Quality / toolchain</strong>:</p>
-<ul>
-<li>[ ] devenv unit tests (<code>tool-lib</code>, git-flow guards, label sync dry-run)</li>
-<li>[ ] Node matrix in CI if more than <code>.nvmrc</code> major is supported</li>
-<li>[ ] <code>prepublishOnly</code> smoke path in CI</li>
-<li>[ ] Drop or document <code>.devenv/deps/changelog/generate.mjs</code> vs Changesets-owned CHANGELOG</li>
-<li>[ ] Remove <code>minimatch</code> override + TypeDoc patch when upstream supports minimatch &gt;=11.0.1</li>
-</ul>
-<p><strong>Template product</strong>:</p>
-<ul>
+<li>[ ] Node matrix in CI if <code>engines.node</code> ever allows more than <code>.nvmrc</code> major <code>26</code></li>
+<li>[ ] Remove <code>minimatch</code> override + TypeDoc patch when upstream supports minimatch &gt;=11.0.1 (<strong>retained, blocked on upstream</strong>)</li>
 <li>[ ] Consumer clone dry-run checklist (rename → setup → feature → release dry-run)</li>
 <li>[ ] Org-level template defaults (topics, Pages <code>docs/</code>, default branch policy)</li>
 <li>[ ] Optional monorepo notes (out of scope until needed)</li>
 </ul>
+<p><strong>Closed in this pass:</strong> FUNDING.yml, CITATION.cff, DISCUSSION_TEMPLATE, tag helper, pack smoke in CI, dual <code>changelog/generate.mjs</code> removed, devenv helper tests, gate bypasses, package.json polish, operator checklist, README numbering.</p>
 <h2 id="🗺️-layout" class="tsd-anchor-link">🗺️ Layout<a href="#🗺️-layout" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <pre><code class="text">.devenv/            Script library (prepare, setup, lib, tools, deps, utils)
 .husky/             Git hooks (Husky)
-.github/            Issues, PRs, workflows, labels, CONTRIBUTING
+.github/            Issues, PRs, workflows, labels, CONTRIBUTING, FUNDING, CITATION
 configs/            ESLint, Prettier, Vitest, TypeDoc, tsconfig pieces
 docs/               TypeDoc GitHub Pages site (tracked)
 src/                Library source (`base/`, `types/`, package root)
-tests/              Consumer and unit tests
+tests/              Consumer, unit, and devenv helper tests
 </code><button type="button">Copy</button></pre>
 
 <p><code>docs/</code> is the TypeDoc GitHub Pages site. Regenerate with <code>npm run docify:typedoc</code> and commit when the public API changes.</p>
@@ -194,6 +200,14 @@ tests/              Consumer and unit tests
 <td>Typecheck, format, lint, layout, tests, build</td>
 </tr>
 <tr>
+<td><code>npm run npm:pack:smoke</code></td>
+<td>Dry-run pack asserts <code>dist/</code> is in the publish tarball</td>
+</tr>
+<tr>
+<td><code>npm run git:tag:version</code></td>
+<td>Create (and optionally <code>--push</code>) <code>v*</code> from <code>package.json</code> on <code>main</code></td>
+</tr>
+<tr>
 <td><code>npm run docify:typedoc</code></td>
 <td>Regenerate the Pages site into <code>docs/</code></td>
 </tr>
@@ -207,6 +221,7 @@ tests/              Consumer and unit tests
 <li><a href="media/SUPPORT.md">Support</a></li>
 <li><a href="media/CODE_OF_CONDUCT.md">Code of Conduct</a></li>
 <li><a href="media/SECURITY.md">Security</a></li>
+<li><a href="media/CITATION.cff">Citation</a></li>
 <li><a href="media/LICENSE">License</a></li>
 </ul>
 </div></div>
@@ -230,6 +245,7 @@ tests/              Consumer and unit tests
 <li><a href="#📋-requirements"><span>📋 <wbr/>Requirements</span></a></li>
 <li><a href="#🏗️-use-this-template"><span>🏗️ <wbr/>Use this template</span></a></li>
 <li><a href="#✏️-rename-checklist"><span>✏️ <wbr/>Rename checklist</span></a></li>
+<li><a href="#⚙️-operator-github-settings"><span>⚙️ <wbr/>Operator / <wbr/>Git<wbr/>Hub settings</span></a></li>
 <li><a href="#✅-readiness"><span>✅ <wbr/>Readiness</span></a></li>
 <li>
 <ul>

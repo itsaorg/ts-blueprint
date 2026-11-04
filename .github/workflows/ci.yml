@@ -34,3 +34,5 @@ jobs:
       - uses: ./.github/actions/setup
       # ✅ check: full CI gate via package.scripts → .devenv
       - run: npm run check
+      # 📦 pack smoke: dry-run tarball must include dist/ (prepublish shape)
+      - run: npm run npm:pack:smoke

@@ -104,8 +104,10 @@ Every `package.json` script name starts with the tool, then an action (`tsc:type
 | `npm run changeset:status`          | Show pending Changesets                                                                                        | No                                                 |
 | `npm run changeset:version`         | Apply Changesets on `release/*` or `hotfix/*` only (refuses `develop`/`main`)                                  | Yes, `package.json`, `CHANGELOG.md`, `.changeset/` |
 | `npm run git:flow:feature:start`    | Start `feature/<number>-<slug>`                                                                                | Yes, local branch                                  |
-| `npm run git:flow:feature:publish`  | Pending-changeset gate, push, open/ensure PR into `develop`                                                    | Yes, remote branch + GitHub PR                     |
-| `npm run git:flow:feature:finish`   | After merged+approved+issue-linked PR: delete topic branch                                                     | Yes, deletes local/remote topic branch             |
+| `npm run git:flow:feature:publish`  | Pending-changeset gate (or `--allow-no-changeset` / TTY), push, open/ensure PR into `develop`                  | Yes, remote branch + GitHub PR                     |
+| `npm run git:flow:feature:finish`   | After merged+approved+issue-linked PR: delete topic branch (`--allow-unapproved` / TTY for solo)               | Yes, deletes local/remote topic branch             |
+| `npm run git:tag:version`           | On `main`, create annotated `v*` from `package.json` (optional `--push`)                                       | Yes, local (and remote) git tag                    |
+| `npm run npm:pack:smoke`            | Dry-run `npm pack` and assert `dist/` is in the tarball                                                        | No (read-only dry-run)                             |
 | `npm run git:flow:bugfix:start`     | Start `bugfix/<number>-<slug>`                                                                                 | Yes, local branch                                  |
 | `npm run git:flow:bugfix:publish`   | Pending-changeset gate, push, open/ensure PR into `develop`                                                    | Yes, remote branch + GitHub PR                     |
 | `npm run git:flow:bugfix:finish`    | After merged+approved+issue-linked PR: delete topic branch                                                     | Yes, deletes local/remote topic branch             |

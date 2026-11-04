@@ -165,10 +165,14 @@ npm run check
 
 **Publish** opens the pull request. **Finish** only cleans up after merge. Do **not** use `git flow feature finish` / `git flow bugfix finish` to merge locally — that bypasses GitHub review and CI.
 
-Publish requires at least one pending `.changeset/*.md` file:
+Publish requires at least one pending `.changeset/*.md` file (or a release/hotfix version already applied). For chore/docs or an empty support line with no package bump, bypass with a flag or confirm on a TTY:
 
 ```bash
 npm run git:flow:feature:publish
+```
+
+```bash
+npm run git:flow:feature:publish -- --allow-no-changeset
 ```
 
 That runs the pending-changeset gate, `git flow feature publish`, and `gh pr create` into `develop` (seeds `Closes #N` from `feature/<number>-…` when present). For bugfix:
@@ -181,7 +185,11 @@ Wait for the `ci` workflow. Request review. Merge on GitHub when green and appro
 
 ## ✨ How do I finish a feature or bugfix (after merge)?
 
-Stay on the topic branch until finish succeeds. Finish checks that the remote PR is **merged**, **approved**, and **linked** to the issue number from the branch name, then deletes the local and remote topic branch and checks out `develop`:
+Stay on the topic branch until finish succeeds. Finish checks that the remote PR is **merged**, **approved**, and **linked** to the issue number from the branch name, then deletes the local and remote topic branch and checks out `develop`. Solo maintainers without an approving review:
+
+```bash
+npm run git:flow:feature:finish -- --allow-unapproved
+```
 
 ```bash
 npm run git:flow:feature:finish
@@ -240,14 +248,10 @@ git pull origin main
 ```
 
 ```bash
-git tag "v$(node -p "require('./package.json').version")"
+npm run git:tag:version -- --push
 ```
 
-```bash
-git push origin "v$(node -p "require('./package.json').version")"
-```
-
-Pushing the `v*` tag runs `.github/workflows/release.yml` (check → `npm:release` → GitHub Release).
+Pushing the `v*` tag runs `.github/workflows/release.yml` (check → `npm:release` → GitHub Release). Equivalent raw commands: `git tag -a "v$(node -p "require('./package.json').version")" -m "…"` then `git push origin "v…"`.
 
 **Mandatory:** open a second pull request from `main` into `develop` so integration stays current.
 
@@ -285,7 +289,7 @@ After review + merge on GitHub:
 npm run git:flow:hotfix:finish
 ```
 
-After green CI on `main`, tag the `package.json` version and push the `v*` tag (same commands as release). `release.yml` publishes.
+After green CI on `main`, tag with `npm run git:tag:version -- --push` (same as release). `release.yml` publishes.
 
 **Mandatory:** open a second PR from `main` into `develop` so the fix is not lost.
 
@@ -302,10 +306,10 @@ npm run changeset:add
 ```
 
 ```bash
-npm run git:flow:support:publish
+npm run git:flow:support:publish -- --allow-no-changeset
 ```
 
-(Default PR base is `main`; pass `--base` or answer the interactive prompt.)
+(Default PR base is `main`; pass `--base` or answer the interactive prompt. Use `--allow-no-changeset` when the new support line has no package bump yet.)
 
 After review + merge when retiring/syncing the line:
 
@@ -317,9 +321,9 @@ npm run git:flow:support:finish
 
 `npm run changeset:add` creates a pending note under `.changeset/` (which package, which semver bump, and a short summary). It does **not** edit `package.json` or `CHANGELOG.md`. Refuse to run it on `main`, `develop`, or `release/*`.
 
-`npm run git:flow:<type>:publish` requires those pending files (except `release`/`hotfix` when `changeset:version` already matched `package.json` to the branch version).
+`npm run git:flow:<type>:publish` requires those pending files (except `release`/`hotfix` when `changeset:version` already matched `package.json` to the branch version). Bypass with `--allow-no-changeset` or a TTY confirm for chore/docs/empty support.
 
-`npm run changeset:version` (only on `release/*` or `hotfix/*`) consumes pending notes into `CHANGELOG.md`, bumps `package.json`, and deletes the pending files.
+`npm run changeset:version` (only on `release/*` or `hotfix/*`) consumes pending notes into `CHANGELOG.md`, bumps `package.json`, and deletes the pending files. There is no separate conventional-changelog generator — Changesets owns `CHANGELOG.md`.
 
 ## ⏭️ How do I skip hooks once?
 
