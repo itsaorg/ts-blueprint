@@ -8,14 +8,17 @@
  * branch (`git flow <type> publish` or plain push for support —
  * AVH has no `support publish`), (3) ensure a GitHub pull request
  * exists into the default base (idempotent if one is already open).
- * Seeds `Closes #N` when the branch name starts with digits.
- * Interactive prompts for support base / ambiguous issue linkage.
- * Never merges locally. Never runs `git flow <type> finish`.
+ * PR body comes from `.git/PR_EDITMSG` seeded from the PR template
+ * (editor, or `--body-file`); empty Summary is refused. Seeds
+ * `Closes #N` when the branch name starts with digits. Interactive
+ * prompt for support base. Never merges locally. Never runs
+ * `git flow <type> finish`.
  *
  * HOW TO RUN:
  *   imported by git-flow type publish.mjs modules
  *   node .devenv/tools/git-flow/publish-flow.mjs feature
  *   node .devenv/tools/git-flow/publish-flow.mjs support --base main
+ *   node .devenv/tools/git-flow/publish-flow.mjs feature --body-file ./pr.md
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -42,7 +45,7 @@ import path from "node:path";
 import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { fileURLToPath } from "node:url";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { hasPendingChangesets, listPendingChangesetFiles } from "../../deps/changeset/pending.mjs";
 import {
   askYesNo,
@@ -59,7 +62,23 @@ import {
   run,
 } from "../../lib/tool-lib.mjs";
 import { currentBranch, pushCurrentBranch, runGitFlow, stripTypePrefix } from "./command.mjs";
+import {
+  injectClosesIssue,
+  openDraftInEditor,
+  parseMarkdownTitle,
+  resetFileToTemplate,
+  seedDraftFromTemplate,
+  summaryIsFilled,
+} from "./edit-draft.mjs";
 import { isGitFlowInstalled } from "./isInstalled.mjs";
+
+const PR_TEMPLATE = path.join(
+  repoRoot,
+  ".github",
+  "PULL_REQUEST_TEMPLATE",
+  "pull_request_template.md",
+);
+const PR_EDITMSG = path.join(repoRoot, ".git", "PR_EDITMSG");
 
 /**
  * @typedef {"feature" | "bugfix" | "release" | "hotfix" | "support"} PublishableType
@@ -280,46 +299,85 @@ export function findOpenPullRequest(headBranch) {
 }
 
 /**
- * Builds a PR body that includes Closes #N when an issue is known.
+ * Seeds `.git/PR_EDITMSG` from the PR template with optional `Closes #N`.
  *
  * @param {string | null} issueNumber - Digits from the branch name.
- * @returns {string} Body text for `gh pr create --body`.
+ * @returns {{ ok: boolean, path?: string }} Outcome.
  *
  * @example
- * buildPullRequestBody("42"); // includes "Closes #42"
+ * seedPullRequestDraft("42");
  */
-export function buildPullRequestBody(issueNumber) {
-  const lines = [
-    "## Summary",
-    "",
-    "<!-- Why this change is needed. -->",
-    "",
-    "## Linked issues",
-    "",
-  ];
-  if (issueNumber) {
-    lines.push(`Closes #${issueNumber}`);
-  } else {
-    lines.push("<!-- Closes #N when this PR finishes that issue. -->");
+export function seedPullRequestDraft(issueNumber) {
+  return seedDraftFromTemplate(PR_EDITMSG, PR_TEMPLATE, (text) =>
+    injectClosesIssue(text, issueNumber),
+  );
+}
+
+/**
+ * Resolves the PR body text from `--body-file` or an edited draft.
+ *
+ * @param {{ bodyFile?: string, issueNumber?: string | null }} options - Source options.
+ * @returns {{ ok: boolean, body?: string, draftPath?: string }} Outcome.
+ *
+ * @example
+ * resolvePullRequestBody({ issueNumber: "42" });
+ * resolvePullRequestBody({ bodyFile: "./pr.md" });
+ */
+export function resolvePullRequestBody(options = {}) {
+  if (options.bodyFile) {
+    const abs = path.resolve(repoRoot, options.bodyFile);
+    try {
+      const body = readFileSync(abs, "utf8");
+      return { ok: true, body, draftPath: abs };
+    } catch (error) {
+      logError(`Could not read --body-file: ${error instanceof Error ? error.message : error}`);
+      return { ok: false };
+    }
   }
-  lines.push("", "## Test plan", "", "- [ ] `npm run check`", "");
-  return lines.join("\n");
+
+  if (!isInteractive()) {
+    logError("Non-interactive publish requires --body-file <path> with a filled Summary.");
+    return { ok: false };
+  }
+
+  const seeded = seedPullRequestDraft(options.issueNumber ?? null);
+  if (!seeded.ok || !seeded.path) {
+    return { ok: false };
+  }
+
+  logInfo("Edit the pull request body in your editor, then save and close.");
+  if (!openDraftInEditor(seeded.path).ok) {
+    return { ok: false };
+  }
+
+  try {
+    const body = readFileSync(seeded.path, "utf8");
+    return { ok: true, body, draftPath: seeded.path };
+  } catch (error) {
+    logError(`Could not read PR draft: ${error instanceof Error ? error.message : error}`);
+    return { ok: false };
+  }
 }
 
 /**
  * Creates a pull request when none is open for the head branch.
  *
+ * Opens `.git/PR_EDITMSG` (or reads `--body-file`), refuses an empty
+ * Summary, then creates with `gh pr create --body-file`. Resets the
+ * draft to the template after a successful create.
+ *
  * @param {object} options - Create options.
  * @param {string} options.headBranch - Current topic branch.
  * @param {string} options.base - Target base branch.
  * @param {string | null} options.issueNumber - Optional issue digits.
+ * @param {string} [options.bodyFile] - Non-interactive body path.
  * @returns {{ ok: boolean, created?: boolean, url?: string }} Outcome.
  *
  * @example
  * await ensurePullRequest({ headBranch: "feature/42-x", base: "develop", issueNumber: "42" });
  */
 export async function ensurePullRequest(options) {
-  const { headBranch, base, issueNumber } = options;
+  const { headBranch, base, issueNumber, bodyFile } = options;
 
   if (!ghReady()) {
     logSkip("gh is not authenticated. Push succeeded; open a PR manually:");
@@ -336,21 +394,27 @@ export async function ensurePullRequest(options) {
     return { ok: true, created: false, url: existing.url };
   }
 
-  let resolvedIssue = issueNumber;
-  if (!resolvedIssue && isInteractive()) {
-    const typed = await askLine("Issue number to close (blank to skip)", "");
-    resolvedIssue = typed && /^\d+$/.test(typed) ? typed : null;
+  const resolved = resolvePullRequestBody({ bodyFile, issueNumber });
+  if (!resolved.ok || resolved.body === undefined) {
+    return { ok: false };
   }
 
-  const body = buildPullRequestBody(resolvedIssue);
-  const title = headBranch.includes("/")
+  if (!summaryIsFilled(resolved.body)) {
+    logError("PR Summary is empty or only HTML comments — fill ## Summary before creating.");
+    return { ok: false };
+  }
+
+  const shortName = headBranch.includes("/")
     ? headBranch.slice(headBranch.indexOf("/") + 1)
     : headBranch;
+  const title = parseMarkdownTitle(resolved.body) || shortName;
 
-  logGo(`gh pr create --base ${base} --title … --body …`);
+  writeFileSync(PR_EDITMSG, resolved.body, "utf8");
+
+  logGo(`gh pr create --base ${base} --title … --body-file .git/PR_EDITMSG`);
   const result = spawnSync(
     "gh",
-    ["pr", "create", "--base", base, "--title", title, "--body", body],
+    ["pr", "create", "--base", base, "--title", title, "--body-file", PR_EDITMSG],
     { cwd: repoRoot, stdio: "inherit" },
   );
   if ((result.status ?? 1) !== 0) {
@@ -358,6 +422,8 @@ export async function ensurePullRequest(options) {
     logInfo("Push succeeded; open or update the PR on GitHub.");
     return { ok: false };
   }
+
+  resetFileToTemplate(PR_EDITMSG, PR_TEMPLATE);
   logOk(`Pull request opened into ${base}`);
   return { ok: true, created: true };
 }
@@ -387,7 +453,7 @@ export async function resolvePublishBase(type, baseFlag) {
  * Full publish: pending gate → push → ensure PR.
  *
  * @param {PublishableType} type - Branch type.
- * @param {{ base?: string, nameArgs?: string[], allowNoChangeset?: boolean }} [options] - Overrides.
+ * @param {{ base?: string, nameArgs?: string[], allowNoChangeset?: boolean, bodyFile?: string }} [options] - Overrides.
  * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
@@ -435,7 +501,12 @@ export async function publishWithPullRequest(type, options = {}) {
   const base = await resolvePublishBase(type, options.base);
   const issueNumber = parseIssueNumberFromName(shortName);
 
-  const pr = await ensurePullRequest({ headBranch: branch, base, issueNumber });
+  const pr = await ensurePullRequest({
+    headBranch: branch,
+    base,
+    issueNumber,
+    bodyFile: options.bodyFile,
+  });
   if (!pr.ok) {
     return { ok: false };
   }
@@ -446,10 +517,10 @@ export async function publishWithPullRequest(type, options = {}) {
 }
 
 /**
- * Parses `--base <branch>` and `--allow-no-changeset` from argv.
+ * Parses `--base`, `--allow-no-changeset`, and `--body-file` from argv.
  *
  * @param {string[]} args - CLI args.
- * @returns {{ base?: string, allowNoChangeset: boolean, rest: string[] }} Parsed pieces.
+ * @returns {{ base?: string, allowNoChangeset: boolean, bodyFile?: string, rest: string[] }} Parsed pieces.
  *
  * @example
  * parseBaseArgs(["--base", "develop", "--allow-no-changeset", "42-x"]);
@@ -459,10 +530,17 @@ export function parseBaseArgs(args) {
   const rest = [];
   /** @type {string | undefined} */
   let base;
+  /** @type {string | undefined} */
+  let bodyFile;
   let allowNoChangeset = false;
   for (let i = 0; i < args.length; i += 1) {
     if (args[i] === "--base") {
       base = args[i + 1];
+      i += 1;
+      continue;
+    }
+    if (args[i] === "--body-file") {
+      bodyFile = args[i + 1];
       i += 1;
       continue;
     }
@@ -472,7 +550,7 @@ export function parseBaseArgs(args) {
     }
     rest.push(args[i]);
   }
-  return { base, allowNoChangeset, rest };
+  return { base, allowNoChangeset, bodyFile, rest };
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
@@ -485,14 +563,19 @@ if (isMain) {
     logError("Pass a type: feature | bugfix | release | hotfix | support");
     process.exit(1);
   }
-  const { base, allowNoChangeset, rest } = parseBaseArgs(args.slice(1));
+  const { base, allowNoChangeset, bodyFile, rest } = parseBaseArgs(args.slice(1));
   if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
+    process.exit(1);
+  }
+  if (args.includes("--body-file") && !bodyFile) {
+    logError("Pass --body-file <path>.");
     process.exit(1);
   }
   const result = await publishWithPullRequest(type, {
     base,
     allowNoChangeset,
+    bodyFile,
     nameArgs: rest.length > 0 ? rest : undefined,
   });
   if (!result.ok) {

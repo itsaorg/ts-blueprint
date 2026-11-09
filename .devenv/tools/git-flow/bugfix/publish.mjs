@@ -34,7 +34,7 @@ import { parseBaseArgs, publishWithPullRequest } from "../publish-flow.mjs";
 /**
  * Publishes the current bugfix branch (pending gate + push + PR).
  *
- * @param {{ base?: string, nameArgs?: string[], allowNoChangeset?: boolean }} [options] - Overrides.
+ * @param {{ base?: string, nameArgs?: string[], allowNoChangeset?: boolean, bodyFile?: string }} [options] - Overrides.
  * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
@@ -45,6 +45,7 @@ export async function publishBugfix(options = {}) {
     base: options.base || "develop",
     nameArgs: options.nameArgs,
     allowNoChangeset: options.allowNoChangeset,
+    bodyFile: options.bodyFile,
   });
 }
 
@@ -52,14 +53,19 @@ const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPat
 if (isMain) {
   boxBanner("🐛 bugfix publish");
   const args = forwardedArgs();
-  const { base, allowNoChangeset, rest } = parseBaseArgs(args);
+  const { base, allowNoChangeset, bodyFile, rest } = parseBaseArgs(args);
   if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
+    process.exit(1);
+  }
+  if (args.includes("--body-file") && !bodyFile) {
+    logError("Pass --body-file <path>.");
     process.exit(1);
   }
   const result = await publishBugfix({
     base,
     allowNoChangeset,
+    bodyFile,
     nameArgs: rest.length > 0 ? rest : undefined,
   });
   if (!result.ok) {

@@ -19,6 +19,13 @@ import { describe, expect, it } from "vitest";
 import { isPendingChangesetFile } from "../../.devenv/deps/changeset/pending.mjs";
 import { labelFieldsMatch, normalizeLabelColor } from "../../.devenv/tools/gh/label/sync.mjs";
 import {
+  injectClosesIssue,
+  parseIssueDraft,
+  parseMarkdownTitle,
+  summaryIsFilled,
+} from "../../.devenv/tools/git-flow/edit-draft.mjs";
+import { parseIssueSlug } from "../../.devenv/tools/git-flow/issue-gate.mjs";
+import {
   hasAllowNoChangesetFlag,
   parseBaseArgs as parsePublishArgs,
   parseIssueNumberFromName,
@@ -58,6 +65,39 @@ describe("changeset pending helpers", () => {
   });
 });
 
+describe("git-flow issue gate helpers", () => {
+  it("parses issue slug names", () => {
+    expect(parseIssueSlug("42-add-login")).toEqual({ number: "42", slug: "add-login" });
+    expect(parseIssueSlug("add-login")).toBe(null);
+    expect(parseIssueSlug("1.2.0")).toBe(null);
+  });
+});
+
+describe("git-flow edit-draft helpers", () => {
+  it("requires a non-comment Summary", () => {
+    expect(
+      summaryIsFilled("## Summary\n\n<!-- Why this change is needed. -->\n\n## Linked issues\n"),
+    ).toBe(false);
+    expect(summaryIsFilled("## Summary\n\n\n## Linked issues\n")).toBe(false);
+    expect(
+      summaryIsFilled("## Summary\n\nShip the issue gate and PR draft.\n\n## Linked issues\n"),
+    ).toBe(true);
+  });
+
+  it("injects Closes #N into the template line", () => {
+    expect(injectClosesIssue("Closes #\n", "42")).toBe("Closes #42\n");
+    expect(injectClosesIssue("Closes #\n", null)).toBe("Closes #\n");
+  });
+
+  it("parses markdown titles and issue drafts", () => {
+    expect(parseMarkdownTitle("# Fix login\n\nBody")).toBe("Fix login");
+    expect(parseIssueDraft("# Add export\n\nShip CSV.")).toEqual({
+      title: "Add export",
+      body: "Ship CSV.",
+    });
+  });
+});
+
 describe("git-flow publish helpers", () => {
   it("parses issue numbers from branch short names", () => {
     expect(parseIssueNumberFromName("42-add-login")).toBe("42");
@@ -68,9 +108,19 @@ describe("git-flow publish helpers", () => {
   it("parses publish CLI flags", () => {
     expect(hasAllowNoChangesetFlag(["--allow-no-changeset"])).toBe(true);
     expect(hasAllowNoChangesetFlag([])).toBe(false);
-    expect(parsePublishArgs(["--base", "develop", "--allow-no-changeset", "42-x"])).toEqual({
+    expect(
+      parsePublishArgs([
+        "--base",
+        "develop",
+        "--allow-no-changeset",
+        "--body-file",
+        "./pr.md",
+        "42-x",
+      ]),
+    ).toEqual({
       base: "develop",
       allowNoChangeset: true,
+      bodyFile: "./pr.md",
       rest: ["42-x"],
     });
   });

@@ -12,6 +12,7 @@
  *   npm run git:flow:feature:publish
  *   node .devenv/tools/git-flow/feature/publish.mjs
  *   node .devenv/tools/git-flow/feature/publish.mjs --allow-no-changeset
+ *   node .devenv/tools/git-flow/feature/publish.mjs --body-file ./pr.md
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -37,7 +38,7 @@ import { parseBaseArgs, publishWithPullRequest } from "../publish-flow.mjs";
 /**
  * Publishes the current feature branch (pending gate + push + PR).
  *
- * @param {{ base?: string, nameArgs?: string[], allowNoChangeset?: boolean }} [options] - Overrides.
+ * @param {{ base?: string, nameArgs?: string[], allowNoChangeset?: boolean, bodyFile?: string }} [options] - Overrides.
  * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
@@ -49,6 +50,7 @@ export async function publishFeature(options = {}) {
     base: options.base || "develop",
     nameArgs: options.nameArgs,
     allowNoChangeset: options.allowNoChangeset,
+    bodyFile: options.bodyFile,
   });
 }
 
@@ -56,14 +58,19 @@ const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPat
 if (isMain) {
   boxBanner("🌟 feature publish");
   const args = forwardedArgs();
-  const { base, allowNoChangeset, rest } = parseBaseArgs(args);
+  const { base, allowNoChangeset, bodyFile, rest } = parseBaseArgs(args);
   if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
+    process.exit(1);
+  }
+  if (args.includes("--body-file") && !bodyFile) {
+    logError("Pass --body-file <path>.");
     process.exit(1);
   }
   const result = await publishFeature({
     base,
     allowNoChangeset,
+    bodyFile,
     nameArgs: rest.length > 0 ? rest : undefined,
   });
   if (!result.ok) {

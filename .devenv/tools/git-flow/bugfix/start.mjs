@@ -4,12 +4,14 @@
  * 🐛 Bugfix branch start
  * ---------------------------------------------------------------
  * Creates a new `bugfix/<number>-<slug>` branch from develop via
- * `git flow bugfix start`. Use for fixes that land on develop
- * (not production hotfixes). Requires Git Flow AVH on PATH.
+ * `git flow bugfix start`. Verifies (or interactively creates)
+ * GitHub issue `<number>` before starting. Use for fixes that
+ * land on develop (not production hotfixes). Requires Git Flow AVH.
  *
  * HOW TO RUN:
+ *   npm run git:flow:bugfix:start <number>-<slug>
  *   node .devenv/tools/git-flow/bugfix/start.mjs <number>-<slug>
- *   node .devenv/tools/git-flow/bugfix/start.mjs 99-null-guard
+ *   npm run git:flow:bugfix:start 99-null-guard
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -30,19 +32,23 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logError } from "../../../lib/tool-lib.mjs";
 import { runGitFlow } from "../command.mjs";
+import { ensureIssueForStart } from "../issue-gate.mjs";
 
 /**
- * Runs `git flow bugfix start …`.
+ * Runs the issue gate, then `git flow bugfix start …`.
  *
  * @param {string[]} [args] - Arguments after start (`<number>-<slug>`).
- * @returns {{ ok: boolean }} Outcome.
+ * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
- * startBugfix(["99-null-guard"]);
+ * await startBugfix(["99-null-guard"]);
  */
-export function startBugfix(args = []) {
+export async function startBugfix(args = []) {
   if (args.length === 0) {
     logError("Pass <number>-<slug>.");
+    return { ok: false };
+  }
+  if (!(await ensureIssueForStart(args[0])).ok) {
     return { ok: false };
   }
   return runGitFlow("bugfix", "start", args);
@@ -51,7 +57,7 @@ export function startBugfix(args = []) {
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   boxBanner("🐛 bugfix start");
-  if (!startBugfix(forwardedArgs()).ok) {
+  if (!(await startBugfix(forwardedArgs())).ok) {
     process.exit(1);
   }
   boxDone("bugfix start");

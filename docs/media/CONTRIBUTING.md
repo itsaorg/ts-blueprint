@@ -63,10 +63,10 @@ git pull origin develop
 ```
 
 ```bash
-node .devenv/tools/git-flow/feature/start.mjs <number>-<slug>
+npm run git:flow:feature:start -- <number>-<slug>
 ```
 
-Replace `<number>` with the issue number and `<slug>` with a few words, for example `12-add-export`. Finish topic branches with a pull request via `node .devenv/tools/git-flow/feature/finish.mjs` (never `git flow feature finish`) — see [HOW-TO.md](HOW-TO.md).
+Replace `<number>` with the issue number and `<slug>` with a few words, for example `12-add-export`. Start verifies that issue exists (or opens an issue draft in the editor when it does not). Finish topic branches with a pull request via `npm run git:flow:feature:finish` (never `git flow feature finish`) — see [HOW-TO.md](HOW-TO.md).
 
 When the change should bump the published package, run `npm run changeset:add` on the topic branch and include the pending `.changeset/*.md` file in the same PR (publish refuses to open a PR without one). Semver type follows API impact (feature ≈ minor/major, bugfix/chore ≈ patch). Run `npm run changeset:version` only later on `release/*` or `hotfix/*` — never on `develop` or `main`. Tags (`v*`) trigger `.github/workflows/release.yml`.
 
@@ -103,13 +103,13 @@ Every `package.json` script name starts with the tool, then an action (`tsc:type
 | `npm run changeset:add`             | Interactive pending Changeset note (refuses `main`/`develop`/`release/*`)                                      | Yes, `.changeset/*.md`                             |
 | `npm run changeset:status`          | Show pending Changesets                                                                                        | No                                                 |
 | `npm run changeset:version`         | Apply Changesets on `release/*` or `hotfix/*` only (refuses `develop`/`main`)                                  | Yes, `package.json`, `CHANGELOG.md`, `.changeset/` |
-| `npm run git:flow:feature:start`    | Start `feature/<number>-<slug>`                                                                                | Yes, local branch                                  |
-| `npm run git:flow:feature:publish`  | Pending-changeset gate (or `--allow-no-changeset` / TTY), push, open/ensure PR into `develop`                  | Yes, remote branch + GitHub PR                     |
+| `npm run git:flow:feature:start`    | Issue gate, then start `feature/<number>-<slug>`                                                               | Yes, local branch (may create a GitHub issue)      |
+| `npm run git:flow:feature:publish`  | Pending-changeset gate, push, edit `.git/PR_EDITMSG` (or `--body-file`), open/ensure PR into `develop`         | Yes, remote branch + GitHub PR                     |
 | `npm run git:flow:feature:finish`   | After merged+approved+issue-linked PR: delete topic branch (`--allow-unapproved` / TTY for solo)               | Yes, deletes local/remote topic branch             |
 | `npm run git:tag:version`           | On `main`, create annotated `v*` from `package.json` (optional `--push`)                                       | Yes, local (and remote) git tag                    |
 | `npm run npm:pack:smoke`            | Dry-run `npm pack` and assert `dist/` is in the tarball                                                        | No (read-only dry-run)                             |
-| `npm run git:flow:bugfix:start`     | Start `bugfix/<number>-<slug>`                                                                                 | Yes, local branch                                  |
-| `npm run git:flow:bugfix:publish`   | Pending-changeset gate, push, open/ensure PR into `develop`                                                    | Yes, remote branch + GitHub PR                     |
+| `npm run git:flow:bugfix:start`     | Issue gate, then start `bugfix/<number>-<slug>`                                                                | Yes, local branch (may create a GitHub issue)      |
+| `npm run git:flow:bugfix:publish`   | Pending-changeset gate, push, edit `.git/PR_EDITMSG` (or `--body-file`), open/ensure PR into `develop`         | Yes, remote branch + GitHub PR                     |
 | `npm run git:flow:bugfix:finish`    | After merged+approved+issue-linked PR: delete topic branch                                                     | Yes, deletes local/remote topic branch             |
 | `npm run git:flow:hotfix:start`     | Start `hotfix/<x.y.z>` from `main`                                                                             | Yes, local branch                                  |
 | `npm run git:flow:hotfix:publish`   | Pending or versioned gate, push, open/ensure PR into `main`                                                    | Yes, remote branch + GitHub PR                     |
@@ -154,7 +154,7 @@ Every development script is ESM (`.mjs`). Git hooks stay in `.husky`. Call packa
 .devenv/utils/clean.mjs      Shared path cleaner
 ```
 
-`tools/` holds runtimes a machine needs. `deps/` holds repo commands such as tsc and prettier. Scripts under `.devenv/tools/**` export functions for import and also run as CLIs. Root `prepare.mjs` / `setup.mjs` orchestrate multi-tool flows. Under `tools/gh/`, use `auth/` (mirrors `gh auth` subcommands), `label/`, `issue/`, `pr/`, plus `setup.mjs` and `isInstalled.mjs`. Under `tools/npm/`, use `auth/` (whoami/login/logout), `publish/` (local/worker/release/deprecate-reservation/trust), plus `setup.mjs` — no `isInstalled` (npm ships with Node). Under `tools/git-flow/`, use `init.mjs`, `setup.mjs`, `isInstalled.mjs`, `publish-flow.mjs`, `finish-merged.mjs`, and per-type `start` / `publish` / `finish` for feature, bugfix, hotfix, release, and support. **Publish** opens the PR (after a pending-changeset gate). **Finish** only runs after the PR is reviewed and merged (never local `git flow finish`).
+`tools/` holds runtimes a machine needs. `deps/` holds repo commands such as tsc and prettier. Scripts under `.devenv/tools/**` export functions for import and also run as CLIs. Root `prepare.mjs` / `setup.mjs` orchestrate multi-tool flows. Under `tools/gh/`, use `auth/` (mirrors `gh auth` subcommands), `label/`, `issue/`, `pr/`, plus `setup.mjs` and `isInstalled.mjs`. Under `tools/npm/`, use `auth/` (whoami/login/logout), `publish/` (local/worker/release/deprecate-reservation/trust), plus `setup.mjs` — no `isInstalled` (npm ships with Node). Under `tools/git-flow/`, use `init.mjs`, `setup.mjs`, `isInstalled.mjs`, `edit-draft.mjs`, `issue-gate.mjs`, `publish-flow.mjs`, `finish-merged.mjs`, and per-type `start` / `publish` / `finish` for feature, bugfix, hotfix, release, and support. **Start** (feature/bugfix) verifies or creates the issue. **Publish** opens the PR from an edited draft (after a pending-changeset gate). **Finish** only runs after the PR is reviewed and merged (never local `git flow finish`).
 
 ## 🐶 Prepare lifecycle
 
@@ -264,9 +264,9 @@ The full set lives in `.github/labels.json`. `npm run gh:label:sync` is exclusiv
 
 ## 🔀 Open a pull request
 
-Add a pending Changeset (`npm run changeset:add`), then run the matching **publish** script (for example `npm run git:flow:feature:publish`). That pushes the branch and opens/ensures a pull request (seeds `Closes #N` from `feature/<number>-…` when present). GitHub also offers `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md` for manual creates. Fill these sections:
+Add a pending Changeset (`npm run changeset:add`), then run the matching **publish** script (for example `npm run git:flow:feature:publish`). That pushes the branch, seeds `.git/PR_EDITMSG` from `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md` (with `Closes #N` when the branch is `<number>-…`), opens your editor, and refuses create when **Summary** is still empty. After a successful create, the draft resets to the template. Non-interactive shells use `--body-file <path>`. An already-open PR is left alone (edit blank ones such as PR 25 by hand). Fill these sections:
 
-1. **Summary.** Why the change is needed.
+1. **Summary.** Why the change is needed (required; HTML comments alone do not count).
 2. **Linked issues.** `Closes #123` when this pull request finishes that issue.
 3. **Test plan.** Commands you ran. Code changes should include `npm run check`.
 4. **Checklist.** Conventional Commits, public contract notes, and docs.

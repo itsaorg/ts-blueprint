@@ -111,7 +111,7 @@ The template applies the type label. Maintainers set Status, Priority, and Git F
 
 ## 📌 What do I do after the issue exists?
 
-Note the issue number (for example `42`).
+Note the issue number (for example `42`). Feature and bugfix **start** scripts verify that issue with `gh` before creating the branch. If the issue is missing on a TTY, they open `.git/ISSUE_EDITMSG` (seeded from `.github/ISSUE_DRAFT.md`) so you can create it; the new issue number must match `<number>` in the branch name (otherwise restart with the number `gh` assigned). Non-interactive shells refuse when the issue does not already exist.
 
 ```bash
 git checkout develop
@@ -122,10 +122,10 @@ git pull origin develop
 ```
 
 ```bash
-node .devenv/tools/git-flow/feature/start.mjs 42-<slug>
+npm run git:flow:feature:start -- 42-<slug>
 ```
 
-Or the raw CLI: `git flow feature start 42-<slug>`. Use `bugfix`, `release`, `hotfix`, or `support` modules under `.devenv/tools/git-flow/` when that type matches. Replace `<slug>` with a short kebab-case phrase.
+Or: `node .devenv/tools/git-flow/feature/start.mjs 42-<slug>`. Prefer the npm script over raw `git flow feature start` so the issue gate runs. Use `bugfix` the same way. `release`, `hotfix`, and `support` starts do **not** use the issue gate. Replace `<slug>` with a short kebab-case phrase.
 
 ## 🌲 Which Git Flow branch type do I use?
 
@@ -175,7 +175,13 @@ npm run git:flow:feature:publish
 npm run git:flow:feature:publish -- --allow-no-changeset
 ```
 
-That runs the pending-changeset gate, `git flow feature publish`, and `gh pr create` into `develop` (seeds `Closes #N` from `feature/<number>-…` when present). For bugfix:
+That runs the pending-changeset gate, `git flow feature publish`, then opens `.git/PR_EDITMSG` (seeded from `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md`, with `Closes #N` filled when the branch is `<number>-…`). Fill **Summary** in the editor; an empty or comment-only Summary aborts create. After a successful create, the draft resets to the template. Non-interactive shells must pass `--body-file <path>` with a filled Summary:
+
+```bash
+npm run git:flow:feature:publish -- --allow-no-changeset --body-file ./pr-body.md
+```
+
+If a PR is already open for the head branch, publish prints its URL and does not overwrite the body (fill blank PRs such as [#25](https://github.com/itsaorg/ts-blueprint/pull/25) by hand with `gh pr edit`). For bugfix:
 
 ```bash
 npm run git:flow:bugfix:publish
