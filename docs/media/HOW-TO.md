@@ -111,7 +111,9 @@ The template applies the type label. Maintainers set Status, Priority, and Git F
 
 ## 📌 What do I do after the issue exists?
 
-Note the issue number (for example `42`). Feature and bugfix **start** scripts verify that issue with `gh` before creating the branch. If the issue is missing on a TTY, they open `.git/ISSUE_EDITMSG` (seeded from `.github/ISSUE_DRAFT.md`) so you can create it; the new issue number must match `<number>` in the branch name (otherwise restart with the number `gh` assigned). Non-interactive shells refuse when the issue does not already exist.
+Feature and bugfix **start** resolve the issue **before** naming the branch (GitHub assigns numbers only at create time).
+
+On a TTY with no args, start lists open issues and asks you to pick one, or choose **0** to create. Create seeds `.git/ISSUE_EDITMSG` from a Feature / Bug / Chore YAML form, opens your editor, and only after you close the editor runs `gh issue create`. The branch name becomes `<number>-<slug>` from the created or chosen issue title. Pass an existing `<number>-<slug>` to skip the picker. Non-interactive shells require that explicit name.
 
 ```bash
 git checkout develop
@@ -122,10 +124,14 @@ git pull origin develop
 ```
 
 ```bash
-npm run git:flow:feature:start -- 42-<slug>
+npm run git:flow:feature:start
 ```
 
-Or: `node .devenv/tools/git-flow/feature/start.mjs 42-<slug>`. Prefer the npm script over raw `git flow feature start` so the issue gate runs. Use `bugfix` the same way. `release`, `hotfix`, and `support` starts do **not** use the issue gate. Replace `<slug>` with a short kebab-case phrase.
+```bash
+npm run git:flow:feature:start -- 42-add-login
+```
+
+Prefer the npm script over raw `git flow feature start` so the issue gate runs. Use `bugfix` the same way. `release`, `hotfix`, and `support` starts do **not** use the issue gate.
 
 ## 🌲 Which Git Flow branch type do I use?
 
@@ -181,7 +187,16 @@ That runs the pending-changeset gate, `git flow feature publish`, then opens `.g
 npm run git:flow:feature:publish -- --allow-no-changeset --body-file ./pr-body.md
 ```
 
-If a PR is already open for the head branch, publish prints its URL and does not overwrite the body (fill blank PRs such as [#25](https://github.com/itsaorg/ts-blueprint/pull/25) by hand with `gh pr edit`). For bugfix:
+If a PR is already open for the head branch, publish prints its URL and does not overwrite the body. Fill blank PRs such as [#25](https://github.com/itsaorg/ts-blueprint/pull/25) by hand. Prefer REST when `gh pr edit` fails with a Projects (classic) / `projectCards` GraphQL error (common on older `gh`):
+
+```bash
+gh api repos/itsaorg/ts-blueprint/pulls/25 -X PATCH -f title='…' -f body="$(cat <<'EOF'
+…body…
+EOF
+)"
+```
+
+Upgrade GitHub CLI when you can. For bugfix:
 
 ```bash
 npm run git:flow:bugfix:publish

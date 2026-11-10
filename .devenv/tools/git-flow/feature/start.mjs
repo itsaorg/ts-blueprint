@@ -3,13 +3,15 @@
 /** ==============================================================
  * 🌟 Feature branch start
  * ---------------------------------------------------------------
- * Creates a new `feature/<number>-<slug>` branch from develop via
- * `git flow feature start`. Verifies (or interactively creates)
- * GitHub issue `<number>` before starting. Requires Git Flow AVH.
+ * Resolves a GitHub issue (interactive picker, or create via
+ * `.git/ISSUE_EDITMSG`), then runs `git flow feature start` with
+ * `<number>-<slug>` from that issue. Pass an existing
+ * `<number>-<slug>` to skip the picker. Requires Git Flow AVH.
  *
  * HOW TO RUN:
- *   node .devenv/tools/git-flow/feature/start.mjs <number>-<slug>
- *   node .devenv/tools/git-flow/feature/start.mjs 42-add-login
+ *   npm run git:flow:feature:start
+ *   npm run git:flow:feature:start -- 42-add-login
+ *   node .devenv/tools/git-flow/feature/start.mjs
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -23,33 +25,33 @@
  * @module git-flow-feature-start
  *
  * @example
- * //   node .devenv/tools/git-flow/feature/start.mjs 42-add-login
+ * //   npm run git:flow:feature:start
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { boxBanner, boxDone, forwardedArgs, logError } from "../../../lib/tool-lib.mjs";
+import { boxBanner, boxDone, forwardedArgs, logInfo } from "../../../lib/tool-lib.mjs";
 import { runGitFlow } from "../command.mjs";
-import { ensureIssueForStart } from "../issue-gate.mjs";
+import { resolveIssueBranchName } from "../issue-gate.mjs";
 
 /**
- * Runs the issue gate, then `git flow feature start …`.
+ * Resolves the issue name, then runs `git flow feature start …`.
  *
- * @param {string[]} [args] - Arguments after start (`<number>-<slug>`).
- * @returns {Promise<{ ok: boolean }>} Outcome.
+ * @param {string[]} [args] - Optional `[ "<number>-<slug>" ]`.
+ * @returns {Promise<{ ok: boolean, name?: string }>} Outcome.
  *
  * @example
+ * await startFeature([]);
  * await startFeature(["42-add-login"]);
  */
 export async function startFeature(args = []) {
-  if (args.length === 0) {
-    logError("Pass <number>-<slug>.");
+  const resolved = await resolveIssueBranchName(args);
+  if (!resolved.ok || !resolved.name) {
     return { ok: false };
   }
-  if (!(await ensureIssueForStart(args[0])).ok) {
-    return { ok: false };
-  }
-  return runGitFlow("feature", "start", args);
+  logInfo(`Starting feature/${resolved.name}`);
+  const started = runGitFlow("feature", "start", [resolved.name]);
+  return { ok: started.ok, name: resolved.name };
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);

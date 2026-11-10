@@ -24,7 +24,12 @@ import {
   parseMarkdownTitle,
   summaryIsFilled,
 } from "../../.devenv/tools/git-flow/edit-draft.mjs";
-import { parseIssueSlug } from "../../.devenv/tools/git-flow/issue-gate.mjs";
+import {
+  parseIssueFormYaml,
+  parseIssueSlug,
+  seedIssueDraftFromFormMeta,
+  slugifyIssueTitle,
+} from "../../.devenv/tools/git-flow/issue-gate.mjs";
 import {
   hasAllowNoChangesetFlag,
   parseBaseArgs as parsePublishArgs,
@@ -70,6 +75,39 @@ describe("git-flow issue gate helpers", () => {
     expect(parseIssueSlug("42-add-login")).toEqual({ number: "42", slug: "add-login" });
     expect(parseIssueSlug("add-login")).toBe(null);
     expect(parseIssueSlug("1.2.0")).toBe(null);
+  });
+
+  it("slugifies issue titles", () => {
+    expect(slugifyIssueTitle("✨ FEAT: Add login")).toBe("feat-add-login");
+    expect(slugifyIssueTitle("")).toBe("issue");
+  });
+
+  it("parses issue form YAML and seeds a draft", () => {
+    const yaml = [
+      'title: "✨ FEAT: <slug>"',
+      'labels: ["✨ Feature Request"]',
+      "body:",
+      "  - type: markdown",
+      "    attributes:",
+      "      value: |",
+      "        Intro",
+      "  - type: textarea",
+      "    id: problem",
+      "    attributes:",
+      '      label: "Problem"',
+      "  - type: textarea",
+      "    id: change",
+      "    attributes:",
+      "      label: Proposed change",
+    ].join("\n");
+    const meta = parseIssueFormYaml(yaml);
+    expect(meta.title).toBe("✨ FEAT: <slug>");
+    expect(meta.labels).toEqual(["✨ Feature Request"]);
+    expect(meta.fieldLabels).toEqual(["Problem", "Proposed change"]);
+    const draft = seedIssueDraftFromFormMeta(meta);
+    expect(draft).toContain("# ✨ FEAT: <slug>");
+    expect(draft).toContain("## Problem");
+    expect(draft).toContain("## Proposed change");
   });
 });
 
