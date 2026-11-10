@@ -1,0 +1,31 @@
+# =============================================================================
+# 📐 .editorconfig — editor defaults for this repository
+# =============================================================================
+# 📌 Purpose: same charset, indent, and line endings in every editor.
+# ⚠️ Path is REQUIRED: repo-root `.editorconfig`.
+# ▶️ Example: a new file is saved as UTF-8, LF, and two-space indents.
+# =============================================================================
+
+# 📌 root: stop EditorConfig from reading a parent directory
+root = true
+
+# 🌐 [*]: apply the rules below to every file
+[*]
+
+# 🔤 charset: save files as UTF-8
+charset = utf-8
+
+# ↔️ indent_style: indent with spaces, not tabs
+indent_style = space
+
+# 🔢 indent_size: two spaces per indent level
+indent_size = 2
+
+# ↩️ end_of_line: Unix line endings
+end_of_line = lf
+
+# ⏎ insert_final_newline: end every file with a newline
+insert_final_newline = true
+
+# ✂️ trim_trailing_whitespace: drop spaces at the end of a line
+trim_trailing_whitespace = true
