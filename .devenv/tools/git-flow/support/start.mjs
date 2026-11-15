@@ -3,16 +3,13 @@
 /** ==============================================================
  * 🛟 Support branch start
  * ---------------------------------------------------------------
- * Creates a long-lived `support/<name>` branch from `<base>` via
- * `git flow support start`. Use for maintenance lines that track
- * an older release. Requires Git Flow AVH on PATH. Day-to-day
- * maintenance PRs target this support branch as their base; use
- * `support/publish` and `support/finish` when syncing/retiring the
- * line itself (AVH has no support publish/finish — our wrappers).
+ * Clean working tree, resolve a GitHub issue (picker/create or
+ * `--issue <n>`), record `.git/CURRENT_ISSUE`, then
+ * `git flow support start <name> <base>`.
  *
  * HOW TO RUN:
- *   npm run git:flow:support:start -- <name> <base>
- *   node .devenv/tools/git-flow/support/start.mjs <name> <base>
+ *   npm run git:flow:support:start -- 1.x v1.2.0
+ *   npm run git:flow:support:start -- --issue 42 1.x v1.2.0
  *   node .devenv/tools/git-flow/support/start.mjs 1.x v1.2.0
  *
  * ---------------------------------------------------------------
@@ -28,7 +25,6 @@
  *
  * @example
  * //   npm run git:flow:support:start -- 1.x v1.2.0
- * //   node .devenv/tools/git-flow/support/start.mjs 1.x v1.2.0
  */
 
 import path from "node:path";
@@ -44,15 +40,18 @@ import {
   logInfo,
 } from "../../../lib/tool-lib.mjs";
 import { runGitFlow } from "../command.mjs";
+import {
+  parseIssueFlagArgs,
+  requireCleanWorkingTree,
+  resolveLinkedIssue,
+  writeCurrentIssue,
+} from "../start-gates.mjs";
 
 /**
  * Asks for a required CLI argument when running on a TTY.
  *
  * @param {string} label - Prompt label.
  * @returns {Promise<string>} Trimmed answer (may be empty).
- *
- * @example
- * const name = await askRequired("Support branch name (e.g. 1.x)");
  */
 async function askRequired(label) {
   const rl = readline.createInterface({ input, output });
@@ -66,11 +65,8 @@ async function askRequired(label) {
 /**
  * Resolves `<name> <base>` from argv or interactive prompts.
  *
- * @param {string[]} [args] - CLI args.
+ * @param {string[]} [args] - CLI args (without `--issue`).
  * @returns {Promise<{ ok: boolean, args?: string[] }>} Resolved pair.
- *
- * @example
- * await resolveSupportStartArgs(["1.x", "v1.2.0"]);
  */
 export async function resolveSupportStartArgs(args = []) {
   let name = args[0] || "";
@@ -92,19 +88,34 @@ export async function resolveSupportStartArgs(args = []) {
 }
 
 /**
- * Runs `git flow support start …`.
+ * Issue gate + `git flow support start …`.
  *
- * @param {string[]} [args] - `<name> <base>` (prompted when missing on TTY).
+ * @param {string[]} [args] - `<name> <base>` plus optional `--issue <n>`.
  * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
  * await startSupport(["1.x", "v1.2.0"]);
  */
 export async function startSupport(args = []) {
-  const resolved = await resolveSupportStartArgs(args);
+  if (!requireCleanWorkingTree().ok) {
+    return { ok: false };
+  }
+
+  const { issueFlag, rest } = parseIssueFlagArgs(args);
+  const linked = await resolveLinkedIssue({ issueFlag });
+  if (!linked.ok || !linked.number) {
+    return { ok: false };
+  }
+  if (!writeCurrentIssue(linked.number).ok) {
+    return { ok: false };
+  }
+
+  const resolved = await resolveSupportStartArgs(rest);
   if (!resolved.ok || !resolved.args) {
     return { ok: false };
   }
+
+  logInfo(`Starting support/${resolved.args[0]} (issue #${linked.number})`);
   return runGitFlow("support", "start", resolved.args);
 }
 

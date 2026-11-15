@@ -3,11 +3,9 @@
 /** ==============================================================
  * 🐛 Bugfix branch start
  * ---------------------------------------------------------------
- * Resolves a GitHub issue (interactive picker, or create via
- * `.git/ISSUE_EDITMSG`), then runs `git flow bugfix start` with
- * `<number>-<slug>` from that issue. Pass an existing
- * `<number>-<slug>` to skip the picker. Use for fixes that land
- * on develop (not production hotfixes). Requires Git Flow AVH.
+ * From a clean, synced `develop`: resolve a GitHub issue (picker,
+ * create via `.git/ISSUE_EDITMSG`, or explicit `<number>-<slug>`),
+ * record `.git/CURRENT_ISSUE`, then `git flow bugfix start`.
  *
  * HOW TO RUN:
  *   npm run git:flow:bugfix:start
@@ -33,7 +31,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logInfo } from "../../../lib/tool-lib.mjs";
 import { runGitFlow } from "../command.mjs";
-import { resolveIssueBranchName } from "../issue-gate.mjs";
+import { parseIssueSlug, resolveIssueBranchName } from "../issue-gate.mjs";
+import { requireCleanSyncedBase, writeCurrentIssue } from "../start-gates.mjs";
 
 /**
  * Resolves the issue name, then runs `git flow bugfix start …`.
@@ -46,10 +45,20 @@ import { resolveIssueBranchName } from "../issue-gate.mjs";
  * await startBugfix(["99-null-guard"]);
  */
 export async function startBugfix(args = []) {
+  if (!requireCleanSyncedBase("develop").ok) {
+    return { ok: false };
+  }
+
   const resolved = await resolveIssueBranchName(args);
   if (!resolved.ok || !resolved.name) {
     return { ok: false };
   }
+
+  const parsed = parseIssueSlug(resolved.name);
+  if (parsed?.number && !writeCurrentIssue(parsed.number).ok) {
+    return { ok: false };
+  }
+
   logInfo(`Starting bugfix/${resolved.name}`);
   const started = runGitFlow("bugfix", "start", [resolved.name]);
   return { ok: started.ok, name: resolved.name };

@@ -34,8 +34,17 @@ import {
   hasAllowNoChangesetFlag,
   parseBaseArgs as parsePublishArgs,
   parseIssueNumberFromName,
+  resolvePublishIssueNumber,
 } from "../../.devenv/tools/git-flow/publish-flow.mjs";
-import { parseBaseArgs as parseFinishArgs } from "../../.devenv/tools/git-flow/finish-merged.mjs";
+import {
+  isPullRequestCiGreen,
+  parseBaseArgs as parseFinishArgs,
+} from "../../.devenv/tools/git-flow/finish-merged.mjs";
+import {
+  mergeStrategyFor,
+  parseAheadBehind,
+  parseIssueFlagArgs,
+} from "../../.devenv/tools/git-flow/start-gates.mjs";
 import { parseTagArgs } from "../../.devenv/tools/git/tag-version.mjs";
 import { assertPackSmokePaths } from "../../.devenv/tools/npm/pack/smoke.mjs";
 
@@ -136,11 +145,29 @@ describe("git-flow edit-draft helpers", () => {
   });
 });
 
+describe("git-flow start-gate helpers", () => {
+  it("parses ahead/behind and merge strategies", () => {
+    expect(parseAheadBehind("0\t0")).toEqual({ ahead: 0, behind: 0 });
+    expect(parseAheadBehind("2 1")).toEqual({ ahead: 2, behind: 1 });
+    expect(parseAheadBehind("nope")).toBe(null);
+    expect(mergeStrategyFor("feature")).toBe("squash");
+    expect(mergeStrategyFor("release")).toBe("merge");
+  });
+
+  it("parses --issue from start argv", () => {
+    expect(parseIssueFlagArgs(["--issue", "42", "1.2.0"])).toEqual({
+      issueFlag: "42",
+      rest: ["1.2.0"],
+    });
+  });
+});
+
 describe("git-flow publish helpers", () => {
   it("parses issue numbers from branch short names", () => {
     expect(parseIssueNumberFromName("42-add-login")).toBe("42");
     expect(parseIssueNumberFromName("1.2.0")).toBe(null);
     expect(parseIssueNumberFromName("1.x")).toBe(null);
+    expect(resolvePublishIssueNumber("42-add-login")).toBe("42");
   });
 
   it("parses publish CLI flags", () => {
@@ -153,12 +180,15 @@ describe("git-flow publish helpers", () => {
         "--allow-no-changeset",
         "--body-file",
         "./pr.md",
+        "--pr",
+        "25",
         "42-x",
       ]),
     ).toEqual({
       base: "develop",
       allowNoChangeset: true,
       bodyFile: "./pr.md",
+      prNumber: "25",
       rest: ["42-x"],
     });
   });
@@ -166,11 +196,25 @@ describe("git-flow publish helpers", () => {
 
 describe("git-flow finish helpers", () => {
   it("parses finish CLI flags", () => {
-    expect(parseFinishArgs(["--base", "main", "--allow-unapproved"])).toEqual({
+    expect(parseFinishArgs(["--base", "main", "--allow-unapproved", "--pr", "25"])).toEqual({
       base: "main",
       allowUnapproved: true,
+      prNumber: "25",
       rest: [],
     });
+  });
+
+  it("treats successful status checks as green", () => {
+    expect(
+      isPullRequestCiGreen({
+        statusCheckRollup: [{ status: "COMPLETED", conclusion: "SUCCESS" }],
+      }),
+    ).toBe(true);
+    expect(
+      isPullRequestCiGreen({
+        statusCheckRollup: [{ status: "IN_PROGRESS", conclusion: "" }],
+      }),
+    ).toBe(false);
   });
 });
 

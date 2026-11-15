@@ -1,23 +1,23 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * ✅ Git Flow post-merge finish
+ * ✅ Git Flow finish (approve / CI / merge / cleanup)
  * ---------------------------------------------------------------
- * Shared finish for feature/bugfix/release/hotfix/support after
- * the GitHub pull request is reviewed and merged. Gates:
- *   1) PR for this head is MERGED
- *   2) Review was APPROVED
- *   3) Issue link when the branch name starts with `<number>-`
- *   4) release/hotfix only: no leftover pending changesets;
- *      package.json version matches the branch version
- * Then checks out the base branch and deletes the topic branch
- * locally and on origin. Never creates a PR. Never runs
- * `git flow <type> finish` (that merges locally and skips CI).
+ * Shared finish for feature/bugfix/release/hotfix/support.
+ * Never creates a PR (publish owns that). Gates:
+ *   1) Clean working tree; topic branch published on origin
+ *   2) Resolve PR for this head (pick / `--pr`); else refuse → publish
+ *   3) If open: CI green, approving review, issue link, then merge
+ *      (squash for feature/bugfix; merge commit for release/hotfix/support)
+ *   4) If already merged: approval + issue-link gates still apply
+ *   5) release/hotfix version gates; delete topic branch; clear CURRENT_ISSUE
+ * Never runs `git flow <type> finish` (local merge skips CI).
  *
  * HOW TO RUN:
  *   imported by git-flow type finish.mjs modules
  *   node .devenv/tools/git-flow/finish-merged.mjs feature
  *   node .devenv/tools/git-flow/finish-merged.mjs feature --allow-unapproved
+ *   node .devenv/tools/git-flow/finish-merged.mjs feature --pr 25
  *   node .devenv/tools/git-flow/finish-merged.mjs support --base main
  *
  * ---------------------------------------------------------------
@@ -27,19 +27,20 @@
  * ============================================================== */
 
 /**
- * Post-merge finish gates and local/remote branch cleanup.
+ * Finish gates: approve, CI, merge, and local/remote branch cleanup.
  *
  * @module git-flow-finish-merged
  *
  * @example
  * import { finishAfterMerge } from "../finish-merged.mjs";
- * finishAfterMerge("feature");
+ * await finishAfterMerge("feature");
  *
  * @example
  * // CLI:
  * //   node .devenv/tools/git-flow/finish-merged.mjs bugfix
  */
 
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -60,7 +61,19 @@ import {
 } from "../../lib/tool-lib.mjs";
 import { currentBranch, stripTypePrefix } from "./command.mjs";
 import { isGitFlowInstalled } from "./isInstalled.mjs";
-import { defaultBaseFor, ghReady, parseIssueNumberFromName } from "./publish-flow.mjs";
+import {
+  defaultBaseFor,
+  ghReady,
+  listOpenPullRequestsForHead,
+  parseIssueNumberFromName,
+  resolveOpenPullRequest,
+} from "./publish-flow.mjs";
+import {
+  clearCurrentIssue,
+  mergeStrategyFor,
+  readCurrentIssue,
+  requireCleanWorkingTree,
+} from "./start-gates.mjs";
 
 /**
  * @typedef {"feature" | "bugfix" | "release" | "hotfix" | "support"} FinishableType
@@ -84,6 +97,29 @@ export function readPackageVersion() {
   }
 }
 
+const PR_JSON_FIELDS =
+  "number,state,mergedAt,reviewDecision,reviews,url,title,body,closingIssuesReferences,statusCheckRollup";
+
+/**
+ * Fetches full PR metadata by number.
+ *
+ * @param {string | number} number - PR number.
+ * @returns {object | null} Parsed JSON, or null.
+ *
+ * @example
+ * viewPullRequestByNumber(25);
+ */
+export function viewPullRequestByNumber(number) {
+  try {
+    const raw = run(`gh pr view ${JSON.stringify(String(number))} --json ${PR_JSON_FIELDS}`, {
+      inherit: false,
+    });
+    return JSON.parse(raw || "null");
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Fetches PR metadata for the current head branch (any state).
  *
@@ -98,7 +134,7 @@ export function readPackageVersion() {
 export function viewPullRequestForHead(headBranch) {
   try {
     const raw = run(
-      `gh pr list --head ${JSON.stringify(headBranch)} --state all --json number,state,mergedAt,reviewDecision,reviews,url,title,body,closingIssuesReferences --limit 20`,
+      `gh pr list --head ${JSON.stringify(headBranch)} --state all --json ${PR_JSON_FIELDS} --limit 20`,
       { inherit: false },
     );
     const list = JSON.parse(raw || "[]");
@@ -109,15 +145,108 @@ export function viewPullRequestForHead(headBranch) {
     return merged || list[0];
   } catch {
     try {
-      const raw = run(
-        `gh pr view ${JSON.stringify(headBranch)} --json number,state,mergedAt,reviewDecision,reviews,url,title,body,closingIssuesReferences`,
-        { inherit: false },
-      );
+      const raw = run(`gh pr view ${JSON.stringify(headBranch)} --json ${PR_JSON_FIELDS}`, {
+        inherit: false,
+      });
       return JSON.parse(raw || "null");
     } catch {
       return null;
     }
   }
+}
+
+/**
+ * Whether origin has the topic branch.
+ *
+ * @param {string} branch - Full branch name.
+ * @returns {boolean} True when published.
+ *
+ * @example
+ * remoteBranchExists("feature/42-x");
+ */
+export function remoteBranchExists(branch) {
+  try {
+    run("git fetch origin", { inherit: false });
+  } catch {
+    // continue; may already have refs
+  }
+  try {
+    const raw = run(`git ls-remote --heads origin ${JSON.stringify(branch)}`, {
+      inherit: false,
+    });
+    return Boolean(String(raw || "").trim());
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Whether CI / status checks on the PR are successful.
+ *
+ * @param {object} pr - PR JSON (may include statusCheckRollup).
+ * @returns {boolean} True when all completed checks succeeded (or none reported).
+ *
+ * @example
+ * isPullRequestCiGreen({ statusCheckRollup: [{ status: "COMPLETED", conclusion: "SUCCESS" }] });
+ */
+export function isPullRequestCiGreen(pr) {
+  const rollup = Array.isArray(pr?.statusCheckRollup) ? pr.statusCheckRollup : [];
+  if (rollup.length === 0) {
+    return true;
+  }
+  return rollup.every((check) => {
+    const status = String(check.status || "");
+    if (status && status !== "COMPLETED") {
+      return false;
+    }
+    const conclusion = String(check.conclusion || "");
+    return conclusion === "SUCCESS" || conclusion === "NEUTRAL" || conclusion === "SKIPPED";
+  });
+}
+
+/**
+ * Requires CI green on the PR.
+ *
+ * @param {object} pr - PR JSON.
+ * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * requireCiGreen(pr);
+ */
+export function requireCiGreen(pr) {
+  if (isPullRequestCiGreen(pr)) {
+    logOk("CI / status checks passed.");
+    return { ok: true };
+  }
+  logError(`CI is not green yet (${pr.url || `#${pr.number}`}).`);
+  logInfo("Wait for checks, then re-run finish.");
+  return { ok: false };
+}
+
+/**
+ * Merges a PR with the strategy for the Git Flow type.
+ *
+ * @param {string | number} number - PR number.
+ * @param {FinishableType} type - Branch type.
+ * @returns {{ ok: boolean }} Outcome.
+ *
+ * @example
+ * mergePullRequest(25, "feature");
+ */
+export function mergePullRequest(number, type) {
+  const strategy = mergeStrategyFor(type);
+  const flag = strategy === "squash" ? "--squash" : "--merge";
+  logGo(`gh pr merge ${number} ${flag} --delete-branch=false`);
+  const result = spawnSync("gh", ["pr", "merge", String(number), flag, "--delete-branch=false"], {
+    cwd: repoRoot,
+    stdio: "inherit",
+  });
+  if ((result.status ?? 1) !== 0) {
+    logError(`gh pr merge #${number} failed`);
+    return { ok: false };
+  }
+  logOk(`Merged PR #${number} (${strategy}).`);
+  return { ok: true };
 }
 
 /**
@@ -311,10 +440,10 @@ export async function requireApprovedReview(pr, options = {}) {
 }
 
 /**
- * Runs all finish gates, then cleans up the topic branch.
+ * Runs finish SOPs: publish check, PR resolve, CI, approve, merge, cleanup.
  *
  * @param {FinishableType} type - Branch type.
- * @param {{ base?: string, allowUnapproved?: boolean }} [options] - Optional overrides.
+ * @param {{ base?: string, allowUnapproved?: boolean, prNumber?: string }} [options] - Optional overrides.
  * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
@@ -323,6 +452,10 @@ export async function requireApprovedReview(pr, options = {}) {
  */
 export async function finishAfterMerge(type, options = {}) {
   if (type !== "support" && !isGitFlowInstalled().ok) {
+    return { ok: false };
+  }
+
+  if (!requireCleanWorkingTree().ok) {
     return { ok: false };
   }
 
@@ -349,42 +482,104 @@ export async function finishAfterMerge(type, options = {}) {
     return { ok: false };
   }
 
-  const pr = viewPullRequestForHead(branch);
+  if (!remoteBranchExists(branch)) {
+    logError(`Branch ${branch} is not published on origin.`);
+    logInfo(`Run: npm run git:flow:${type}:publish`);
+    return { ok: false };
+  }
+  logOk(`Remote branch origin/${branch} exists.`);
+
+  const open = listOpenPullRequestsForHead(branch);
+  let pr = null;
+
+  if (options.prNumber) {
+    pr = viewPullRequestByNumber(options.prNumber);
+    if (!pr) {
+      logError(`PR #${options.prNumber} not found.`);
+      return { ok: false };
+    }
+  } else if (open.length > 0) {
+    const picked = await resolveOpenPullRequest(branch, undefined);
+    if (!picked.ok) {
+      return { ok: false };
+    }
+    if (picked.pr) {
+      pr = viewPullRequestByNumber(picked.pr.number);
+    }
+  } else {
+    pr = viewPullRequestForHead(branch);
+  }
+
   if (!pr) {
     logError(`No pull request found for head branch ${branch}.`);
-    logInfo("Publish first (opens the PR), wait for review + merge, then finish.");
+    logInfo(`Publish first: npm run git:flow:${type}:publish`);
+    if (isInteractive()) {
+      const yes = await askYesNo(
+        "Run publish now? (finish will still need a later merge run)",
+        false,
+      );
+      if (yes) {
+        logInfo(`Run manually: npm run git:flow:${type}:publish`);
+      }
+    }
     return { ok: false };
+  }
+
+  const issueNumber = parseIssueNumberFromName(shortName) || readCurrentIssue();
+
+  if (!isPullRequestMerged(pr)) {
+    if (!requireCiGreen(pr).ok) {
+      return { ok: false };
+    }
+    if (
+      !(await requireApprovedReview(pr, { allowUnapproved: Boolean(options.allowUnapproved) })).ok
+    ) {
+      return { ok: false };
+    }
+    if (issueNumber) {
+      if (!isIssueLinkedOnPullRequest(pr, issueNumber)) {
+        logError(`PR is not linked to issue #${issueNumber}.`);
+        logInfo("Add Closes #" + issueNumber + " (or Fixes/Resolves) on the PR, then retry.");
+        return { ok: false };
+      }
+      logOk(`Issue link gate passed (#${issueNumber}).`);
+    } else {
+      logInfo("No issue number on branch or CURRENT_ISSUE — skipping issue-link gate.");
+    }
+
+    if (!mergePullRequest(pr.number, type).ok) {
+      return { ok: false };
+    }
+    pr = viewPullRequestByNumber(pr.number) || pr;
+  } else {
+    logOk(`PR already merged: ${pr.url || `#${pr.number}`}`);
+    if (
+      !(await requireApprovedReview(pr, { allowUnapproved: Boolean(options.allowUnapproved) })).ok
+    ) {
+      return { ok: false };
+    }
+    if (issueNumber) {
+      if (!isIssueLinkedOnPullRequest(pr, issueNumber)) {
+        logError(`PR is not linked to issue #${issueNumber}.`);
+        logInfo("Add Closes #" + issueNumber + " (or Fixes/Resolves) on the PR, then retry.");
+        return { ok: false };
+      }
+      logOk(`Issue link gate passed (#${issueNumber}).`);
+    } else {
+      logInfo("No issue number on branch or CURRENT_ISSUE — skipping issue-link gate.");
+    }
   }
 
   if (!isPullRequestMerged(pr)) {
-    logError(`Pull request is not merged yet (${pr.url || "no url"}).`);
-    logInfo(`State: ${pr.state || "unknown"}. Merge on GitHub, then re-run finish.`);
+    logError("PR is still not merged after merge attempt.");
     return { ok: false };
-  }
-  logOk(`PR merged: ${pr.url || `#${pr.number}`}`);
-
-  if (
-    !(await requireApprovedReview(pr, { allowUnapproved: Boolean(options.allowUnapproved) })).ok
-  ) {
-    return { ok: false };
-  }
-
-  const issueNumber = parseIssueNumberFromName(shortName);
-  if (issueNumber) {
-    if (!isIssueLinkedOnPullRequest(pr, issueNumber)) {
-      logError(`PR is not linked to issue #${issueNumber} from the branch name.`);
-      logInfo("Add Closes #" + issueNumber + " (or Fixes/Resolves) on the PR, then retry.");
-      return { ok: false };
-    }
-    logOk(`Issue link gate passed (#${issueNumber}).`);
-  } else {
-    logInfo("No leading issue number in branch name — skipping issue-link gate.");
   }
 
   logInfo(`Cleaning up after merge into ${base}…`);
   if (!cleanupTopicBranch(branch, base).ok) {
     return { ok: false };
   }
+  clearCurrentIssue();
 
   logOk(`${type} finish complete.`);
   logInfo(`Do not run: git flow ${type} finish`);
@@ -392,10 +587,10 @@ export async function finishAfterMerge(type, options = {}) {
 }
 
 /**
- * Parses `--base <branch>` and `--allow-unapproved` from argv.
+ * Parses `--base`, `--allow-unapproved`, and `--pr` from argv.
  *
  * @param {string[]} args - CLI args.
- * @returns {{ base?: string, allowUnapproved: boolean, rest: string[] }} Parsed pieces.
+ * @returns {{ base?: string, allowUnapproved: boolean, prNumber?: string, rest: string[] }} Parsed pieces.
  *
  * @example
  * parseBaseArgs(["--base", "main", "--allow-unapproved"]);
@@ -404,10 +599,17 @@ export function parseBaseArgs(args) {
   const rest = [];
   /** @type {string | undefined} */
   let base;
+  /** @type {string | undefined} */
+  let prNumber;
   let allowUnapproved = false;
   for (let i = 0; i < args.length; i += 1) {
     if (args[i] === "--base") {
       base = args[i + 1];
+      i += 1;
+      continue;
+    }
+    if (args[i] === "--pr") {
+      prNumber = args[i + 1];
       i += 1;
       continue;
     }
@@ -417,7 +619,7 @@ export function parseBaseArgs(args) {
     }
     rest.push(args[i]);
   }
-  return { base, allowUnapproved, rest };
+  return { base, allowUnapproved, prNumber, rest };
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
@@ -430,14 +632,19 @@ if (isMain) {
     logError("Pass a type: feature | bugfix | release | hotfix | support");
     process.exit(1);
   }
-  const { base, allowUnapproved } = parseBaseArgs(args.slice(1));
+  const { base, allowUnapproved, prNumber } = parseBaseArgs(args.slice(1));
   if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
+    process.exit(1);
+  }
+  if (args.includes("--pr") && !prNumber) {
+    logError("Pass --pr <number>.");
     process.exit(1);
   }
   const result = await finishAfterMerge(type, {
     ...(base ? { base } : {}),
     allowUnapproved,
+    prNumber,
   });
   if (!result.ok) {
     process.exit(1);

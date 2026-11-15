@@ -7,11 +7,10 @@
  * (1) require pending `.changeset/*.md` files, (2) push the topic
  * branch (`git flow <type> publish` or plain push for support —
  * AVH has no `support publish`), (3) ensure a GitHub pull request
- * exists into the default base (idempotent if one is already open).
- * PR body comes from `.git/PR_EDITMSG` seeded from the PR template
- * (editor, or `--body-file`); empty Summary is refused. Seeds
- * `Closes #N` when the branch name starts with digits. Interactive
- * prompt for support base. Never merges locally. Never runs
+ * exists into the default base. Lists open PRs for the head and
+ * picks one when several exist; creates via `.git/PR_EDITMSG` when
+ * none. Seeds `Closes #N` from the branch name or `.git/CURRENT_ISSUE`.
+ * Never merges (finish owns approve/CI/merge). Never runs
  * `git flow <type> finish`.
  *
  * HOW TO RUN:
@@ -19,6 +18,7 @@
  *   node .devenv/tools/git-flow/publish-flow.mjs feature
  *   node .devenv/tools/git-flow/publish-flow.mjs support --base main
  *   node .devenv/tools/git-flow/publish-flow.mjs feature --body-file ./pr.md
+ *   node .devenv/tools/git-flow/publish-flow.mjs feature --pr 25
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -71,6 +71,7 @@ import {
   summaryIsFilled,
 } from "./edit-draft.mjs";
 import { isGitFlowInstalled } from "./isInstalled.mjs";
+import { readCurrentIssue } from "./start-gates.mjs";
 
 const PR_TEMPLATE = path.join(
   repoRoot,
@@ -271,31 +272,124 @@ export function pushForType(type, nameArgs = []) {
 }
 
 /**
- * Looks up an open PR for the current head branch.
+ * Lists open PRs for a head branch.
  *
  * @param {string} headBranch - Full branch name (e.g. feature/42-x).
- * @returns {{ number: number, url: string } | null} Open PR or null.
+ * @returns {{ number: number, url: string, title: string }[]} Open PRs.
+ *
+ * @example
+ * listOpenPullRequestsForHead("feature/42-add-login");
+ */
+export function listOpenPullRequestsForHead(headBranch) {
+  try {
+    const raw = run(
+      `gh pr list --head ${JSON.stringify(headBranch)} --state open --json number,url,title --limit 20`,
+      { inherit: false },
+    );
+    const parsed = JSON.parse(raw || "[]");
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed.map((item) => ({
+      number: Number(item.number),
+      url: String(item.url),
+      title: String(item.title || ""),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Looks up a single open PR for the current head branch (first match).
+ *
+ * @param {string} headBranch - Full branch name (e.g. feature/42-x).
+ * @returns {{ number: number, url: string, title?: string } | null} Open PR or null.
  *
  * @example
  * findOpenPullRequest("feature/42-add-login");
  */
 export function findOpenPullRequest(headBranch) {
-  try {
-    const raw = run(
-      `gh pr list --head ${JSON.stringify(headBranch)} --state open --json number,url --limit 1`,
-      {
-        inherit: false,
-      },
-    );
-    const parsed = JSON.parse(raw || "[]");
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      return null;
+  const list = listOpenPullRequestsForHead(headBranch);
+  return list[0] || null;
+}
+
+/**
+ * Resolves which open PR to use for this head (pick / `--pr` / single).
+ *
+ * @param {string} headBranch - Full topic branch.
+ * @param {string | number | undefined} prFlag - Explicit PR number.
+ * @returns {Promise<{ ok: boolean, pr?: { number: number, url: string, title: string } | null }>} Outcome.
+ *
+ * @example
+ * await resolveOpenPullRequest("feature/42-x");
+ */
+export async function resolveOpenPullRequest(headBranch, prFlag) {
+  const open = listOpenPullRequestsForHead(headBranch);
+
+  if (prFlag !== undefined && prFlag !== null && String(prFlag).trim() !== "") {
+    const wanted = String(prFlag).replace(/^#/, "");
+    if (!/^\d+$/.test(wanted)) {
+      logError("Pass --pr <number>.");
+      return { ok: false };
     }
-    const first = parsed[0];
-    return { number: Number(first.number), url: String(first.url) };
-  } catch {
-    return null;
+    const match = open.find((item) => String(item.number) === wanted);
+    if (!match) {
+      logError(`Open PR #${wanted} not found for head ${headBranch}.`);
+      return { ok: false };
+    }
+    logOk(`Using PR #${match.number}: ${match.url}`);
+    return { ok: true, pr: match };
   }
+
+  if (open.length === 0) {
+    return { ok: true, pr: null };
+  }
+  if (open.length === 1) {
+    logSkip(`Open PR already exists: ${open[0].url}`);
+    return { ok: true, pr: open[0] };
+  }
+
+  if (!isInteractive()) {
+    logError(`Multiple open PRs for ${headBranch}; pass --pr <number>.`);
+    for (const item of open) {
+      logInfo(`#${item.number} ${item.title} ${item.url}`);
+    }
+    return { ok: false };
+  }
+
+  logInfo("Open pull requests for this branch:");
+  open.forEach((item, index) => {
+    logInfo(`${index + 1}. #${item.number} ${item.title} (${item.url})`);
+  });
+  const answer = await askLine("Pick a PR by list number or #id", "");
+  const asIndex = Number(answer);
+  if (Number.isInteger(asIndex) && asIndex >= 1 && asIndex <= open.length) {
+    const picked = open[asIndex - 1];
+    logOk(`Using PR #${picked.number}`);
+    return { ok: true, pr: picked };
+  }
+  const asId = answer.replace(/^#/, "");
+  const byId = open.find((item) => String(item.number) === asId);
+  if (byId) {
+    logOk(`Using PR #${byId.number}`);
+    return { ok: true, pr: byId };
+  }
+  logError("Invalid PR choice.");
+  return { ok: false };
+}
+
+/**
+ * Issue digits from branch name or `.git/CURRENT_ISSUE`.
+ *
+ * @param {string} shortName - Name without type prefix.
+ * @returns {string | null} Digits, or null.
+ *
+ * @example
+ * resolvePublishIssueNumber("42-add-login");
+ */
+export function resolvePublishIssueNumber(shortName) {
+  return parseIssueNumberFromName(shortName) || readCurrentIssue();
 }
 
 /**
@@ -371,13 +465,14 @@ export function resolvePullRequestBody(options = {}) {
  * @param {string} options.base - Target base branch.
  * @param {string | null} options.issueNumber - Optional issue digits.
  * @param {string} [options.bodyFile] - Non-interactive body path.
+ * @param {string | number} [options.prNumber] - Explicit open PR when several exist.
  * @returns {{ ok: boolean, created?: boolean, url?: string }} Outcome.
  *
  * @example
  * await ensurePullRequest({ headBranch: "feature/42-x", base: "develop", issueNumber: "42" });
  */
 export async function ensurePullRequest(options) {
-  const { headBranch, base, issueNumber, bodyFile } = options;
+  const { headBranch, base, issueNumber, bodyFile, prNumber } = options;
 
   if (!ghReady()) {
     logSkip("gh is not authenticated. Push succeeded; open a PR manually:");
@@ -388,10 +483,12 @@ export async function ensurePullRequest(options) {
     return { ok: true, created: false };
   }
 
-  const existing = findOpenPullRequest(headBranch);
-  if (existing) {
-    logSkip(`Open PR already exists: ${existing.url}`);
-    return { ok: true, created: false, url: existing.url };
+  const picked = await resolveOpenPullRequest(headBranch, prNumber);
+  if (!picked.ok) {
+    return { ok: false };
+  }
+  if (picked.pr) {
+    return { ok: true, created: false, url: picked.pr.url };
   }
 
   const resolved = resolvePullRequestBody({ bodyFile, issueNumber });
@@ -453,7 +550,7 @@ export async function resolvePublishBase(type, baseFlag) {
  * Full publish: pending gate → push → ensure PR.
  *
  * @param {PublishableType} type - Branch type.
- * @param {{ base?: string, nameArgs?: string[], allowNoChangeset?: boolean, bodyFile?: string }} [options] - Overrides.
+ * @param {{ base?: string, nameArgs?: string[], allowNoChangeset?: boolean, bodyFile?: string, prNumber?: string }} [options] - Overrides.
  * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
@@ -499,28 +596,29 @@ export async function publishWithPullRequest(type, options = {}) {
   }
 
   const base = await resolvePublishBase(type, options.base);
-  const issueNumber = parseIssueNumberFromName(shortName);
+  const issueNumber = resolvePublishIssueNumber(shortName);
 
   const pr = await ensurePullRequest({
     headBranch: branch,
     base,
     issueNumber,
     bodyFile: options.bodyFile,
+    prNumber: options.prNumber,
   });
   if (!pr.ok) {
     return { ok: false };
   }
 
-  logInfo("After review + merge on GitHub, run the matching finish script to clean up.");
+  logInfo("When ready, run the matching finish script to approve-gate, merge, and clean up.");
   logInfo(`Do not run: git flow ${type} finish`);
   return { ok: true };
 }
 
 /**
- * Parses `--base`, `--allow-no-changeset`, and `--body-file` from argv.
+ * Parses `--base`, `--allow-no-changeset`, `--body-file`, and `--pr` from argv.
  *
  * @param {string[]} args - CLI args.
- * @returns {{ base?: string, allowNoChangeset: boolean, bodyFile?: string, rest: string[] }} Parsed pieces.
+ * @returns {{ base?: string, allowNoChangeset: boolean, bodyFile?: string, prNumber?: string, rest: string[] }} Parsed pieces.
  *
  * @example
  * parseBaseArgs(["--base", "develop", "--allow-no-changeset", "42-x"]);
@@ -532,6 +630,8 @@ export function parseBaseArgs(args) {
   let base;
   /** @type {string | undefined} */
   let bodyFile;
+  /** @type {string | undefined} */
+  let prNumber;
   let allowNoChangeset = false;
   for (let i = 0; i < args.length; i += 1) {
     if (args[i] === "--base") {
@@ -544,13 +644,18 @@ export function parseBaseArgs(args) {
       i += 1;
       continue;
     }
+    if (args[i] === "--pr") {
+      prNumber = args[i + 1];
+      i += 1;
+      continue;
+    }
     if (args[i] === "--allow-no-changeset") {
       allowNoChangeset = true;
       continue;
     }
     rest.push(args[i]);
   }
-  return { base, allowNoChangeset, bodyFile, rest };
+  return { base, allowNoChangeset, bodyFile, prNumber, rest };
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
@@ -563,7 +668,7 @@ if (isMain) {
     logError("Pass a type: feature | bugfix | release | hotfix | support");
     process.exit(1);
   }
-  const { base, allowNoChangeset, bodyFile, rest } = parseBaseArgs(args.slice(1));
+  const { base, allowNoChangeset, bodyFile, prNumber, rest } = parseBaseArgs(args.slice(1));
   if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
     process.exit(1);
@@ -572,10 +677,15 @@ if (isMain) {
     logError("Pass --body-file <path>.");
     process.exit(1);
   }
+  if (args.includes("--pr") && !prNumber) {
+    logError("Pass --pr <number>.");
+    process.exit(1);
+  }
   const result = await publishWithPullRequest(type, {
     base,
     allowNoChangeset,
     bodyFile,
+    prNumber,
     nameArgs: rest.length > 0 ? rest : undefined,
   });
   if (!result.ok) {

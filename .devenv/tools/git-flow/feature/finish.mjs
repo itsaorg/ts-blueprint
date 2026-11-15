@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 
 /** ==============================================================
- * 🌟 Feature post-merge finish
+ * 🌟 Feature finish
  * ---------------------------------------------------------------
- * After the feature PR into `develop` is reviewed and merged:
- * verify merge + approval + issue link, then delete the topic
- * branch. Solo maintainers: `--allow-unapproved` or TTY confirm.
+ * CI green, approving review, issue link, merge (squash) into
+ * develop, then delete the topic branch. Solo maintainers:
+ * `--allow-unapproved` or TTY confirm.
  *
  * HOW TO RUN:
  *   npm run git:flow:feature:finish
+ *   npm run git:flow:feature:finish -- --allow-unapproved --pr 25
  *   node .devenv/tools/git-flow/feature/finish.mjs --allow-unapproved
  *
  * ---------------------------------------------------------------
@@ -18,7 +19,7 @@
  * ============================================================== */
 
 /**
- * Post-merge finish for a Git Flow feature branch.
+ * Finish (merge + cleanup) for a Git Flow feature branch.
  *
  * @module git-flow-feature-finish
  *
@@ -34,7 +35,7 @@ import { finishAfterMerge, parseBaseArgs } from "../finish-merged.mjs";
 /**
  * Verifies remote merge gates and cleans up the feature branch.
  *
- * @param {{ base?: string, allowUnapproved?: boolean }} [options] - Overrides.
+ * @param {{ base?: string, allowUnapproved?: boolean, prNumber?: string }} [options] - Overrides.
  * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
@@ -44,6 +45,7 @@ export async function finishFeature(options = {}) {
   return finishAfterMerge("feature", {
     base: options.base || "develop",
     allowUnapproved: options.allowUnapproved,
+    prNumber: options.prNumber,
   });
 }
 
@@ -51,14 +53,19 @@ const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPat
 if (isMain) {
   boxBanner("🌟 feature finish");
   const args = forwardedArgs();
-  const { base, allowUnapproved } = parseBaseArgs(args);
+  const { base, allowUnapproved, prNumber } = parseBaseArgs(args);
   if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
+    process.exit(1);
+  }
+  if (args.includes("--pr") && !prNumber) {
+    logError("Pass --pr <number>.");
     process.exit(1);
   }
   const result = await finishFeature({
     ...(base ? { base } : {}),
     allowUnapproved,
+    prNumber,
   });
   if (!result.ok) {
     process.exit(1);

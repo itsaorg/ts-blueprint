@@ -18,7 +18,7 @@
  * ============================================================== */
 
 /**
- * Post-merge finish for a Git Flow support branch.
+ * Finish (merge + cleanup) for a Git Flow support branch.
  *
  * @module git-flow-support-finish
  *
@@ -34,7 +34,7 @@ import { finishAfterMerge, parseBaseArgs } from "../finish-merged.mjs";
 /**
  * Verifies remote merge gates and cleans up the support branch.
  *
- * @param {{ base?: string, allowUnapproved?: boolean }} [options] - Overrides.
+ * @param {{ base?: string, allowUnapproved?: boolean, prNumber?: string }} [options] - Overrides.
  * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
@@ -44,6 +44,7 @@ export async function finishSupport(options = {}) {
   return finishAfterMerge("support", {
     base: options.base || "main",
     allowUnapproved: options.allowUnapproved,
+    prNumber: options.prNumber,
   });
 }
 
@@ -51,14 +52,19 @@ const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPat
 if (isMain) {
   boxBanner("🛟 support finish");
   const args = forwardedArgs();
-  const { base, allowUnapproved } = parseBaseArgs(args);
+  const { base, allowUnapproved, prNumber } = parseBaseArgs(args);
   if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
+    process.exit(1);
+  }
+  if (args.includes("--pr") && !prNumber) {
+    logError("Pass --pr <number>.");
     process.exit(1);
   }
   const result = await finishSupport({
     ...(base ? { base } : {}),
     allowUnapproved,
+    prNumber,
   });
   if (!result.ok) {
     process.exit(1);

@@ -3,12 +3,13 @@
 /** ==============================================================
  * 🩹 Hotfix branch start
  * ---------------------------------------------------------------
- * Creates a new `hotfix/<x.y.z>` branch from main via
- * `git flow hotfix start`. Use for urgent production fixes that
- * need a patch release. Requires Git Flow AVH on PATH.
+ * From a clean, synced `main`: resolve a GitHub issue (picker,
+ * create, or `--issue <n>`), record `.git/CURRENT_ISSUE`, then
+ * `git flow hotfix start <x.y.z>`.
  *
  * HOW TO RUN:
- *   node .devenv/tools/git-flow/hotfix/start.mjs <x.y.z>
+ *   npm run git:flow:hotfix:start -- 1.2.1
+ *   npm run git:flow:hotfix:start -- --issue 42 1.2.1
  *   node .devenv/tools/git-flow/hotfix/start.mjs 1.2.1
  *
  * ---------------------------------------------------------------
@@ -23,35 +24,56 @@
  * @module git-flow-hotfix-start
  *
  * @example
- * //   node .devenv/tools/git-flow/hotfix/start.mjs 1.2.1
+ * //   npm run git:flow:hotfix:start -- 1.2.1
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { boxBanner, boxDone, forwardedArgs, logError } from "../../../lib/tool-lib.mjs";
+import { boxBanner, boxDone, forwardedArgs, logError, logInfo } from "../../../lib/tool-lib.mjs";
 import { runGitFlow } from "../command.mjs";
+import {
+  parseIssueFlagArgs,
+  requireCleanSyncedBase,
+  resolveLinkedIssue,
+  writeCurrentIssue,
+} from "../start-gates.mjs";
 
 /**
- * Runs `git flow hotfix start …`.
+ * Issue gate + `git flow hotfix start …`.
  *
- * @param {string[]} [args] - Arguments after start (`<x.y.z>`).
- * @returns {{ ok: boolean }} Outcome.
+ * @param {string[]} [args] - `<x.y.z>` plus optional `--issue <n>`.
+ * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
- * startHotfix(["1.2.1"]);
+ * await startHotfix(["1.2.1"]);
  */
-export function startHotfix(args = []) {
-  if (args.length === 0) {
+export async function startHotfix(args = []) {
+  if (!requireCleanSyncedBase("main").ok) {
+    return { ok: false };
+  }
+
+  const { issueFlag, rest } = parseIssueFlagArgs(args);
+  if (rest.length === 0) {
     logError("Pass <x.y.z>.");
     return { ok: false };
   }
-  return runGitFlow("hotfix", "start", args);
+
+  const linked = await resolveLinkedIssue({ issueFlag });
+  if (!linked.ok || !linked.number) {
+    return { ok: false };
+  }
+  if (!writeCurrentIssue(linked.number).ok) {
+    return { ok: false };
+  }
+
+  logInfo(`Starting hotfix/${rest[0]} (issue #${linked.number})`);
+  return runGitFlow("hotfix", "start", rest);
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   boxBanner("🩹 hotfix start");
-  if (!startHotfix(forwardedArgs()).ok) {
+  if (!(await startHotfix(forwardedArgs())).ok) {
     process.exit(1);
   }
   boxDone("hotfix start");

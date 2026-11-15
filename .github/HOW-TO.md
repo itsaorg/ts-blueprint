@@ -131,7 +131,15 @@ npm run git:flow:feature:start
 npm run git:flow:feature:start -- 42-add-login
 ```
 
-Prefer the npm script over raw `git flow feature start` so the issue gate runs. Use `bugfix` the same way. `release`, `hotfix`, and `support` starts do **not** use the issue gate.
+Prefer the npm script over raw `git flow feature start` so the issue gate runs. Use `bugfix` the same way. **Every** type start resolves an issue (picker/create or `--issue <n>`), requires a clean working tree, and (for feature/bugfix/release) a fully synced `develop`, or (hotfix) a synced `main`. Release/hotfix/support keep semver/support names and store `#N` in `.git/CURRENT_ISSUE` for publish/finish.
+
+## 🧭 Who owns Start / Publish / Finish?
+
+| Script      | Owns                                                     | Does not own                   |
+| ----------- | -------------------------------------------------------- | ------------------------------ |
+| **Start**   | Issue pick/create; clean synced base; branch create      | Push, PRs, merge               |
+| **Publish** | Changeset gate; push; PR pick/create (`.git/PR_EDITMSG`) | Merge, branch delete           |
+| **Finish**  | PR resolve; CI; approve gate; `gh pr merge`; cleanup     | Creating issues or opening PRs |
 
 ## 🌲 Which Git Flow branch type do I use?
 
@@ -169,7 +177,7 @@ npm run check
 
 ## 🚀 How do I publish a feature or bugfix (open the PR)?
 
-**Publish** opens the pull request. **Finish** only cleans up after merge. Do **not** use `git flow feature finish` / `git flow bugfix finish` to merge locally — that bypasses GitHub review and CI.
+**Publish** pushes and opens/selects the pull request. **Finish** owns approve/CI/merge and cleanup. Do **not** use `git flow feature finish` / `git flow bugfix finish` — that merges locally and skips CI.
 
 Publish requires at least one pending `.changeset/*.md` file (or a release/hotfix version already applied). For chore/docs or an empty support line with no package bump, bypass with a flag or confirm on a TTY:
 
@@ -181,39 +189,28 @@ npm run git:flow:feature:publish
 npm run git:flow:feature:publish -- --allow-no-changeset
 ```
 
-That runs the pending-changeset gate, `git flow feature publish`, then opens `.git/PR_EDITMSG` (seeded from `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md`, with `Closes #N` filled when the branch is `<number>-…`). Fill **Summary** in the editor; an empty or comment-only Summary aborts create. After a successful create, the draft resets to the template. Non-interactive shells must pass `--body-file <path>` with a filled Summary:
+That runs the pending-changeset gate, pushes, then either picks an existing open PR for this head (or `--pr <n>`) or opens `.git/PR_EDITMSG` (seeded from the PR template, with `Closes #N` from the branch name or `.git/CURRENT_ISSUE`). Fill **Summary** in the editor; empty Summary aborts create. Non-interactive shells must pass `--body-file <path>`:
 
 ```bash
 npm run git:flow:feature:publish -- --allow-no-changeset --body-file ./pr-body.md
 ```
 
-If a PR is already open for the head branch, publish prints its URL and does not overwrite the body. Fill blank PRs such as [#25](https://github.com/itsaorg/ts-blueprint/pull/25) by hand. Prefer REST when `gh pr edit` fails with a Projects (classic) / `projectCards` GraphQL error (common on older `gh`):
-
-```bash
-gh api repos/itsaorg/ts-blueprint/pulls/25 -X PATCH -f title='…' -f body="$(cat <<'EOF'
-…body…
-EOF
-)"
-```
-
-Upgrade GitHub CLI when you can. For bugfix:
+If `gh pr edit` fails with a Projects (classic) / `projectCards` GraphQL error, update title/body with REST `gh api …/pulls/N -X PATCH`. For bugfix:
 
 ```bash
 npm run git:flow:bugfix:publish
 ```
 
-Wait for the `ci` workflow. Request review. Merge on GitHub when green and approved.
+## ✨ How do I finish a feature or bugfix?
 
-## ✨ How do I finish a feature or bugfix (after merge)?
-
-Stay on the topic branch until finish succeeds. Finish checks that the remote PR is **merged**, **approved**, and **linked** to the issue number from the branch name, then deletes the local and remote topic branch and checks out `develop`. Solo maintainers without an approving review:
+Stay on the topic branch. Finish requires a clean tree and a published remote branch, resolves the PR (pick / `--pr`), requires CI green + approving review + issue link when known, **merges** with squash (feature/bugfix) or merge commit (release/hotfix/support), then deletes the topic branch and checks out the base. Solo maintainers:
 
 ```bash
 npm run git:flow:feature:finish -- --allow-unapproved
 ```
 
 ```bash
-npm run git:flow:feature:finish
+npm run git:flow:feature:finish -- --allow-unapproved --pr 25
 ```
 
 ```bash

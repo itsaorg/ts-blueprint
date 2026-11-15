@@ -17,7 +17,7 @@
  * ============================================================== */
 
 /**
- * Post-merge finish for a Git Flow bugfix branch.
+ * Finish (merge + cleanup) for a Git Flow bugfix branch.
  *
  * @module git-flow-bugfix-finish
  *
@@ -33,7 +33,7 @@ import { finishAfterMerge, parseBaseArgs } from "../finish-merged.mjs";
 /**
  * Verifies remote merge gates and cleans up the bugfix branch.
  *
- * @param {{ base?: string, allowUnapproved?: boolean }} [options] - Overrides.
+ * @param {{ base?: string, allowUnapproved?: boolean, prNumber?: string }} [options] - Overrides.
  * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
@@ -43,6 +43,7 @@ export async function finishBugfix(options = {}) {
   return finishAfterMerge("bugfix", {
     base: options.base || "develop",
     allowUnapproved: options.allowUnapproved,
+    prNumber: options.prNumber,
   });
 }
 
@@ -50,14 +51,19 @@ const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPat
 if (isMain) {
   boxBanner("🐛 bugfix finish");
   const args = forwardedArgs();
-  const { base, allowUnapproved } = parseBaseArgs(args);
+  const { base, allowUnapproved, prNumber } = parseBaseArgs(args);
   if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
+    process.exit(1);
+  }
+  if (args.includes("--pr") && !prNumber) {
+    logError("Pass --pr <number>.");
     process.exit(1);
   }
   const result = await finishBugfix({
     ...(base ? { base } : {}),
     allowUnapproved,
+    prNumber,
   });
   if (!result.ok) {
     process.exit(1);

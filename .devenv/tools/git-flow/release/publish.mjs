@@ -35,7 +35,7 @@ import { parseBaseArgs, publishWithPullRequest } from "../publish-flow.mjs";
 /**
  * Publishes the current release branch (pending gate + push + PR).
  *
- * @param {{ base?: string, nameArgs?: string[], allowNoChangeset?: boolean, bodyFile?: string }} [options] - Overrides.
+ * @param {{ base?: string, nameArgs?: string[], allowNoChangeset?: boolean, bodyFile?: string, prNumber?: string }} [options] - Overrides.
  * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
@@ -47,6 +47,7 @@ export async function publishRelease(options = {}) {
     nameArgs: options.nameArgs,
     allowNoChangeset: options.allowNoChangeset,
     bodyFile: options.bodyFile,
+    prNumber: options.prNumber,
   });
 }
 
@@ -54,7 +55,7 @@ const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPat
 if (isMain) {
   boxBanner("📦 release publish");
   const args = forwardedArgs();
-  const { base, allowNoChangeset, bodyFile, rest } = parseBaseArgs(args);
+  const { base, allowNoChangeset, bodyFile, prNumber, rest } = parseBaseArgs(args);
   if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
     process.exit(1);
@@ -63,10 +64,15 @@ if (isMain) {
     logError("Pass --body-file <path>.");
     process.exit(1);
   }
+  if (args.includes("--pr") && !prNumber) {
+    logError("Pass --pr <number>.");
+    process.exit(1);
+  }
   const result = await publishRelease({
     base,
     allowNoChangeset,
     bodyFile,
+    prNumber,
     nameArgs: rest.length > 0 ? rest : undefined,
   });
   if (!result.ok) {
