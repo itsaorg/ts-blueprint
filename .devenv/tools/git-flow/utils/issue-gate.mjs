@@ -13,8 +13,8 @@
  *
  * HOW TO RUN:
  *   imported by feature/start.mjs and bugfix/start.mjs
- *   node .devenv/tools/git-flow/issue-gate.mjs
- *   node .devenv/tools/git-flow/issue-gate.mjs 42-add-login
+ *   node .devenv/tools/git-flow/utils/issue-gate.mjs
+ *   node .devenv/tools/git-flow/utils/issue-gate.mjs 42-add-login
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -50,8 +50,9 @@ import {
   logSkip,
   repoRoot,
   run,
-} from "../../lib/tool-lib.mjs";
+} from "../../../lib/tool-lib.mjs";
 import { openDraftInEditor, parseIssueDraft, resetFileToTemplate } from "./edit-draft.mjs";
+import { appendLabelArgs, resolveCreateLabels } from "./labels.mjs";
 
 const ISSUE_DRAFT_STUB = path.join(repoRoot, ".github", "ISSUE_DRAFT.md");
 const ISSUE_EDITMSG = path.join(repoRoot, ".git", "ISSUE_EDITMSG");
@@ -254,7 +255,7 @@ function ghReady() {
 /**
  * Creates an issue from the current ISSUE_EDITMSG contents and labels.
  *
- * @param {string[]} labels - Labels from the chosen form.
+ * @param {string[]} labels - Final labels to apply on create.
  * @returns {{ ok: boolean, number?: string, title?: string, name?: string }} Outcome.
  */
 function createIssueFromEditmsg(labels) {
@@ -278,8 +279,9 @@ function createIssueFromEditmsg(labels) {
 
   writeFileSync(ISSUE_EDITMSG, `${body}\n`, "utf8");
   const args = ["issue", "create", "--title", title, "--body-file", ISSUE_EDITMSG];
-  for (const label of labels) {
-    args.push("--label", label);
+  appendLabelArgs(args, labels);
+  if (labels.length > 0) {
+    logInfo(`Issue labels: ${labels.join(", ")}`);
   }
   logGo(`gh issue create --title ${JSON.stringify(title)}`);
   const result = spawnSync("gh", args, {
@@ -312,9 +314,10 @@ function createIssueFromEditmsg(labels) {
 /**
  * Interactive create: pick form → seed ISSUE_EDITMSG → editor → gh create.
  *
+ * @param {{ gitFlowType?: string }} [options] - Defaults for Git Flow labels.
  * @returns {Promise<{ ok: boolean, name?: string }>} Outcome with resolved branch name.
  */
-export async function createIssueInteractively() {
+export async function createIssueInteractively(options = {}) {
   logInfo("Choose an issue form to seed the draft:");
   ISSUE_FORM_CHOICES.forEach((choice, index) => {
     logInfo(`${index + 1}. ${choice.chooser}`);
@@ -351,19 +354,25 @@ export async function createIssueInteractively() {
     return { ok: false };
   }
 
-  return createIssueFromEditmsg(meta.labels);
+  const labels = await resolveCreateLabels({
+    gitFlowType: options.gitFlowType || "",
+    formLabels: meta.labels,
+    promptExtras: true,
+  });
+  return createIssueFromEditmsg(labels);
 }
 
 /**
  * Interactive picker over open issues, or create.
  *
+ * @param {{ gitFlowType?: string }} [options] - Defaults for Git Flow labels on create.
  * @returns {Promise<{ ok: boolean, name?: string }>} Resolved `<number>-<slug>`.
  */
-export async function pickOrCreateIssueBranchName() {
+export async function pickOrCreateIssueBranchName(options = {}) {
   const issues = listOpenIssues();
   if (issues.length === 0) {
     logSkip("No open issues — creating a new one.");
-    return createIssueInteractively();
+    return createIssueInteractively(options);
   }
 
   logInfo("Open issues:");
@@ -378,7 +387,7 @@ export async function pickOrCreateIssueBranchName() {
 
   const answer = (await askLine("Pick an issue number, or 0 to create", "")).toLowerCase();
   if (answer === "0" || answer === "c" || answer === "create") {
-    return createIssueInteractively();
+    return createIssueInteractively(options);
   }
 
   const asIndex = Number(answer);
@@ -408,13 +417,14 @@ export async function pickOrCreateIssueBranchName() {
  * Resolves `<number>-<slug>` for feature/bugfix start.
  *
  * @param {string[]} [args] - Optional `[ "<number>-<slug>" ]`.
+ * @param {{ gitFlowType?: string }} [options] - Defaults for Git Flow labels on create.
  * @returns {Promise<{ ok: boolean, name?: string }>} Outcome.
  *
  * @example
  * await resolveIssueBranchName([]);
- * await resolveIssueBranchName(["42-add-login"]);
+ * await resolveIssueBranchName(["42-add-login"], { gitFlowType: "feature" });
  */
-export async function resolveIssueBranchName(args = []) {
+export async function resolveIssueBranchName(args = [], options = {}) {
   if (!ghReady()) {
     logError("gh is not authenticated; cannot resolve an issue before start.");
     logInfo("Run: npm run gh:auth:login");
@@ -444,7 +454,7 @@ export async function resolveIssueBranchName(args = []) {
     return { ok: false };
   }
 
-  return pickOrCreateIssueBranchName();
+  return pickOrCreateIssueBranchName(options);
 }
 
 /**

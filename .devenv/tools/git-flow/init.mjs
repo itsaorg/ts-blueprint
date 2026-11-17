@@ -11,7 +11,7 @@
  *
  * HOW TO RUN:
  *   node .devenv/tools/git-flow/init.mjs
- *   npm run git-flow:setup
+ *   npm run gf:setup
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.

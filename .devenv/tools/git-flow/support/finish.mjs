@@ -8,7 +8,7 @@
  * `--allow-unapproved` or TTY confirm.
  *
  * HOW TO RUN:
- *   npm run git:flow:support:finish
+ *   npm run gf:support:finish
  *   node .devenv/tools/git-flow/support/finish.mjs --allow-unapproved
  *
  * ---------------------------------------------------------------
@@ -23,13 +23,13 @@
  * @module git-flow-support-finish
  *
  * @example
- * //   npm run git:flow:support:finish
+ * //   npm run gf:support:finish
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logError } from "../../../lib/tool-lib.mjs";
-import { finishAfterMerge, parseBaseArgs } from "../finish-merged.mjs";
+import { finishAfterMerge, parseBaseArgs } from "../utils/finish-merged.mjs";
 
 /**
  * Verifies remote merge gates and cleans up the support branch.

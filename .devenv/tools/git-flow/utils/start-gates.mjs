@@ -10,7 +10,7 @@
  *
  * HOW TO RUN:
  *   imported by type start.mjs modules
- *   node .devenv/tools/git-flow/start-gates.mjs --check-base develop
+ *   node .devenv/tools/git-flow/utils/start-gates.mjs --check-base develop
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -40,9 +40,11 @@ import {
   logOk,
   repoRoot,
   run,
-} from "../../lib/tool-lib.mjs";
-import { currentBranch } from "./command.mjs";
+} from "../../../lib/tool-lib.mjs";
+import { headBranch, isOnBranch, isSyncedWithOrigin, isWorkingTreeClean } from "./gates.mjs";
 import { issueExists, parseIssueSlug, resolveIssueBranchName } from "./issue-gate.mjs";
+
+export { isWorkingTreeClean, parseAheadBehind } from "./gates.mjs";
 
 const CURRENT_ISSUE_PATH = path.join(repoRoot, ".git", "CURRENT_ISSUE");
 
@@ -53,23 +55,6 @@ const CURRENT_ISSUE_PATH = path.join(repoRoot, ".git", "CURRENT_ISSUE");
  */
 export function currentIssuePath() {
   return CURRENT_ISSUE_PATH;
-}
-
-/**
- * Whether the working tree has no staged or unstaged changes.
- *
- * @returns {boolean} True when clean.
- *
- * @example
- * isWorkingTreeClean();
- */
-export function isWorkingTreeClean() {
-  try {
-    const status = run("git status --porcelain", { inherit: false });
-    return status.trim() === "";
-  } catch {
-    return false;
-  }
 }
 
 /**
@@ -87,25 +72,6 @@ export function requireCleanWorkingTree() {
   }
   logOk("Working tree is clean.");
   return { ok: true };
-}
-
-/**
- * Parses ahead/behind counts from `git rev-list --left-right --count`.
- *
- * @param {string} raw - stdout like "0\t0" or "1 0".
- * @returns {{ ahead: number, behind: number } | null} Counts, or null.
- *
- * @example
- * parseAheadBehind("0\t0"); // { ahead: 0, behind: 0 }
- */
-export function parseAheadBehind(raw) {
-  const match = String(raw ?? "")
-    .trim()
-    .match(/^(\d+)\s+(\d+)$/);
-  if (!match) {
-    return null;
-  }
-  return { ahead: Number(match[1]), behind: Number(match[2]) };
 }
 
 /**
@@ -139,12 +105,12 @@ export function requireCleanSyncedBase(base) {
     return { ok: false };
   }
 
-  const branch = currentBranch();
+  const branch = headBranch();
   if (!branch) {
     logError("Could not determine current branch.");
     return { ok: false };
   }
-  if (branch !== base) {
+  if (!isOnBranch(base)) {
     logError(`Start must run from ${base} (currently on ${branch}).`);
     logInfo(`git checkout ${base}`);
     return { ok: false };
@@ -157,32 +123,8 @@ export function requireCleanSyncedBase(base) {
     return { ok: false };
   }
 
-  try {
-    run(`git rev-parse --verify origin/${base}`, { inherit: false });
-  } catch {
-    logError(`Remote branch origin/${base} not found. Push or set upstream first.`);
-    return { ok: false };
-  }
-
-  let counts;
-  try {
-    const raw = run(`git rev-list --left-right --count ${base}...origin/${base}`, {
-      inherit: false,
-    });
-    counts = parseAheadBehind(raw);
-  } catch {
-    logError(`Could not compare ${base} to origin/${base}.`);
-    return { ok: false };
-  }
-
-  if (!counts) {
-    logError(`Unexpected ahead/behind output for ${base}.`);
-    return { ok: false };
-  }
-  if (counts.ahead > 0 || counts.behind > 0) {
-    logError(
-      `${base} is not fully synced with origin/${base} (ahead ${counts.ahead}, behind ${counts.behind}).`,
-    );
+  if (!isSyncedWithOrigin(base)) {
+    logError(`${base} is not fully synced with origin/${base}.`);
     logInfo(`git pull origin ${base}`);
     return { ok: false };
   }
@@ -260,14 +202,16 @@ export function clearCurrentIssue() {
 /**
  * Resolves a linked issue number (picker / create / `--issue` / number-slug).
  *
- * @param {{ issueFlag?: string, numberSlug?: string }} [options] - Explicit issue sources.
+ * @param {{ issueFlag?: string, numberSlug?: string, gitFlowType?: string }} [options] - Explicit issue sources.
  * @returns {Promise<{ ok: boolean, number?: string, name?: string }>} Outcome.
  *
  * @example
  * await resolveLinkedIssue({ issueFlag: "42" });
- * await resolveLinkedIssue({}); // interactive picker
+ * await resolveLinkedIssue({ gitFlowType: "release" }); // interactive picker
  */
 export async function resolveLinkedIssue(options = {}) {
+  const issueOptions = { gitFlowType: options.gitFlowType };
+
   if (options.issueFlag) {
     const digits = String(options.issueFlag).replace(/^#/, "");
     if (!/^\d+$/.test(digits)) {
@@ -289,7 +233,7 @@ export async function resolveLinkedIssue(options = {}) {
   }
 
   if (options.numberSlug) {
-    const resolved = await resolveIssueBranchName([options.numberSlug]);
+    const resolved = await resolveIssueBranchName([options.numberSlug], issueOptions);
     if (!resolved.ok || !resolved.name) {
       return { ok: false };
     }
@@ -297,7 +241,7 @@ export async function resolveLinkedIssue(options = {}) {
     return { ok: true, number: parsed?.number, name: resolved.name };
   }
 
-  const resolved = await resolveIssueBranchName([]);
+  const resolved = await resolveIssueBranchName([], issueOptions);
   if (!resolved.ok || !resolved.name) {
     return { ok: false };
   }
@@ -340,6 +284,6 @@ if (isMain) {
     boxDone("start-gates");
     process.exit(0);
   }
-  logError("Usage: node .devenv/tools/git-flow/start-gates.mjs --check-base <branch>");
+  logError("Usage: node .devenv/tools/git-flow/utils/start-gates.mjs --check-base <branch>");
   process.exit(1);
 }

@@ -8,7 +8,7 @@
  * `--allow-unapproved` or TTY confirm.
  *
  * HOW TO RUN:
- *   npm run git:flow:hotfix:finish
+ *   npm run gf:hotfix:finish
  *   node .devenv/tools/git-flow/hotfix/finish.mjs --allow-unapproved
  *
  * ---------------------------------------------------------------
@@ -23,13 +23,13 @@
  * @module git-flow-hotfix-finish
  *
  * @example
- * //   npm run git:flow:hotfix:finish
+ * //   npm run gf:hotfix:finish
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logError, logInfo } from "../../../lib/tool-lib.mjs";
-import { finishAfterMerge, parseBaseArgs } from "../finish-merged.mjs";
+import { finishAfterMerge, parseBaseArgs } from "../utils/finish-merged.mjs";
 
 /**
  * Verifies remote merge gates and cleans up the hotfix branch.

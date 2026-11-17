@@ -8,8 +8,8 @@
  * `git flow support start <name> <base>`.
  *
  * HOW TO RUN:
- *   npm run git:flow:support:start -- 1.x v1.2.0
- *   npm run git:flow:support:start -- --issue 42 1.x v1.2.0
+ *   npm run gf:support:start -- 1.x v1.2.0
+ *   npm run gf:support:start -- --issue 42 1.x v1.2.0
  *   node .devenv/tools/git-flow/support/start.mjs 1.x v1.2.0
  *
  * ---------------------------------------------------------------
@@ -24,7 +24,7 @@
  * @module git-flow-support-start
  *
  * @example
- * //   npm run git:flow:support:start -- 1.x v1.2.0
+ * //   npm run gf:support:start -- 1.x v1.2.0
  */
 
 import path from "node:path";
@@ -39,13 +39,13 @@ import {
   logError,
   logInfo,
 } from "../../../lib/tool-lib.mjs";
-import { runGitFlow } from "../command.mjs";
+import { runGitFlow } from "../utils/command.mjs";
 import {
   parseIssueFlagArgs,
   requireCleanWorkingTree,
   resolveLinkedIssue,
   writeCurrentIssue,
-} from "../start-gates.mjs";
+} from "../utils/start-gates.mjs";
 
 /**
  * Asks for a required CLI argument when running on a TTY.
@@ -81,7 +81,7 @@ export async function resolveSupportStartArgs(args = []) {
 
   if (!name || !base) {
     logError("Pass <name> <base> (e.g. 1.x v1.2.0).");
-    logInfo("Example: npm run git:flow:support:start -- 1.x v1.2.0");
+    logInfo("Example: npm run gf:support:start -- 1.x v1.2.0");
     return { ok: false };
   }
   return { ok: true, args: [name, base] };
@@ -102,7 +102,7 @@ export async function startSupport(args = []) {
   }
 
   const { issueFlag, rest } = parseIssueFlagArgs(args);
-  const linked = await resolveLinkedIssue({ issueFlag });
+  const linked = await resolveLinkedIssue({ issueFlag, gitFlowType: "support" });
   if (!linked.ok || !linked.number) {
     return { ok: false };
   }

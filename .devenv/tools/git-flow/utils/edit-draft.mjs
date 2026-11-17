@@ -10,7 +10,7 @@
  *
  * HOW TO RUN:
  *   imported by git-flow issue-gate / publish-flow
- *   node .devenv/tools/git-flow/edit-draft.mjs --check-summary <file>
+ *   node .devenv/tools/git-flow/utils/edit-draft.mjs --check-summary <file>
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -41,7 +41,7 @@ import {
   logOk,
   repoRoot,
   run,
-} from "../../lib/tool-lib.mjs";
+} from "../../../lib/tool-lib.mjs";
 
 /**
  * Resolves the editor command (git core.editor, then env vars).
@@ -283,6 +283,6 @@ if (isMain) {
     logError("Summary is empty or only HTML comments.");
     process.exit(1);
   }
-  logError("Usage: node .devenv/tools/git-flow/edit-draft.mjs --check-summary <file>");
+  logError("Usage: node .devenv/tools/git-flow/utils/edit-draft.mjs --check-summary <file>");
   process.exit(1);
 }

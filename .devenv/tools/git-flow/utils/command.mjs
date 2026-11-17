@@ -12,7 +12,7 @@
  *
  * HOW TO RUN:
  *   imported by git-flow branch modules
- *   node .devenv/tools/git-flow/command.mjs --show-branch
+ *   node .devenv/tools/git-flow/utils/command.mjs --show-branch
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -44,8 +44,9 @@ import {
   logOk,
   repoRoot,
   run,
-} from "../../lib/tool-lib.mjs";
-import { isGitFlowInstalled } from "./isInstalled.mjs";
+} from "../../../lib/tool-lib.mjs";
+import { isGitFlowInstalled } from "../isInstalled.mjs";
+import { headBranch } from "./gates.mjs";
 
 /**
  * @typedef {"feature" | "bugfix" | "release" | "hotfix" | "support"} GitFlowType
@@ -90,11 +91,7 @@ export function runGitFlow(type, action, args = []) {
  * const branch = currentBranch(); // "feature/42-add-login"
  */
 export function currentBranch() {
-  try {
-    return run("git branch --show-current", { inherit: false });
-  } catch {
-    return "";
-  }
+  return headBranch();
 }
 
 /**

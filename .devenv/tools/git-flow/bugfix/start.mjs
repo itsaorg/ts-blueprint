@@ -8,8 +8,8 @@
  * record `.git/CURRENT_ISSUE`, then `git flow bugfix start`.
  *
  * HOW TO RUN:
- *   npm run git:flow:bugfix:start
- *   npm run git:flow:bugfix:start -- 99-null-guard
+ *   npm run gf:bugfix:start
+ *   npm run gf:bugfix:start -- 99-null-guard
  *   node .devenv/tools/git-flow/bugfix/start.mjs
  *
  * ---------------------------------------------------------------
@@ -24,15 +24,15 @@
  * @module git-flow-bugfix-start
  *
  * @example
- * //   npm run git:flow:bugfix:start
+ * //   npm run gf:bugfix:start
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logInfo } from "../../../lib/tool-lib.mjs";
-import { runGitFlow } from "../command.mjs";
-import { parseIssueSlug, resolveIssueBranchName } from "../issue-gate.mjs";
-import { requireCleanSyncedBase, writeCurrentIssue } from "../start-gates.mjs";
+import { runGitFlow } from "../utils/command.mjs";
+import { parseIssueSlug, resolveIssueBranchName } from "../utils/issue-gate.mjs";
+import { requireCleanSyncedBase, writeCurrentIssue } from "../utils/start-gates.mjs";
 
 /**
  * Resolves the issue name, then runs `git flow bugfix start …`.
@@ -49,7 +49,7 @@ export async function startBugfix(args = []) {
     return { ok: false };
   }
 
-  const resolved = await resolveIssueBranchName(args);
+  const resolved = await resolveIssueBranchName(args, { gitFlowType: "bugfix" });
   if (!resolved.ok || !resolved.name) {
     return { ok: false };
   }

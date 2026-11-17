@@ -8,7 +8,7 @@
  * or interactive TTY confirm when there is no package bump.
  *
  * HOW TO RUN:
- *   npm run git:flow:bugfix:publish
+ *   npm run gf:bugfix:publish
  *   node .devenv/tools/git-flow/bugfix/publish.mjs --allow-no-changeset
  *
  * ---------------------------------------------------------------
@@ -23,13 +23,13 @@
  * @module git-flow-bugfix-publish
  *
  * @example
- * //   npm run git:flow:bugfix:publish
+ * //   npm run gf:bugfix:publish
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logError } from "../../../lib/tool-lib.mjs";
-import { parseBaseArgs, publishWithPullRequest } from "../publish-flow.mjs";
+import { parseBaseArgs, publishWithPullRequest } from "../utils/publish-flow.mjs";
 
 /**
  * Publishes the current bugfix branch (pending gate + push + PR).

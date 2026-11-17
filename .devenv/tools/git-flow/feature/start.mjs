@@ -8,8 +8,8 @@
  * record `.git/CURRENT_ISSUE`, then `git flow feature start`.
  *
  * HOW TO RUN:
- *   npm run git:flow:feature:start
- *   npm run git:flow:feature:start -- 42-add-login
+ *   npm run gf:feature:start
+ *   npm run gf:feature:start -- 42-add-login
  *   node .devenv/tools/git-flow/feature/start.mjs
  *
  * ---------------------------------------------------------------
@@ -24,15 +24,15 @@
  * @module git-flow-feature-start
  *
  * @example
- * //   npm run git:flow:feature:start
+ * //   npm run gf:feature:start
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logInfo } from "../../../lib/tool-lib.mjs";
-import { runGitFlow } from "../command.mjs";
-import { parseIssueSlug, resolveIssueBranchName } from "../issue-gate.mjs";
-import { requireCleanSyncedBase, writeCurrentIssue } from "../start-gates.mjs";
+import { runGitFlow } from "../utils/command.mjs";
+import { parseIssueSlug, resolveIssueBranchName } from "../utils/issue-gate.mjs";
+import { requireCleanSyncedBase, writeCurrentIssue } from "../utils/start-gates.mjs";
 
 /**
  * Resolves the issue name, then runs `git flow feature start …`.
@@ -49,7 +49,7 @@ export async function startFeature(args = []) {
     return { ok: false };
   }
 
-  const resolved = await resolveIssueBranchName(args);
+  const resolved = await resolveIssueBranchName(args, { gitFlowType: "feature" });
   if (!resolved.ok || !resolved.name) {
     return { ok: false };
   }

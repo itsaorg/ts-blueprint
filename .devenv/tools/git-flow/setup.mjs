@@ -9,7 +9,7 @@
  * continue. Never installs Git Flow for you.
  *
  * HOW TO RUN:
- *   npm run git-flow:setup
+ *   npm run gf:setup
  *   node .devenv/tools/git-flow/setup.mjs
  *
  * ---------------------------------------------------------------
@@ -22,12 +22,12 @@
  * Orchestrates Git Flow install check and init for this repository.
  *
  * Thin wrapper around {@link initGitFlow} used by `prepare` and the
- * `git-flow:setup` npm script.
+ * `gf:setup` npm script.
  *
  * @module git-flow-setup
  *
  * @example
- * // From package.json: "git-flow:setup": "node .devenv/tools/git-flow/setup.mjs"
+ * // From package.json: "gf:setup": "node .devenv/tools/git-flow/setup.mjs"
  * import { setupGitFlow } from "./setup.mjs";
  * setupGitFlow();
  */

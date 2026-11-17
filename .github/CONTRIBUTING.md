@@ -28,7 +28,7 @@ Install these before you clone:
 1. Git.
 2. Node.js at the version in `.nvmrc`. Check with `node -v`.
 3. npm (it ships with Node).
-4. Git Flow AVH, only if you will start topic branches the way this repo expects. Install from the [AVH wiki](https://github.com/petervanderdoes/gitflow-avh/wiki/Installation), then verify with `git flow version`. On Windows, use Git Bash. Missing AVH soft-skips `git-flow:setup` during prepare; start/publish/finish helpers print an install guide and exit.
+4. Git Flow AVH, only if you will start topic branches the way this repo expects. Install from the [AVH wiki](https://github.com/petervanderdoes/gitflow-avh/wiki/Installation), then verify with `git flow version`. On Windows, use Git Bash. Missing AVH soft-skips `gf:setup` during prepare; start/publish/finish helpers print an install guide and exit.
 
 You do not need a global TypeScript install. Project tools live in `devDependencies` and run through `npm run`.
 
@@ -63,10 +63,10 @@ git pull origin develop
 ```
 
 ```bash
-npm run git:flow:feature:start
+npm run gf:feature:start
 ```
 
-With no args on a TTY, start lists open issues (or creates one via `.git/ISSUE_EDITMSG` seeded from a Feature / Bug / Chore form) and then starts `feature/<number>-<slug>` from that issue. Pass an existing name to skip the picker: `npm run git:flow:feature:start -- 12-add-export`. Finish via `npm run git:flow:feature:finish` (never `git flow feature finish`) — see [HOW-TO.md](HOW-TO.md).
+With no args on a TTY, start lists open issues (or creates one via `.git/ISSUE_EDITMSG` seeded from a Feature / Bug / Chore form) and then starts `feature/<number>-<slug>` from that issue. New issues and PRs get the form defaults plus `🌟 Git Flow: Feature` (TTY can add more labels). Pass an existing name to skip the picker: `npm run gf:feature:start -- 12-add-export`. Finish via `npm run gf:feature:finish` (never `git flow feature finish`) — see [HOW-TO.md](HOW-TO.md).
 
 When the change should bump the published package, run `npm run changeset:add` on the topic branch and include the pending `.changeset/*.md` file in the same PR (publish refuses to open a PR without one). Semver type follows API impact (feature ≈ minor/major, bugfix/chore ≈ patch). Run `npm run changeset:version` only later on `release/*` or `hotfix/*` — never on `develop` or `main`. Tags (`v*`) trigger `.github/workflows/release.yml`.
 
@@ -103,29 +103,29 @@ Every `package.json` script name starts with the tool, then an action (`tsc:type
 | `npm run changeset:add`             | Interactive pending Changeset note (refuses `main`/`develop`/`release/*`)                                      | Yes, `.changeset/*.md`                             |
 | `npm run changeset:status`          | Show pending Changesets                                                                                        | No                                                 |
 | `npm run changeset:version`         | Apply Changesets on `release/*` or `hotfix/*` only (refuses `develop`/`main`)                                  | Yes, `package.json`, `CHANGELOG.md`, `.changeset/` |
-| `npm run git:flow:feature:start`    | Clean synced `develop`, pick/create issue, start `feature/<number>-<slug>`                                     | Yes, local branch (may create a GitHub issue)      |
-| `npm run git:flow:feature:publish`  | Changeset gate, push, pick or create PR into `develop`                                                         | Yes, remote branch + GitHub PR                     |
-| `npm run git:flow:feature:finish`   | CI + approve + issue link + squash-merge, then delete topic branch (`--allow-unapproved` / TTY)                | Yes, merges PR; deletes local/remote topic branch  |
+| `npm run gf:feature:start`          | Clean synced `develop`, pick/create issue, start `feature/<number>-<slug>`                                     | Yes, local branch (may create a GitHub issue)      |
+| `npm run gf:feature:publish`        | Changeset gate, push, pick or create PR into `develop`                                                         | Yes, remote branch + GitHub PR                     |
+| `npm run gf:feature:finish`         | CI + approve + issue link + squash-merge, then delete topic branch (`--allow-unapproved` / TTY)                | Yes, merges PR; deletes local/remote topic branch  |
 | `npm run git:tag:version`           | On `main`, create annotated `v*` from `package.json` (optional `--push`)                                       | Yes, local (and remote) git tag                    |
 | `npm run npm:pack:smoke`            | Dry-run `npm pack` and assert `dist/` is in the tarball                                                        | No (read-only dry-run)                             |
-| `npm run git:flow:bugfix:start`     | Clean synced `develop`, pick/create issue, start `bugfix/<number>-<slug>`                                      | Yes, local branch (may create a GitHub issue)      |
-| `npm run git:flow:bugfix:publish`   | Changeset gate, push, pick or create PR into `develop`                                                         | Yes, remote branch + GitHub PR                     |
-| `npm run git:flow:bugfix:finish`    | CI + approve + issue link + squash-merge, then delete topic branch                                             | Yes, merges PR; deletes local/remote topic branch  |
-| `npm run git:flow:hotfix:start`     | Start `hotfix/<x.y.z>` from `main`                                                                             | Yes, local branch                                  |
-| `npm run git:flow:hotfix:publish`   | Pending or versioned gate, push, open/ensure PR into `main`                                                    | Yes, remote branch + GitHub PR                     |
-| `npm run git:flow:hotfix:finish`    | After merged+approved (+ version gates): delete hotfix branch                                                  | Yes, deletes local/remote hotfix branch            |
-| `npm run git:flow:release:start`    | Start `release/<x.y.z>` from `develop`                                                                         | Yes, local branch                                  |
-| `npm run git:flow:release:publish`  | Pending or versioned gate, push, open/ensure PR into `main`                                                    | Yes, remote branch + GitHub PR                     |
-| `npm run git:flow:release:finish`   | After merged+approved (+ version gates): delete release branch                                                 | Yes, deletes local/remote release branch           |
-| `npm run git:flow:support:start`    | Start `support/<name>` from `<base>` (AVH)                                                                     | Yes, local branch                                  |
-| `npm run git:flow:support:publish`  | Pending-changeset gate, `git push -u`, open/ensure PR (interactive base)                                       | Yes, remote branch + GitHub PR                     |
-| `npm run git:flow:support:finish`   | After merged+approved PR: delete support branch when retiring the line                                         | Yes, deletes local/remote support branch           |
+| `npm run gf:bugfix:start`           | Clean synced `develop`, pick/create issue, start `bugfix/<number>-<slug>`                                      | Yes, local branch (may create a GitHub issue)      |
+| `npm run gf:bugfix:publish`         | Changeset gate, push, pick or create PR into `develop`                                                         | Yes, remote branch + GitHub PR                     |
+| `npm run gf:bugfix:finish`          | CI + approve + issue link + squash-merge, then delete topic branch                                             | Yes, merges PR; deletes local/remote topic branch  |
+| `npm run gf:hotfix:start`           | Start `hotfix/<x.y.z>` from `main`                                                                             | Yes, local branch                                  |
+| `npm run gf:hotfix:publish`         | Pending or versioned gate, push, open/ensure PR into `main`                                                    | Yes, remote branch + GitHub PR                     |
+| `npm run gf:hotfix:finish`          | After merged+approved (+ version gates): delete hotfix branch                                                  | Yes, deletes local/remote hotfix branch            |
+| `npm run gf:release:start`          | Start `release/<x.y.z>` from `develop`                                                                         | Yes, local branch                                  |
+| `npm run gf:release:publish`        | Pending or versioned gate, push, open/ensure PR into `main`                                                    | Yes, remote branch + GitHub PR                     |
+| `npm run gf:release:finish`         | After merged+approved (+ version gates): delete release branch                                                 | Yes, deletes local/remote release branch           |
+| `npm run gf:support:start`          | Start `support/<name>` from `<base>` (AVH)                                                                     | Yes, local branch                                  |
+| `npm run gf:support:publish`        | Pending-changeset gate, `git push -u`, open/ensure PR (interactive base)                                       | Yes, remote branch + GitHub PR                     |
+| `npm run gf:support:finish`         | After merged+approved PR: delete support branch when retiring the line                                         | Yes, deletes local/remote support branch           |
 | `npm run husky:prepare`             | Install git hooks                                                                                              | Yes, `.husky/_` internals                          |
 | `npm run prepare`                   | Husky, then idempotent git/node/gh/npm/git-flow setups                                                         | Yes, hooks, local git config, labels when allowed  |
 | `npm run git:setup`                 | Ensure git is installed and local `commit.template` is set                                                     | Yes, local git config                              |
 | `npm run node:setup`                | Ensure Node on PATH; soft-check major vs `.nvmrc` (else `engines.node`)                                        | No                                                 |
 | `npm run npm:setup`                 | Ensure npm auth on a TTY (skips CI; never `npm:trust`)                                                         | Yes, npm login when needed                         |
-| `npm run git-flow:setup`            | Ensure Git Flow AVH init for `main`/`develop` (skips if missing)                                               | Yes, local git-flow config when present            |
+| `npm run gf:setup`                  | Ensure Git Flow AVH init for `main`/`develop` (skips if missing)                                               | Yes, local git-flow config when present            |
 | `npm run npm:publish:local`         | Interactive npm name reservation                                                                               | Yes, publishes to npm                              |
 | `npm run npm:publish:worker`        | Publish from CI with provenance                                                                                | Yes, publishes to npm                              |
 | `npm run npm:release`               | `tsc:build`, then `npm:publish:worker`                                                                         | Yes, `dist/` and npm                               |
@@ -169,7 +169,7 @@ Order:
 3. `node:setup` — soft-check Node vs `.nvmrc` (else `engines.node`; does not fail prepare)
 4. `gh:setup` — ensure `gh` auth, then exclusive label sync (skips in CI as needed)
 5. `npm:setup` — skip in CI; `npm whoami` / `npm login` on a TTY when logged out (not `npm:trust`)
-6. `git-flow:setup` — soft-skip if Git Flow AVH is missing; else ensure init for `main`/`develop`
+6. `gf:setup` — soft-skip if Git Flow AVH is missing; else ensure init for `main`/`develop`
 
 Idempotent. Does not run `npm clean-install`, `check`, or Trusted Publishing.
 
@@ -264,7 +264,7 @@ The full set lives in `.github/labels.json`. `npm run gh:label:sync` is exclusiv
 
 ## 🔀 Open a pull request
 
-Add a pending Changeset (`npm run changeset:add`), then run the matching **publish** script (for example `npm run git:flow:feature:publish`). That pushes the branch, picks an existing open PR or seeds `.git/PR_EDITMSG` (with `Closes #N` from the branch name or `.git/CURRENT_ISSUE`), opens your editor, and refuses create when **Summary** is still empty. Non-interactive shells use `--body-file <path>`. **Finish** then handles CI, approval, merge, and cleanup. Fill these sections:
+Add a pending Changeset (`npm run changeset:add`), then run the matching **publish** script (for example `npm run gf:feature:publish`). That pushes the branch, picks an existing open PR or seeds `.git/PR_EDITMSG` (with `Closes #N` from the branch name or `.git/CURRENT_ISSUE`), opens your editor, and refuses create when **Summary** is still empty. Non-interactive shells use `--body-file <path>`. **Finish** then handles CI, approval, merge, and cleanup. Fill these sections:
 
 1. **Summary.** Why the change is needed (required; HTML comments alone do not count).
 2. **Linked issues.** `Closes #123` when this pull request finishes that issue.

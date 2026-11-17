@@ -23,28 +23,36 @@ import {
   parseIssueDraft,
   parseMarkdownTitle,
   summaryIsFilled,
-} from "../../.devenv/tools/git-flow/edit-draft.mjs";
+} from "../../.devenv/tools/git-flow/utils/edit-draft.mjs";
 import {
   parseIssueFormYaml,
   parseIssueSlug,
   seedIssueDraftFromFormMeta,
   slugifyIssueTitle,
-} from "../../.devenv/tools/git-flow/issue-gate.mjs";
+} from "../../.devenv/tools/git-flow/utils/issue-gate.mjs";
 import {
   hasAllowNoChangesetFlag,
   parseBaseArgs as parsePublishArgs,
   parseIssueNumberFromName,
   resolvePublishIssueNumber,
-} from "../../.devenv/tools/git-flow/publish-flow.mjs";
+} from "../../.devenv/tools/git-flow/utils/publish-flow.mjs";
 import {
   isPullRequestCiGreen,
   parseBaseArgs as parseFinishArgs,
-} from "../../.devenv/tools/git-flow/finish-merged.mjs";
+} from "../../.devenv/tools/git-flow/utils/finish-merged.mjs";
 import {
   mergeStrategyFor,
   parseAheadBehind,
   parseIssueFlagArgs,
-} from "../../.devenv/tools/git-flow/start-gates.mjs";
+} from "../../.devenv/tools/git-flow/utils/start-gates.mjs";
+import {
+  branchMatchesType,
+  parseAheadBehind as parseGateAheadBehind,
+} from "../../.devenv/tools/git-flow/utils/gates.mjs";
+import {
+  defaultLabelsForGitFlowType,
+  mergeLabelLists,
+} from "../../.devenv/tools/git-flow/utils/labels.mjs";
 import { parseTagArgs } from "../../.devenv/tools/git/tag-version.mjs";
 import { assertPackSmokePaths } from "../../.devenv/tools/npm/pack/smoke.mjs";
 
@@ -159,6 +167,25 @@ describe("git-flow start-gate helpers", () => {
       issueFlag: "42",
       rest: ["1.2.0"],
     });
+  });
+});
+
+describe("git-flow gate helpers", () => {
+  it("matches type prefixes and parses ahead/behind", () => {
+    expect(branchMatchesType("feature/42-x", "feature")).toBe(true);
+    expect(branchMatchesType("bugfix/1-y", "feature")).toBe(false);
+    expect(parseGateAheadBehind("0\t0")).toEqual({ ahead: 0, behind: 0 });
+  });
+});
+
+describe("git-flow label helpers", () => {
+  it("maps Git Flow defaults and merges without dupes", () => {
+    expect(defaultLabelsForGitFlowType("feature")).toEqual(["🌟 Git Flow: Feature"]);
+    expect(defaultLabelsForGitFlowType("bugfix")).toEqual(["🐛 Git Flow: Bugfix"]);
+    expect(defaultLabelsForGitFlowType("unknown")).toEqual([]);
+    expect(
+      mergeLabelLists(["✨ Feature Request"], ["🌟 Git Flow: Feature"], ["✨ Feature Request"]),
+    ).toEqual(["✨ Feature Request", "🌟 Git Flow: Feature"]);
   });
 });
 

@@ -15,10 +15,10 @@
  *
  * HOW TO RUN:
  *   imported by git-flow type publish.mjs modules
- *   node .devenv/tools/git-flow/publish-flow.mjs feature
- *   node .devenv/tools/git-flow/publish-flow.mjs support --base main
- *   node .devenv/tools/git-flow/publish-flow.mjs feature --body-file ./pr.md
- *   node .devenv/tools/git-flow/publish-flow.mjs feature --pr 25
+ *   node .devenv/tools/git-flow/utils/publish-flow.mjs feature
+ *   node .devenv/tools/git-flow/utils/publish-flow.mjs support --base main
+ *   node .devenv/tools/git-flow/utils/publish-flow.mjs feature --body-file ./pr.md
+ *   node .devenv/tools/git-flow/utils/publish-flow.mjs feature --pr 25
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -37,7 +37,7 @@
  *
  * @example
  * // CLI:
- * //   node .devenv/tools/git-flow/publish-flow.mjs hotfix
+ * //   node .devenv/tools/git-flow/utils/publish-flow.mjs hotfix
  */
 
 import { spawnSync } from "node:child_process";
@@ -46,7 +46,10 @@ import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { fileURLToPath } from "node:url";
 import { readFileSync, writeFileSync } from "node:fs";
-import { hasPendingChangesets, listPendingChangesetFiles } from "../../deps/changeset/pending.mjs";
+import {
+  hasPendingChangesets,
+  listPendingChangesetFiles,
+} from "../../../deps/changeset/pending.mjs";
 import {
   askYesNo,
   boxBanner,
@@ -60,7 +63,7 @@ import {
   logSkip,
   repoRoot,
   run,
-} from "../../lib/tool-lib.mjs";
+} from "../../../lib/tool-lib.mjs";
 import { currentBranch, pushCurrentBranch, runGitFlow, stripTypePrefix } from "./command.mjs";
 import {
   injectClosesIssue,
@@ -70,7 +73,9 @@ import {
   seedDraftFromTemplate,
   summaryIsFilled,
 } from "./edit-draft.mjs";
-import { isGitFlowInstalled } from "./isInstalled.mjs";
+import { isOnTypeBranch } from "./gates.mjs";
+import { isGitFlowInstalled } from "../isInstalled.mjs";
+import { appendLabelArgs, resolveCreateLabels } from "./labels.mjs";
 import { readCurrentIssue } from "./start-gates.mjs";
 
 const PR_TEMPLATE = path.join(
@@ -466,13 +471,14 @@ export function resolvePullRequestBody(options = {}) {
  * @param {string | null} options.issueNumber - Optional issue digits.
  * @param {string} [options.bodyFile] - Non-interactive body path.
  * @param {string | number} [options.prNumber] - Explicit open PR when several exist.
+ * @param {PublishableType | string} [options.gitFlowType] - Type for default PR labels.
  * @returns {{ ok: boolean, created?: boolean, url?: string }} Outcome.
  *
  * @example
- * await ensurePullRequest({ headBranch: "feature/42-x", base: "develop", issueNumber: "42" });
+ * await ensurePullRequest({ headBranch: "feature/42-x", base: "develop", issueNumber: "42", gitFlowType: "feature" });
  */
 export async function ensurePullRequest(options) {
-  const { headBranch, base, issueNumber, bodyFile, prNumber } = options;
+  const { headBranch, base, issueNumber, bodyFile, prNumber, gitFlowType } = options;
 
   if (!ghReady()) {
     logSkip("gh is not authenticated. Push succeeded; open a PR manually:");
@@ -508,12 +514,21 @@ export async function ensurePullRequest(options) {
 
   writeFileSync(PR_EDITMSG, resolved.body, "utf8");
 
+  const labels = await resolveCreateLabels({
+    gitFlowType: gitFlowType || "",
+    promptExtras: true,
+  });
+  const createArgs = ["pr", "create", "--base", base, "--title", title, "--body-file", PR_EDITMSG];
+  appendLabelArgs(createArgs, labels);
+  if (labels.length > 0) {
+    logInfo(`PR labels: ${labels.join(", ")}`);
+  }
+
   logGo(`gh pr create --base ${base} --title … --body-file .git/PR_EDITMSG`);
-  const result = spawnSync(
-    "gh",
-    ["pr", "create", "--base", base, "--title", title, "--body-file", PR_EDITMSG],
-    { cwd: repoRoot, stdio: "inherit" },
-  );
+  const result = spawnSync("gh", createArgs, {
+    cwd: repoRoot,
+    stdio: "inherit",
+  });
   if ((result.status ?? 1) !== 0) {
     logError("gh pr create failed");
     logInfo("Push succeeded; open or update the PR on GitHub.");
@@ -570,7 +585,7 @@ export async function publishWithPullRequest(type, options = {}) {
     logError("Could not determine current branch");
     return { ok: false };
   }
-  if (!branch.startsWith(`${type}/`)) {
+  if (!isOnTypeBranch(type)) {
     logError(`Current branch "${branch}" is not a ${type}/ branch`);
     return { ok: false };
   }
@@ -604,6 +619,7 @@ export async function publishWithPullRequest(type, options = {}) {
     issueNumber,
     bodyFile: options.bodyFile,
     prNumber: options.prNumber,
+    gitFlowType: type,
   });
   if (!pr.ok) {
     return { ok: false };

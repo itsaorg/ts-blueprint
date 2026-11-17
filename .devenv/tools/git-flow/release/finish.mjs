@@ -9,7 +9,7 @@
  * `npm run git:tag:version`.
  *
  * HOW TO RUN:
- *   npm run git:flow:release:finish
+ *   npm run gf:release:finish
  *   node .devenv/tools/git-flow/release/finish.mjs --allow-unapproved
  *
  * ---------------------------------------------------------------
@@ -24,13 +24,13 @@
  * @module git-flow-release-finish
  *
  * @example
- * //   npm run git:flow:release:finish
+ * //   npm run gf:release:finish
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logError, logInfo } from "../../../lib/tool-lib.mjs";
-import { finishAfterMerge, parseBaseArgs } from "../finish-merged.mjs";
+import { finishAfterMerge, parseBaseArgs } from "../utils/finish-merged.mjs";
 
 /**
  * Verifies remote merge gates and cleans up the release branch.

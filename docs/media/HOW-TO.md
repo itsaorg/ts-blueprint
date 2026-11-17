@@ -92,7 +92,7 @@ Use `npm install` only when a maintainer asked you to refresh `package-lock.json
 3. `node:setup` — soft-check Node vs `.nvmrc` (else `engines.node`)
 4. `gh:setup` — `gh` auth and exclusive label sync when allowed (skips in CI)
 5. `npm:setup` — `npm whoami` / `npm login` on a TTY (skips in CI; never `npm:trust`)
-6. `git-flow:setup` — soft-skip if missing; else ensure Git Flow init for `main`/`develop`
+6. `gf:setup` — soft-skip if missing; else ensure Git Flow init for `main`/`develop`
 
 The sequence is idempotent. It does not run `npm clean-install`, `npm run check`, or Trusted Publishing setup.
 
@@ -113,7 +113,7 @@ The template applies the type label. Maintainers set Status, Priority, and Git F
 
 Feature and bugfix **start** resolve the issue **before** naming the branch (GitHub assigns numbers only at create time).
 
-On a TTY with no args, start lists open issues and asks you to pick one, or choose **0** to create. Create seeds `.git/ISSUE_EDITMSG` from a Feature / Bug / Chore YAML form, opens your editor, and only after you close the editor runs `gh issue create`. The branch name becomes `<number>-<slug>` from the created or chosen issue title. Pass an existing `<number>-<slug>` to skip the picker. Non-interactive shells require that explicit name.
+On a TTY with no args, start lists open issues and asks you to pick one, or choose **0** to create. Create seeds `.git/ISSUE_EDITMSG` from a Feature / Bug / Chore YAML form, opens your editor, and only after you close the editor runs `gh issue create` with the form’s YAML labels plus the matching Git Flow label (for feature: `✨ Feature Request` and `🌟 Git Flow: Feature`). On a TTY you can add extra labels; defaults are never removed. Publish applies the same Git Flow default when it creates a PR. The branch name becomes `<number>-<slug>` from the created or chosen issue title. Pass an existing `<number>-<slug>` to skip the picker. Non-interactive shells require that explicit name.
 
 ```bash
 git checkout develop
@@ -124,11 +124,11 @@ git pull origin develop
 ```
 
 ```bash
-npm run git:flow:feature:start
+npm run gf:feature:start
 ```
 
 ```bash
-npm run git:flow:feature:start -- 42-add-login
+npm run gf:feature:start -- 42-add-login
 ```
 
 Prefer the npm script over raw `git flow feature start` so the issue gate runs. Use `bugfix` the same way. **Every** type start resolves an issue (picker/create or `--issue <n>`), requires a clean working tree, and (for feature/bugfix/release) a fully synced `develop`, or (hotfix) a synced `main`. Release/hotfix/support keep semver/support names and store `#N` in `.git/CURRENT_ISSUE` for publish/finish.
@@ -182,23 +182,23 @@ npm run check
 Publish requires at least one pending `.changeset/*.md` file (or a release/hotfix version already applied). For chore/docs or an empty support line with no package bump, bypass with a flag or confirm on a TTY:
 
 ```bash
-npm run git:flow:feature:publish
+npm run gf:feature:publish
 ```
 
 ```bash
-npm run git:flow:feature:publish -- --allow-no-changeset
+npm run gf:feature:publish -- --allow-no-changeset
 ```
 
 That runs the pending-changeset gate, pushes, then either picks an existing open PR for this head (or `--pr <n>`) or opens `.git/PR_EDITMSG` (seeded from the PR template, with `Closes #N` from the branch name or `.git/CURRENT_ISSUE`). Fill **Summary** in the editor; empty Summary aborts create. Non-interactive shells must pass `--body-file <path>`:
 
 ```bash
-npm run git:flow:feature:publish -- --allow-no-changeset --body-file ./pr-body.md
+npm run gf:feature:publish -- --allow-no-changeset --body-file ./pr-body.md
 ```
 
 If `gh pr edit` fails with a Projects (classic) / `projectCards` GraphQL error, update title/body with REST `gh api …/pulls/N -X PATCH`. For bugfix:
 
 ```bash
-npm run git:flow:bugfix:publish
+npm run gf:bugfix:publish
 ```
 
 ## ✨ How do I finish a feature or bugfix?
@@ -206,15 +206,15 @@ npm run git:flow:bugfix:publish
 Stay on the topic branch. Finish requires a clean tree and a published remote branch, resolves the PR (pick / `--pr`), requires CI green + approving review + issue link when known, **merges** with squash (feature/bugfix) or merge commit (release/hotfix/support), then deletes the topic branch and checks out the base. Solo maintainers:
 
 ```bash
-npm run git:flow:feature:finish -- --allow-unapproved
+npm run gf:feature:finish -- --allow-unapproved
 ```
 
 ```bash
-npm run git:flow:feature:finish -- --allow-unapproved --pr 25
+npm run gf:feature:finish -- --allow-unapproved --pr 25
 ```
 
 ```bash
-npm run git:flow:bugfix:finish
+npm run gf:bugfix:finish
 ```
 
 ## 📦 How do I cut a release?
@@ -234,7 +234,7 @@ npm run changeset:status
 ```
 
 ```bash
-npm run git:flow:release:start -- <x.y.z>
+npm run gf:release:start -- <x.y.z>
 ```
 
 On `release/<x.y.z>` only (never on `develop` or `main`):
@@ -246,13 +246,13 @@ npm run changeset:version
 Confirm `package.json` version matches the branch name. Publish opens the PR into `main` (pending files **or** version already applied):
 
 ```bash
-npm run git:flow:release:publish
+npm run gf:release:publish
 ```
 
 After review + merge on GitHub:
 
 ```bash
-npm run git:flow:release:finish
+npm run gf:release:finish
 ```
 
 Finish refuses leftover pending changesets and requires `package.json` version to match `release/<x.y.z>`. Then on `main`, tag **exactly** the version in `package.json`:
@@ -286,7 +286,7 @@ git pull origin main
 ```
 
 ```bash
-npm run git:flow:hotfix:start -- <x.y.z>
+npm run gf:hotfix:start -- <x.y.z>
 ```
 
 ```bash
@@ -298,13 +298,13 @@ npm run changeset:version
 ```
 
 ```bash
-npm run git:flow:hotfix:publish
+npm run gf:hotfix:publish
 ```
 
 After review + merge on GitHub:
 
 ```bash
-npm run git:flow:hotfix:finish
+npm run gf:hotfix:finish
 ```
 
 After green CI on `main`, tag with `npm run git:tag:version -- --push` (same as release). `release.yml` publishes.
@@ -316,7 +316,7 @@ After green CI on `main`, tag with `npm run git:tag:version -- --push` (same as 
 Use `support/<name>` for a long-lived maintenance line that must stay separate from current `develop` work. Start it from the appropriate base commit. Day-to-day maintenance opens feature/bugfix PRs **into that support branch**. Git Flow AVH only has `support start`; this repo adds `publish` / `finish` wrappers for syncing or retiring the line itself.
 
 ```bash
-npm run git:flow:support:start -- <name> <base>
+npm run gf:support:start -- <name> <base>
 ```
 
 ```bash
@@ -324,7 +324,7 @@ npm run changeset:add
 ```
 
 ```bash
-npm run git:flow:support:publish -- --allow-no-changeset
+npm run gf:support:publish -- --allow-no-changeset
 ```
 
 (Default PR base is `main`; pass `--base` or answer the interactive prompt. Use `--allow-no-changeset` when the new support line has no package bump yet.)
@@ -332,14 +332,14 @@ npm run git:flow:support:publish -- --allow-no-changeset
 After review + merge when retiring/syncing the line:
 
 ```bash
-npm run git:flow:support:finish
+npm run gf:support:finish
 ```
 
 ## 📝 What is `changeset:add` vs `CHANGELOG.md`?
 
 `npm run changeset:add` creates a pending note under `.changeset/` (which package, which semver bump, and a short summary). It does **not** edit `package.json` or `CHANGELOG.md`. Refuse to run it on `main`, `develop`, or `release/*`.
 
-`npm run git:flow:<type>:publish` requires those pending files (except `release`/`hotfix` when `changeset:version` already matched `package.json` to the branch version). Bypass with `--allow-no-changeset` or a TTY confirm for chore/docs/empty support.
+`npm run gf:<type>:publish` requires those pending files (except `release`/`hotfix` when `changeset:version` already matched `package.json` to the branch version). Bypass with `--allow-no-changeset` or a TTY confirm for chore/docs/empty support.
 
 `npm run changeset:version` (only on `release/*` or `hotfix/*`) consumes pending notes into `CHANGELOG.md`, bumps `package.json`, and deletes the pending files. There is no separate conventional-changelog generator — Changesets owns `CHANGELOG.md`.
 

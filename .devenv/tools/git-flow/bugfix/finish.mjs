@@ -7,7 +7,7 @@
  * link, then delete the topic branch. Solo: `--allow-unapproved`.
  *
  * HOW TO RUN:
- *   npm run git:flow:bugfix:finish
+ *   npm run gf:bugfix:finish
  *   node .devenv/tools/git-flow/bugfix/finish.mjs --allow-unapproved
  *
  * ---------------------------------------------------------------
@@ -22,13 +22,13 @@
  * @module git-flow-bugfix-finish
  *
  * @example
- * //   npm run git:flow:bugfix:finish
+ * //   npm run gf:bugfix:finish
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logError } from "../../../lib/tool-lib.mjs";
-import { finishAfterMerge, parseBaseArgs } from "../finish-merged.mjs";
+import { finishAfterMerge, parseBaseArgs } from "../utils/finish-merged.mjs";
 
 /**
  * Verifies remote merge gates and cleans up the bugfix branch.

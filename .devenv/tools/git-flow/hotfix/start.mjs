@@ -8,8 +8,8 @@
  * `git flow hotfix start <x.y.z>`.
  *
  * HOW TO RUN:
- *   npm run git:flow:hotfix:start -- 1.2.1
- *   npm run git:flow:hotfix:start -- --issue 42 1.2.1
+ *   npm run gf:hotfix:start -- 1.2.1
+ *   npm run gf:hotfix:start -- --issue 42 1.2.1
  *   node .devenv/tools/git-flow/hotfix/start.mjs 1.2.1
  *
  * ---------------------------------------------------------------
@@ -24,19 +24,19 @@
  * @module git-flow-hotfix-start
  *
  * @example
- * //   npm run git:flow:hotfix:start -- 1.2.1
+ * //   npm run gf:hotfix:start -- 1.2.1
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logError, logInfo } from "../../../lib/tool-lib.mjs";
-import { runGitFlow } from "../command.mjs";
+import { runGitFlow } from "../utils/command.mjs";
 import {
   parseIssueFlagArgs,
   requireCleanSyncedBase,
   resolveLinkedIssue,
   writeCurrentIssue,
-} from "../start-gates.mjs";
+} from "../utils/start-gates.mjs";
 
 /**
  * Issue gate + `git flow hotfix start …`.
@@ -58,7 +58,7 @@ export async function startHotfix(args = []) {
     return { ok: false };
   }
 
-  const linked = await resolveLinkedIssue({ issueFlag });
+  const linked = await resolveLinkedIssue({ issueFlag, gitFlowType: "hotfix" });
   if (!linked.ok || !linked.number) {
     return { ok: false };
   }

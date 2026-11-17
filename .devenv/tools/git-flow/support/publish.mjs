@@ -8,7 +8,7 @@
  * `--allow-no-changeset` or confirm on a TTY.
  *
  * HOW TO RUN:
- *   npm run git:flow:support:publish
+ *   npm run gf:support:publish
  *   node .devenv/tools/git-flow/support/publish.mjs --allow-no-changeset
  *
  * ---------------------------------------------------------------
@@ -23,13 +23,13 @@
  * @module git-flow-support-publish
  *
  * @example
- * //   npm run git:flow:support:publish -- --allow-no-changeset
+ * //   npm run gf:support:publish -- --allow-no-changeset
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logError } from "../../../lib/tool-lib.mjs";
-import { parseBaseArgs, publishWithPullRequest } from "../publish-flow.mjs";
+import { parseBaseArgs, publishWithPullRequest } from "../utils/publish-flow.mjs";
 
 /**
  * Publishes the current support branch (pending gate + push + PR).

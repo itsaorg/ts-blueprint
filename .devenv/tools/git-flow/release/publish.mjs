@@ -8,7 +8,7 @@
  * Bypass with `--allow-no-changeset` or TTY confirm when needed.
  *
  * HOW TO RUN:
- *   npm run git:flow:release:publish
+ *   npm run gf:release:publish
  *   node .devenv/tools/git-flow/release/publish.mjs --allow-no-changeset
  *
  * ---------------------------------------------------------------
@@ -24,13 +24,13 @@
  *
  * @example
  * // On release/1.2.0 after changeset:version:
- * //   npm run git:flow:release:publish
+ * //   npm run gf:release:publish
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logError } from "../../../lib/tool-lib.mjs";
-import { parseBaseArgs, publishWithPullRequest } from "../publish-flow.mjs";
+import { parseBaseArgs, publishWithPullRequest } from "../utils/publish-flow.mjs";
 
 /**
  * Publishes the current release branch (pending gate + push + PR).

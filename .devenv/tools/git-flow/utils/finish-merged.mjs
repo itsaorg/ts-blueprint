@@ -15,10 +15,10 @@
  *
  * HOW TO RUN:
  *   imported by git-flow type finish.mjs modules
- *   node .devenv/tools/git-flow/finish-merged.mjs feature
- *   node .devenv/tools/git-flow/finish-merged.mjs feature --allow-unapproved
- *   node .devenv/tools/git-flow/finish-merged.mjs feature --pr 25
- *   node .devenv/tools/git-flow/finish-merged.mjs support --base main
+ *   node .devenv/tools/git-flow/utils/finish-merged.mjs feature
+ *   node .devenv/tools/git-flow/utils/finish-merged.mjs feature --allow-unapproved
+ *   node .devenv/tools/git-flow/utils/finish-merged.mjs feature --pr 25
+ *   node .devenv/tools/git-flow/utils/finish-merged.mjs support --base main
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -37,14 +37,14 @@
  *
  * @example
  * // CLI:
- * //   node .devenv/tools/git-flow/finish-merged.mjs bugfix
+ * //   node .devenv/tools/git-flow/utils/finish-merged.mjs bugfix
  */
 
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { listPendingChangesetFiles } from "../../deps/changeset/pending.mjs";
+import { listPendingChangesetFiles } from "../../../deps/changeset/pending.mjs";
 import {
   askYesNo,
   boxBanner,
@@ -58,9 +58,10 @@ import {
   logSkip,
   repoRoot,
   run,
-} from "../../lib/tool-lib.mjs";
+} from "../../../lib/tool-lib.mjs";
 import { currentBranch, stripTypePrefix } from "./command.mjs";
-import { isGitFlowInstalled } from "./isInstalled.mjs";
+import { isOnTypeBranch, remoteBranchExists } from "./gates.mjs";
+import { isGitFlowInstalled } from "../isInstalled.mjs";
 import {
   defaultBaseFor,
   ghReady,
@@ -74,6 +75,8 @@ import {
   readCurrentIssue,
   requireCleanWorkingTree,
 } from "./start-gates.mjs";
+
+export { remoteBranchExists } from "./gates.mjs";
 
 /**
  * @typedef {"feature" | "bugfix" | "release" | "hotfix" | "support"} FinishableType
@@ -152,31 +155,6 @@ export function viewPullRequestForHead(headBranch) {
     } catch {
       return null;
     }
-  }
-}
-
-/**
- * Whether origin has the topic branch.
- *
- * @param {string} branch - Full branch name.
- * @returns {boolean} True when published.
- *
- * @example
- * remoteBranchExists("feature/42-x");
- */
-export function remoteBranchExists(branch) {
-  try {
-    run("git fetch origin", { inherit: false });
-  } catch {
-    // continue; may already have refs
-  }
-  try {
-    const raw = run(`git ls-remote --heads origin ${JSON.stringify(branch)}`, {
-      inherit: false,
-    });
-    return Boolean(String(raw || "").trim());
-  } catch {
-    return false;
   }
 }
 
@@ -464,7 +442,7 @@ export async function finishAfterMerge(type, options = {}) {
     logError("Could not determine current branch");
     return { ok: false };
   }
-  if (!branch.startsWith(`${type}/`)) {
+  if (!isOnTypeBranch(type)) {
     logError(`Current branch "${branch}" is not a ${type}/ branch`);
     return { ok: false };
   }
@@ -484,7 +462,7 @@ export async function finishAfterMerge(type, options = {}) {
 
   if (!remoteBranchExists(branch)) {
     logError(`Branch ${branch} is not published on origin.`);
-    logInfo(`Run: npm run git:flow:${type}:publish`);
+    logInfo(`Run: npm run gf:${type}:publish`);
     return { ok: false };
   }
   logOk(`Remote branch origin/${branch} exists.`);
@@ -512,14 +490,14 @@ export async function finishAfterMerge(type, options = {}) {
 
   if (!pr) {
     logError(`No pull request found for head branch ${branch}.`);
-    logInfo(`Publish first: npm run git:flow:${type}:publish`);
+    logInfo(`Publish first: npm run gf:${type}:publish`);
     if (isInteractive()) {
       const yes = await askYesNo(
         "Run publish now? (finish will still need a later merge run)",
         false,
       );
       if (yes) {
-        logInfo(`Run manually: npm run git:flow:${type}:publish`);
+        logInfo(`Run manually: npm run gf:${type}:publish`);
       }
     }
     return { ok: false };

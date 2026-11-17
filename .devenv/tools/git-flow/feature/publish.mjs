@@ -9,7 +9,7 @@
  * Chore/docs without a bump: `--allow-no-changeset` or TTY confirm.
  *
  * HOW TO RUN:
- *   npm run git:flow:feature:publish
+ *   npm run gf:feature:publish
  *   node .devenv/tools/git-flow/feature/publish.mjs
  *   node .devenv/tools/git-flow/feature/publish.mjs --allow-no-changeset
  *   node .devenv/tools/git-flow/feature/publish.mjs --body-file ./pr.md
@@ -27,13 +27,13 @@
  *
  * @example
  * // On feature/42-add-login (after npm run changeset:add):
- * //   npm run git:flow:feature:publish
+ * //   npm run gf:feature:publish
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logError } from "../../../lib/tool-lib.mjs";
-import { parseBaseArgs, publishWithPullRequest } from "../publish-flow.mjs";
+import { parseBaseArgs, publishWithPullRequest } from "../utils/publish-flow.mjs";
 
 /**
  * Publishes the current feature branch (pending gate + push + PR).

@@ -99,7 +99,7 @@ These cannot live only in git. After creating the repo from the template:
 
 Release model: `changeset:add` on topic branches → publish opens the PR → merge → finish cleans up → on `release/*` or `hotfix/*` run `changeset:version` → publish into `main` → `npm run git:tag:version -- --push` → `release.yml` publishes → PR `main` into `develop`.
 
-Chore/docs or empty support publish without a bump: `npm run git:flow:<type>:publish -- --allow-no-changeset` (or confirm on a TTY). Solo finish without an approving review: `npm run git:flow:<type>:finish -- --allow-unapproved` (or confirm on a TTY). Merged + issue-link gates stay hard.
+Chore/docs or empty support publish without a bump: `npm run gf:<type>:publish -- --allow-no-changeset` (or confirm on a TTY). Solo finish without an approving review: `npm run gf:<type>:finish -- --allow-unapproved` (or confirm on a TTY). Merged + issue-link gates stay hard.
 
 ### P2 backlog (later)
 
