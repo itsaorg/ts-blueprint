@@ -1,20 +1,38 @@
-name: CI
+# =============================================================================
+# 🧪 CI — continuous integration on every push/PR to main and develop
+# =============================================================================
+# 📌 Purpose: run `npm run check` (tsc:typecheck → prettier:check → eslint:lint
+#    → layout:check → vitest:run → tsc:build). Does NOT publish to npm.
+# ▶️ Example trigger: push a commit to `main`, or open a PR into `develop`.
+# =============================================================================
 
+# 🏷️ name: workflow display name in the GitHub Actions UI
+name: ci
+
+# 🔔 on: events that start this workflow
 on:
+  # 📤 push: run when commits land on these branch tips
   push:
+    # 🌿 branches: only these branch names
     branches: [main, develop]
+  # 🔀 pull_request: run on PRs targeting these branches
   pull_request:
+    # 🌿 branches: base branches that receive the PR
     branches: [main, develop]
 
+# 🧩 jobs: named work units
 jobs:
-  check:
-    name: check (Node 24.21.0)
+  # 🆔 ci: job id
+  ci:
+    # 🖥️ runs-on: GitHub-hosted runner image
     runs-on: ubuntu-latest
+    # 📋 steps: ordered actions and shell commands
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24.21.0'
-          cache: npm
-      - run: npm ci
+      # ⬇️ checkout: clone this repo into the runner workspace
+      - uses: actions/checkout@v7
+      # 🧰 setup: Node from .nvmrc + npm clean-install
+      - uses: ./.github/actions/setup
+      # ✅ check: full CI gate via package.scripts → .devenv
       - run: npm run check
+      # 📦 pack smoke: dry-run tarball must include dist/ (prepublish shape)
+      - run: npm run npm:pack:smoke

@@ -1,0 +1,15 @@
+# =============================================================================
+# 🗂️ Issue template config — chooser behavior for New issue
+# =============================================================================
+# 📌 Purpose: tell GitHub which issue templates to offer.
+# ⚠️ Path is REQUIRED: `.github/ISSUE_TEMPLATE/config.yml`.
+# ▶️ Example: a person opens New issue and only sees Bug, Feature, and Chore.
+# =============================================================================
+
+# 🚫 blank_issues_enabled: false hides the blank issue form
+#    true would add a "Open a blank issue" link next to the templates
+blank_issues_enabled: false
+# 🔗 contact_links: omitted on purpose.
+#    GitHub's schema requires 1 or more items when this key is present,
+#    so an empty array is invalid. Leave the key out for no extra chooser
+#    links. Security reports stay on the Security tab (SECURITY.md).

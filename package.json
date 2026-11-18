@@ -1,89 +1,139 @@
 {
   "name": "@itsaorg/ts-blueprint",
-  "version": "1.0.0",
-  "description": "Itsa TypeScript library blueprint and GitHub template for all platform repositories",
-  "type": "module",
+  "description": "TypeScript library blueprint / GitHub template for Itsa repos",
+  "version": "0.1.0",
+  "author": {
+    "name": "Astitv Singh",
+    "url": "https://github.com/astitvsingh"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/astitvsingh"
+  },
+  "keywords": [
+    "typescript",
+    "library",
+    "blueprint",
+    "github",
+    "template"
+  ],
   "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itsaorg/ts-blueprint.git"
+  },
+  "bugs": "https://github.com/itsaorg/ts-blueprint/issues",
+  "homepage": "https://itsaorg.github.io/ts-blueprint/",
   "engines": {
-    "node": ">=24.21.0"
+    "node": "26"
+  },
+  "files": [
+    "dist/",
+    "package.json",
+    "CHANGELOG.md",
+    "NOTICE",
+    "LICENSE",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "exports": {
     ".": {
-      "types": "./types/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
-  "files": [
-    "dist",
-    "types",
-    "LICENSE",
-    "README.md",
-    "CHANGELOG.md"
-  ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "clean": "node scripts/clean.mjs",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
-    "lint": "eslint . --config config/eslint.config.js",
-    "lint:fix": "eslint . --fix --config config/eslint.config.js",
-    "format": "prettier --write . --config config/.prettierrc.json --ignore-path config/.prettierignore",
-    "format:check": "prettier --check . --config config/.prettierrc.json --ignore-path config/.prettierignore",
-    "test": "vitest run -c config/vitest.config.ts",
-    "test:watch": "vitest -c config/vitest.config.ts",
-    "test:coverage": "vitest run --coverage -c config/vitest.config.ts",
-    "test:consumer": "vitest run -c config/vitest.consumer.config.ts",
-    "docs": "typedoc --options config/typedoc.json",
-    "check:layout": "node scripts/check-layout.mjs",
-    "check:types-mirror": "node scripts/check-types-mirror.mjs",
-    "check:tarball": "node scripts/check-tarball.mjs",
-    "check": "npm run lint && npm run format:check && npm run typecheck && npm run test:coverage && npm run build && npm run check:layout && npm run check:types-mirror && npm run test:consumer && npm run check:tarball",
-    "prepare": "husky",
-    "prepublishOnly": "npm run build",
-    "smoke:scaffold": "node scripts/smoke-scaffold.mjs",
-    "changeset": "changeset",
-    "changeset:version": "changeset version",
-    "changeset:publish": "changeset publish",
-    "changeset:stage": "node scripts/stage-publish.mjs"
-  },
-  "lint-staged": {
-    "*.{ts,js,mjs,cjs}": [
-      "eslint --fix --config config/eslint.config.js",
-      "prettier --write --config config/.prettierrc.json --ignore-path config/.prettierignore"
-    ],
-    "*.{json,md,yml,yaml}": [
-      "prettier --write --config config/.prettierrc.json --ignore-path config/.prettierignore"
-    ]
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/itsaorg/itsa-ts-blueprint.git"
-  },
-  "bugs": {
-    "url": "https://github.com/itsaorg/itsa-ts-blueprint/issues"
-  },
-  "homepage": "https://github.com/itsaorg/itsa-ts-blueprint#readme",
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
-  },
-  "overrides": {
-    "eslint-visitor-keys": "4.2.0"
+    "prepare": "node .devenv/prepare.mjs",
+    "husky:prepare": "node .devenv/deps/husky/prepare.mjs",
+    "tsc:typecheck": "node .devenv/deps/tsc/typecheck.mjs",
+    "tsc:emit": "node .devenv/deps/tsc/emit.mjs",
+    "tsc:build": "node .devenv/deps/tsc/build.mjs",
+    "format": "npm run format:check && npm run format:fix",
+    "format:fix": "npm run prettier:write && npm run eslint:fix",
+    "format:write": "npm run prettier:write && npm run eslint:fix && npm run layout:check",
+    "format:check": "npm run prettier:check && npm run eslint:lint && npm run layout:check",
+    "prettier:write": "node .devenv/deps/prettier/write.mjs",
+    "prettier:check": "node .devenv/deps/prettier/check.mjs",
+    "eslint:lint": "node .devenv/deps/eslint/lint.mjs",
+    "eslint:fix": "node .devenv/deps/eslint/fix.mjs",
+    "layout:check": "node .devenv/deps/layout/check.mjs",
+    "vitest": "node .devenv/deps/vitest/watch.mjs",
+    "vitest:run": "node .devenv/deps/vitest/run.mjs",
+    "vitest:coverage": "node .devenv/deps/vitest/coverage.mjs",
+    "vitest:verbose": "node .devenv/deps/vitest/verbose.mjs",
+    "check": "node .devenv/deps/check/run.mjs",
+    "commitlint": "node .devenv/deps/commitlint/lint.mjs",
+    "lint-staged": "node .devenv/deps/lint-staged/run.mjs",
+    "clean:dist": "node .devenv/utils/clean.mjs --path dist --recursive",
+    "clean:coverage": "node .devenv/utils/clean.mjs --path coverage --recursive",
+    "clean:docs": "node .devenv/utils/clean.mjs --path docs --recursive",
+    "clean:modules": "node .devenv/utils/clean.mjs --path node_modules --recursive",
+    "clean:all": "npm run clean:dist && npm run clean:coverage && npm run clean:docs && npm run clean:modules",
+    "docify:typedoc": "npm run clean:docs && npm run typedoc:build",
+    "typedoc:build": "node .devenv/deps/typedoc/build.mjs",
+    "changeset:add": "node .devenv/deps/changeset/add.mjs",
+    "changeset:status": "node .devenv/deps/changeset/status.mjs",
+    "changeset:version": "node .devenv/deps/changeset/version.mjs",
+    "npm:publish:local": "node .devenv/tools/npm/publish/local.mjs",
+    "npm:publish:worker": "node .devenv/tools/npm/publish/worker.mjs",
+    "npm:trust": "node .devenv/tools/npm/publish/trust.mjs",
+    "npm:deprecate:reservation": "node .devenv/tools/npm/publish/deprecate-reservation.mjs",
+    "npm:release": "node .devenv/tools/npm/publish/release.mjs",
+    "npm:pack:smoke": "node .devenv/tools/npm/pack/smoke.mjs",
+    "prepublishOnly": "npm run tsc:build",
+    "setup": "node .devenv/setup.mjs",
+    "git:setup": "node .devenv/tools/git/setup.mjs",
+    "git:tag:version": "node .devenv/tools/git/tag-version.mjs",
+    "node:setup": "node .devenv/tools/node/setup.mjs",
+    "npm:setup": "node .devenv/tools/npm/setup.mjs",
+    "gf:setup": "node .devenv/tools/git-flow/setup.mjs",
+    "gh:setup": "node .devenv/tools/gh/setup.mjs",
+    "gh:label:sync": "node .devenv/tools/gh/label/sync.mjs",
+    "gf:feature:start": "node .devenv/tools/git-flow/feature/start.mjs",
+    "gf:feature:publish": "node .devenv/tools/git-flow/feature/publish.mjs",
+    "gf:feature:finish": "node .devenv/tools/git-flow/feature/finish.mjs",
+    "gf:bugfix:start": "node .devenv/tools/git-flow/bugfix/start.mjs",
+    "gf:bugfix:publish": "node .devenv/tools/git-flow/bugfix/publish.mjs",
+    "gf:bugfix:finish": "node .devenv/tools/git-flow/bugfix/finish.mjs",
+    "gf:hotfix:start": "node .devenv/tools/git-flow/hotfix/start.mjs",
+    "gf:hotfix:publish": "node .devenv/tools/git-flow/hotfix/publish.mjs",
+    "gf:hotfix:finish": "node .devenv/tools/git-flow/hotfix/finish.mjs",
+    "gf:release:start": "node .devenv/tools/git-flow/release/start.mjs",
+    "gf:release:publish": "node .devenv/tools/git-flow/release/publish.mjs",
+    "gf:release:finish": "node .devenv/tools/git-flow/release/finish.mjs",
+    "gf:support:start": "node .devenv/tools/git-flow/support/start.mjs",
+    "gf:support:publish": "node .devenv/tools/git-flow/support/publish.mjs",
+    "gf:support:finish": "node .devenv/tools/git-flow/support/finish.mjs"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.27.10",
-    "@commitlint/cli": "^19.6.1",
-    "@commitlint/config-conventional": "^19.6.0",
-    "@eslint/js": "^9.17.0",
-    "@types/node": "^22.10.2",
-    "@vitest/coverage-v8": "^2.1.8",
-    "eslint": "^9.17.0",
-    "eslint-config-prettier": "^9.1.0",
+    "@changesets/cli": "^3.0.3",
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.5",
+    "@vitest/coverage-v8": "^5.0.3",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
     "husky": "^9.1.7",
-    "lint-staged": "^15.2.11",
-    "prettier": "^3.4.2",
-    "typedoc": "^0.27.5",
-    "typescript": "^5.7.2",
-    "typescript-eslint": "^8.18.2",
-    "vitest": "^2.1.8"
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.10",
+    "typedoc": "^0.28.20",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.3"
+  },
+  "overrides": {
+    "minimatch": "^11.0.1"
+  },
+  "lint-staged": {
+    "*.{ts,js,mjs,cjs,json,md,yml,yaml}": "prettier --config configs/.prettierrc.json --ignore-path configs/prettierignore --write",
+    "*.ts": "eslint --config configs/eslint.config.js --fix"
   }
 }

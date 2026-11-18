@@ -1,17 +1,11 @@
 # Changelog
 
-## 1.0.0
+## 0.1.0
 
-### Major Changes
+### Minor Changes
 
-- b88511a: Initial release of the Itsa TypeScript library blueprint and GitHub template (P0 / R0).
+- 4e9a595: Default finish to merge commits; auto-pick issue forms on typed starts.
 
-All notable changes to this project are documented in this file.
+## 0.0.0
 
-This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
-Entries are generated automatically by [Changesets](https://github.com/changesets/changesets)
-when the Version PR runs `changeset version` — do not hand-edit release sections.
-
-## Unreleased
-
-_No unreleased changes yet._
+Unreleased. Name reservation publish is 0.0.0; the first feature cut is 0.1.0.

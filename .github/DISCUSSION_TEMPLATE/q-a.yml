@@ -1,0 +1,29 @@
+# =============================================================================
+# 💬 Discussion template — Q&A
+# =============================================================================
+# 📌 Purpose: question-and-answer style Discussions category body.
+#    Pair with a Q&A category in the GitHub Discussions settings UI.
+# =============================================================================
+
+title: "[Q&A] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ask a question about using this template or package.
+        Prefer Issues for defects and contract changes.
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What do you need clarified?
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What did you already try?
+      description: Commands, docs pages, or branches you checked.
+    validations:
+      required: false

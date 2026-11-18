@@ -1,46 +1,98 @@
+# =============================================================================
+# ✨ Feature request — GitHub issue form for contract changes
+# =============================================================================
+# 📌 Purpose: interactive form for public API or docs contract proposals.
+# ▶️ Example: a reporter fills Problem, Proposed change, and Acceptance criteria.
+# =============================================================================
+
+# 🏷️ name: chooser card title
 name: Feature request
-description: Propose a new capability or enhancement
-title: '[Feature] '
-labels: ['enhancement']
+# 📄 description: one-line card subtitle
+description: Propose a contract change
+# 🏷️ title: default issue title; replace <slug> before submitting
+title: "✨ FEAT: <slug>"
+# 🏷️ labels: labels applied when the issue is opened
+labels: ["✨ Feature Request"]
+# 📋 body: ordered form elements
 body:
-  - type: input
-    id: repo_id
+  # 📝 markdown: static intro, not a submitted field
+  - type: markdown
+    # ⚙️ attributes: element settings
     attributes:
-      label: Repo ID (optional)
-      description: Catalog ID if your org uses one
-      placeholder: R1
-  - type: input
-    id: mvp_phase
-    attributes:
-      label: Phase (optional)
-      description: Target phase gate if applicable
-      placeholder: P1
+      # 📃 value: intro shown above the fields
+      value: |
+        Propose a change to the public contracts in this repository.
+        This form applies the ✨ Feature Request label. See CONTRIBUTING.md for the label guide.
+        Breaking changes need an explicit call-out in Proposed change.
+  # 📝 textarea: the gap this change closes
   - type: textarea
+    # 🆔 id: problem
     id: problem
     attributes:
-      label: Problem statement
-      description: What problem does this solve?
+      # 🏷️ label: Problem
+      label: Problem
+      # 💬 description: current types, errors, or lifecycle
+      description: The gap in the current types, errors, or lifecycle that this change addresses.
+      # ✏️ placeholder: example gap
+      placeholder: Callers cannot express … without reaching past the public export.
     validations:
+      # 🔒 required: reporter must fill this in
       required: true
+  # 📝 textarea: the requested API or docs change
   - type: textarea
-    id: proposal
+    # 🆔 id: change
+    id: change
     attributes:
-      label: Proposed solution
-      description: Describe the desired behavior or API
+      # 🏷️ label: Proposed change
+      label: Proposed change
+      # 💬 description: name exports when possible
+      description: The API or docs change you want. Name new or changed exports when you can.
+      # ✏️ placeholder: example shape
+      placeholder: Add … to the package root export. Keep deep imports rejected.
     validations:
+      # 🔒 required: reporter must fill this in
       required: true
+  # 📝 textarea: how to know it is done
   - type: textarea
+    # 🆔 id: acceptance
     id: acceptance
     attributes:
+      # 🏷️ label: Acceptance criteria
       label: Acceptance criteria
-      description: Bullet list of verifiable outcomes
+      # 💬 description: tests, types, or docs that must pass
+      description: How we know the change is done. Tests, type checks, or docs that must pass.
+      # ✏️ placeholder: checklist the reporter can edit
       placeholder: |
-        - [ ] Criterion 1
-        - [ ] Criterion 2
+        - [ ] `npm run check` stays green
+        - [ ] Consumer test covers …
     validations:
+      # 🔒 required: reporter must fill this in
       required: true
+  # 📝 textarea: rejected options
   - type: textarea
-    id: notes
+    # 🆔 id: alternatives
+    id: alternatives
     attributes:
+      # 🏷️ label: Alternatives considered
+      label: Alternatives considered
+      # 💬 description: other shapes and why they lost
+      description: Other shapes you rejected, and why. Optional.
+      # ✏️ placeholder: example rejection
+      placeholder: Leaving this on the caller side fails because …
+    validations:
+      # 🔓 required: false allows an empty box
+      required: false
+  # 📝 textarea: links and sketches
+  - type: textarea
+    # 🆔 id: context
+    id: context
+    attributes:
+      # 🏷️ label: Additional context
       label: Additional context
-      description: Links, diagrams, or dependencies
+      # 💬 description: downstream repos or sketches
+      description: Links, a downstream repository, or sketches. Optional.
+      # ✏️ placeholder: empty hint
+      placeholder: …
+    validations:
+      # 🔓 required: false allows an empty box
+      required: false

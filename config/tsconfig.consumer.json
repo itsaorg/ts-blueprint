@@ -1,9 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "../tests/consumer/fixture",
-    "outDir": "../tests/consumer/fixture/dist",
-    "noEmit": true
-  },
-  "include": ["../tests/consumer/fixture/**/*.ts"]
-}

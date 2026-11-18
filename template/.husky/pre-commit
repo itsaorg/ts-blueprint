@@ -1,5 +1,0 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-node scripts/check-staged-file-limit.mjs
-npx lint-staged
