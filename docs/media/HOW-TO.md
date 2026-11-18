@@ -157,7 +157,7 @@ Tags use the `v` prefix (for example `v0.1.0`).
 
 ## 💻 How do I work day to day on a topic branch?
 
-Edit under `src/` (and tests). Commit with Conventional Commits. When the published package should bump, add a pending Changeset on the topic branch (not on `main`, `develop`, or `release/*`):
+Edit under `src/` (and tests). Commit with Conventional Commits. When the published package should bump, add a pending Changeset on the topic branch (not on `main`, `develop`, or `release/*`). You can run `npm run changeset:add`, or let **publish** guide a canonical pending file (`@changesets/write` / human-id name). On a feature branch, publish prompts **minor** or **major** plus a summary; bugfix/hotfix/support guided writes use **patch**.
 
 ```bash
 npm run changeset:add
@@ -339,9 +339,11 @@ npm run gf:support:finish
 
 `npm run changeset:add` creates a pending note under `.changeset/` (which package, which semver bump, and a short summary). It does **not** edit `package.json` or `CHANGELOG.md`. Refuse to run it on `main`, `develop`, or `release/*`.
 
-`npm run gf:<type>:publish` requires those pending files (except `release`/`hotfix` when `changeset:version` already matched `package.json` to the branch version). Bypass with `--allow-no-changeset` or a TTY confirm for chore/docs/empty support.
+`npm run gf:<type>:publish` requires those pending files. On a TTY with none, it can guide a write (feature: major|minor; others: patch) using canonical filenames. For `release`/`hotfix`, it offers `changeset:version` when pendings remain so `package.json` matches the branch version. Bypass with `--allow-no-changeset` or a TTY confirm for chore/docs/empty support only (not while release/hotfix pendings remain).
 
-`npm run changeset:version` (only on `release/*` or `hotfix/*`) consumes pending notes into `CHANGELOG.md`, bumps `package.json`, and deletes the pending files. There is no separate conventional-changelog generator — Changesets owns `CHANGELOG.md`.
+`npm run changeset:version` (only on `release/*` or `hotfix/*`, clean working tree) consumes pending notes into `CHANGELOG.md`, bumps `package.json`, and deletes the pending files. There is no separate conventional-changelog generator — Changesets owns `CHANGELOG.md`.
+
+Boolean HEAD/repo gates live as one function per file under `.devenv/tools/git-flow/utils/gates/`. Creating an issue via start can assign collaborators (`gh` collaborator list) before `gh issue create`.
 
 ## ⏭️ How do I skip hooks once?
 

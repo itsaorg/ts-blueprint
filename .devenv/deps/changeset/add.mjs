@@ -30,12 +30,6 @@
  * @example
  * // On feature/42-add-login:
  * //   npm run changeset:add
- *
- * @example
- * import { addChangeset, isChangesetAddAllowedBranch } from "./add.mjs";
- * if (isChangesetAddAllowedBranch("feature/1-demo")) {
- *   addChangeset([]);
- * }
  */
 
 import path from "node:path";
@@ -46,9 +40,10 @@ import {
   forwardedArgs,
   logError,
   logInfo,
-  run,
   runTool,
 } from "../../lib/tool-lib.mjs";
+import { branchMatchesType } from "../../tools/git-flow/utils/gates/branchMatchesType.mjs";
+import { headBranch } from "../../tools/git-flow/utils/gates/headBranch.mjs";
 
 /**
  * Current git branch name, or empty string when detached / unavailable.
@@ -59,11 +54,7 @@ import {
  * currentBranchName(); // "feature/42-add-login"
  */
 export function currentBranchName() {
-  try {
-    return run("git branch --show-current", { inherit: false });
-  } catch {
-    return "";
-  }
+  return headBranch();
 }
 
 /**
@@ -78,7 +69,6 @@ export function currentBranchName() {
  * @example
  * isChangesetAddAllowedBranch("feature/42-x"); // true
  * isChangesetAddAllowedBranch("release/1.0.0"); // false
- * isChangesetAddAllowedBranch("main");          // false
  */
 export function isChangesetAddAllowedBranch(branch) {
   if (!branch) {
@@ -87,28 +77,44 @@ export function isChangesetAddAllowedBranch(branch) {
   if (branch === "main" || branch === "develop") {
     return false;
   }
-  if (branch.startsWith("release/")) {
+  if (branchMatchesType(branch, "release")) {
     return false;
   }
   return (
-    branch.startsWith("feature/") ||
-    branch.startsWith("bugfix/") ||
-    branch.startsWith("hotfix/") ||
-    branch.startsWith("support/")
+    branchMatchesType(branch, "feature") ||
+    branchMatchesType(branch, "bugfix") ||
+    branchMatchesType(branch, "hotfix") ||
+    branchMatchesType(branch, "support")
   );
+}
+
+/**
+ * Default semver bump for a Git Flow type when guiding a pending write.
+ *
+ * Feature has no single default (caller prompts major|minor). Others use patch.
+ *
+ * @param {string} type - Git Flow type.
+ * @returns {"major" | "minor" | "patch" | null} Locked bump, or null when prompted.
+ *
+ * @example
+ * defaultBumpForGitFlowType("bugfix"); // "patch"
+ * defaultBumpForGitFlowType("feature"); // null
+ */
+export function defaultBumpForGitFlowType(type) {
+  if (type === "feature") {
+    return null;
+  }
+  if (type === "bugfix" || type === "hotfix" || type === "support") {
+    return "patch";
+  }
+  return null;
 }
 
 /**
  * Runs interactive `changeset add` when the branch gate passes.
  *
- * Extra argv after `--` forward to the Changesets CLI.
- *
  * @param {string[]} [args] - Extra args for `changeset add`.
  * @returns {number} Process exit code (`0` = success).
- *
- * @example
- * const code = addChangeset([]);
- * process.exitCode = code;
  */
 export function addChangeset(args = []) {
   const branch = currentBranchName();

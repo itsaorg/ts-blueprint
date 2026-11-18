@@ -253,12 +253,88 @@ function ghReady() {
 }
 
 /**
+ * Lists collaborator logins for assignee picking.
+ *
+ * @returns {string[]} Login names (may be empty).
+ */
+export function listCollaboratorLogins() {
+  try {
+    const raw = run(`gh api repos/{owner}/{repo}/collaborators --paginate --jq ".[].login"`, {
+      inherit: false,
+    });
+    return String(raw || "")
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+  } catch {
+    try {
+      const raw = run(`gh api repos/{owner}/{repo}/contributors --paginate --jq ".[].login"`, {
+        inherit: false,
+      });
+      return String(raw || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+    } catch {
+      return [];
+    }
+  }
+}
+
+/**
+ * TTY multi-select of assignees from collaborator logins.
+ *
+ * @returns {Promise<string[]>} Selected logins.
+ */
+export async function promptIssueAssignees() {
+  if (!isInteractive()) {
+    return [];
+  }
+  const logins = listCollaboratorLogins();
+  if (logins.length === 0) {
+    logSkip("No collaborators listed; creating the issue without --assignee.");
+    return [];
+  }
+
+  logInfo("Assignees (optional extras; 0 to finish):");
+  logins.forEach((login, index) => {
+    logInfo(`${index + 1}. ${login}`);
+  });
+  logInfo("0. Done");
+
+  /** @type {string[]} */
+  const selected = [];
+  while (true) {
+    const choice = await askLine("Assignee number, or 0 to finish", "0");
+    if (choice === "0" || choice === "") {
+      break;
+    }
+    const index = Number(choice) - 1;
+    if (!Number.isInteger(index) || !logins[index]) {
+      logError("Invalid choice.");
+      continue;
+    }
+    const login = logins[index];
+    const at = selected.indexOf(login);
+    if (at === -1) {
+      selected.push(login);
+      logOk(`Assignee: ${login}`);
+    } else {
+      selected.splice(at, 1);
+      logInfo(`Removed assignee: ${login}`);
+    }
+  }
+  return selected;
+}
+
+/**
  * Creates an issue from the current ISSUE_EDITMSG contents and labels.
  *
  * @param {string[]} labels - Final labels to apply on create.
+ * @param {string[]} [assignees] - Optional assignee logins.
  * @returns {{ ok: boolean, number?: string, title?: string, name?: string }} Outcome.
  */
-function createIssueFromEditmsg(labels) {
+function createIssueFromEditmsg(labels, assignees = []) {
   let raw;
   try {
     raw = readFileSync(ISSUE_EDITMSG, "utf8");
@@ -280,8 +356,14 @@ function createIssueFromEditmsg(labels) {
   writeFileSync(ISSUE_EDITMSG, `${body}\n`, "utf8");
   const args = ["issue", "create", "--title", title, "--body-file", ISSUE_EDITMSG];
   appendLabelArgs(args, labels);
+  for (const login of assignees) {
+    args.push("--assignee", login);
+  }
   if (labels.length > 0) {
     logInfo(`Issue labels: ${labels.join(", ")}`);
+  }
+  if (assignees.length > 0) {
+    logInfo(`Issue assignees: ${assignees.join(", ")}`);
   }
   logGo(`gh issue create --title ${JSON.stringify(title)}`);
   const result = spawnSync("gh", args, {
@@ -359,7 +441,8 @@ export async function createIssueInteractively(options = {}) {
     formLabels: meta.labels,
     promptExtras: true,
   });
-  return createIssueFromEditmsg(labels);
+  const assignees = await promptIssueAssignees();
+  return createIssueFromEditmsg(labels, assignees);
 }
 
 /**

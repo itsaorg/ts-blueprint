@@ -60,7 +60,8 @@ import {
   run,
 } from "../../../lib/tool-lib.mjs";
 import { currentBranch, stripTypePrefix } from "./command.mjs";
-import { isOnTypeBranch, remoteBranchExists } from "./gates.mjs";
+import { isOnTypeBranch } from "./gates/isOnTypeBranch.mjs";
+import { remoteBranchExists } from "./gates/remoteBranchExists.mjs";
 import { isGitFlowInstalled } from "../isInstalled.mjs";
 import {
   defaultBaseFor,
@@ -76,7 +77,7 @@ import {
   requireCleanWorkingTree,
 } from "./start-gates.mjs";
 
-export { remoteBranchExists } from "./gates.mjs";
+export { remoteBranchExists } from "./gates/remoteBranchExists.mjs";
 
 /**
  * @typedef {"feature" | "bugfix" | "release" | "hotfix" | "support"} FinishableType

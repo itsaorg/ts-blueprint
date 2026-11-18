@@ -41,10 +41,14 @@ import {
   repoRoot,
   run,
 } from "../../../lib/tool-lib.mjs";
-import { headBranch, isOnBranch, isSyncedWithOrigin, isWorkingTreeClean } from "./gates.mjs";
+import { headBranch } from "./gates/headBranch.mjs";
+import { isOnBranch } from "./gates/isOnBranch.mjs";
+import { isSyncedWithOrigin } from "./gates/isSyncedWithOrigin.mjs";
+import { isWorkingTreeClean } from "./gates/isWorkingTreeClean.mjs";
 import { issueExists, parseIssueSlug, resolveIssueBranchName } from "./issue-gate.mjs";
 
-export { isWorkingTreeClean, parseAheadBehind } from "./gates.mjs";
+export { isWorkingTreeClean } from "./gates/isWorkingTreeClean.mjs";
+export { parseAheadBehind } from "./gates/parseAheadBehind.mjs";
 
 const CURRENT_ISSUE_PATH = path.join(repoRoot, ".git", "CURRENT_ISSUE");
 

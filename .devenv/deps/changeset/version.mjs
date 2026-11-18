@@ -5,8 +5,7 @@
  * ---------------------------------------------------------------
  * Applies pending Changesets: bumps package versions and updates
  * changelogs. Allowed only on `release/*` or `hotfix/*` branches —
- * never on `develop` or `main`. After versioning, publish a PR into
- * `main`, tag `v<version>`, and let `release.yml` publish.
+ * never on `develop` or `main`. Requires a clean working tree.
  *
  * HOW TO RUN:
  *   npm run changeset:version
@@ -26,12 +25,6 @@
  * @example
  * // On release/1.2.0 only:
  * //   npm run changeset:version
- *
- * @example
- * import { versionChangeset, isVersionBranch } from "./version.mjs";
- * if (isVersionBranch("hotfix/1.2.1")) {
- *   versionChangeset([]);
- * }
  */
 
 import path from "node:path";
@@ -42,9 +35,11 @@ import {
   forwardedArgs,
   logError,
   logInfo,
-  run,
   runTool,
 } from "../../lib/tool-lib.mjs";
+import { branchMatchesType } from "../../tools/git-flow/utils/gates/branchMatchesType.mjs";
+import { headBranch } from "../../tools/git-flow/utils/gates/headBranch.mjs";
+import { isWorkingTreeClean } from "../../tools/git-flow/utils/gates/isWorkingTreeClean.mjs";
 
 /**
  * Current git branch, or empty string.
@@ -55,11 +50,7 @@ import {
  * currentBranchName(); // "release/1.2.0"
  */
 export function currentBranchName() {
-  try {
-    return run("git branch --show-current", { inherit: false });
-  } catch {
-    return "";
-  }
+  return headBranch();
 }
 
 /**
@@ -73,11 +64,11 @@ export function currentBranchName() {
  * isVersionBranch("develop");       // false
  */
 export function isVersionBranch(branch) {
-  return branch.startsWith("release/") || branch.startsWith("hotfix/");
+  return branchMatchesType(branch, "release") || branchMatchesType(branch, "hotfix");
 }
 
 /**
- * Runs `changeset version` when the branch gate passes.
+ * Runs `changeset version` when the branch and clean-tree gates pass.
  *
  * @param {string[]} [args] - Extra args for `changeset version`.
  * @returns {number} Process exit code (`0` = success).
@@ -91,6 +82,11 @@ export function versionChangeset(args = []) {
     logError(`changeset:version refused on branch "${branch || "(detached)"}".`);
     logInfo("Run only on release/<x.y.z> or hotfix/<x.y.z>, then PR into main.");
     logInfo("Do not run on develop or main.");
+    return 1;
+  }
+
+  if (!isWorkingTreeClean()) {
+    logError("changeset:version requires a clean working tree. Commit or stash first.");
     return 1;
   }
 

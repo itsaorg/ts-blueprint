@@ -46,10 +46,13 @@ import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { fileURLToPath } from "node:url";
 import { readFileSync, writeFileSync } from "node:fs";
+import { defaultBumpForGitFlowType } from "../../../deps/changeset/add.mjs";
 import {
   hasPendingChangesets,
   listPendingChangesetFiles,
 } from "../../../deps/changeset/pending.mjs";
+import { versionChangeset } from "../../../deps/changeset/version.mjs";
+import { writePendingChangeset } from "../../../deps/changeset/write-pending.mjs";
 import {
   askYesNo,
   boxBanner,
@@ -73,7 +76,7 @@ import {
   seedDraftFromTemplate,
   summaryIsFilled,
 } from "./edit-draft.mjs";
-import { isOnTypeBranch } from "./gates.mjs";
+import { isOnTypeBranch } from "./gates/isOnTypeBranch.mjs";
 import { isGitFlowInstalled } from "../isInstalled.mjs";
 import { appendLabelArgs, resolveCreateLabels } from "./labels.mjs";
 import { readCurrentIssue } from "./start-gates.mjs";
@@ -198,14 +201,78 @@ export function hasAllowNoChangesetFlag(args) {
 }
 
 /**
- * Fails publish when bump intent is missing (policy C).
+ * Prompts for a guided pending Changeset write (TTY).
  *
- * For `feature` / `bugfix` / `support`: require ≥1 pending `.changeset/*.md`.
- * For `release` / `hotfix`: pending files **or** `changeset:version` already
- * applied (`package.json` version matches the branch version segment).
+ * Feature: major|minor. Bugfix/hotfix/support: patch locked.
  *
- * Bypass: `--allow-no-changeset` **or** interactive TTY confirm (default no).
- * Non-TTY without the flag refuses.
+ * @param {PublishableType} type - Branch type.
+ * @returns {Promise<{ ok: boolean }>} Outcome.
+ */
+export async function promptGuidedPendingWrite(type) {
+  /** @type {"major" | "minor" | "patch" | null} */
+  let bump = defaultBumpForGitFlowType(type);
+  if (type === "feature") {
+    logInfo("Feature bump:");
+    logInfo("1. minor");
+    logInfo("2. major");
+    const choice = await askLine("Bump number", "1");
+    if (choice === "2" || choice.toLowerCase() === "major") {
+      bump = "major";
+    } else if (choice === "1" || choice.toLowerCase() === "minor" || choice === "") {
+      bump = "minor";
+    } else {
+      logError("Choose 1 (minor) or 2 (major).");
+      return { ok: false };
+    }
+  }
+  if (!bump) {
+    logError(`No guided bump for type "${type}".`);
+    return { ok: false };
+  }
+
+  const summary = await askLine("Changeset summary", "");
+  if (!summary.trim()) {
+    logError("Summary is required.");
+    return { ok: false };
+  }
+
+  return writePendingChangeset({ bump, summary: summary.trim() });
+}
+
+/**
+ * Offers `changeset:version` on a TTY and rechecks package.json vs shortName.
+ *
+ * @param {string} shortName - Branch version segment.
+ * @returns {Promise<{ ok: boolean }>} Outcome after attempt.
+ */
+export async function promptRunChangesetVersion(shortName) {
+  const yes = await askYesNo(`Run changeset:version so package.json matches "${shortName}"?`, true);
+  if (!yes) {
+    return { ok: false };
+  }
+  const code = versionChangeset([]);
+  if (code !== 0) {
+    return { ok: false };
+  }
+  const pkgVersion = readPackageVersion();
+  if (pkgVersion === shortName && !hasPendingChangesets()) {
+    logOk(`package.json is ${pkgVersion}; pending Changesets consumed.`);
+    return { ok: true };
+  }
+  logError(
+    `After version, expected package.json "${shortName}" with no pendings (got "${pkgVersion}", pendings=${hasPendingChangesets()}).`,
+  );
+  return { ok: false };
+}
+
+/**
+ * Publish Changeset orchestration: guided pending write and/or version.
+ *
+ * For `feature` / `bugfix` / `support`: require ≥1 pending `.changeset/*.md`
+ * (TTY can guide a write). For `release` / `hotfix`: pending consumed via
+ * `changeset:version` **or** package.json already matches the branch version.
+ *
+ * Bypass (feature/bugfix/support only): `--allow-no-changeset` or TTY confirm.
  *
  * @param {PublishableType} type - Branch type.
  * @param {string} shortName - Name without `type/` prefix.
@@ -214,28 +281,80 @@ export function hasAllowNoChangesetFlag(args) {
  *
  * @example
  * if (!(await requirePublishChangesetGate("feature", "42-x")).ok) return { ok: false };
- * await requirePublishChangesetGate("feature", "docs", { allowNoChangeset: true });
  */
 export async function requirePublishChangesetGate(type, shortName, options = {}) {
+  const versionMatches = () => {
+    const pkgVersion = readPackageVersion();
+    return Boolean(pkgVersion) && pkgVersion === shortName;
+  };
+
+  if (type === "release" || type === "hotfix") {
+    if (versionMatches() && !hasPendingChangesets()) {
+      logOk(
+        `No pending changesets; package.json already at ${readPackageVersion()} (version applied).`,
+      );
+      return { ok: true };
+    }
+
+    if (!hasPendingChangesets() && type === "hotfix" && isInteractive()) {
+      const writeNow = await askYesNo("No pending Changeset — write a patch pending now?", true);
+      if (writeNow) {
+        const written = await promptGuidedPendingWrite("hotfix");
+        if (!written.ok) {
+          return { ok: false };
+        }
+      }
+    }
+
+    if (hasPendingChangesets()) {
+      if (isInteractive()) {
+        const versioned = await promptRunChangesetVersion(shortName);
+        if (versioned.ok) {
+          return { ok: true };
+        }
+      } else {
+        logError("Pending Changesets remain; run npm run changeset:version on this branch.");
+        logInfo(`package.json must match "${shortName}" with no leftover pendings.`);
+      }
+      return { ok: false };
+    }
+
+    if (versionMatches()) {
+      logOk(`package.json already at ${readPackageVersion()}.`);
+      return { ok: true };
+    }
+
+    logError(
+      `package.json must be "${shortName}" after changeset:version (got "${readPackageVersion()}").`,
+    );
+    logInfo("Accumulate pendings on topic PRs, then run changeset:version on this branch.");
+    return { ok: false };
+  }
+
   if (hasPendingChangesets()) {
     const files = listPendingChangesetFiles();
     logOk(`Pending changeset gate passed (${files.length} file(s)).`);
     return { ok: true };
   }
 
-  if (type === "release" || type === "hotfix") {
-    const pkgVersion = readPackageVersion();
-    if (pkgVersion && pkgVersion === shortName) {
-      logOk(`No pending changesets; package.json already at ${pkgVersion} (version applied).`);
-      return { ok: true };
+  if (isInteractive()) {
+    const writeNow = await askYesNo("No pending Changeset — write one now?", true);
+    if (writeNow) {
+      const written = await promptGuidedPendingWrite(type);
+      if (written.ok && hasPendingChangesets()) {
+        logOk("Pending changeset gate passed after guided write.");
+        return { ok: true };
+      }
+      if (!written.ok) {
+        return { ok: false };
+      }
     }
+  } else {
+    logError("No pending .changeset/*.md files found.");
+    logInfo("Create one first: npm run changeset:add");
+    logInfo("Non-interactive shell: re-run with --allow-no-changeset to bypass.");
   }
 
-  logError("No pending .changeset/*.md files found (or release/hotfix version mismatch).");
-  logInfo("Create one first: npm run changeset:add");
-  if (type === "release" || type === "hotfix") {
-    logInfo(`Or run changeset:version so package.json matches "${shortName}".`);
-  }
   logInfo("Chore/docs/empty support: pass --allow-no-changeset or confirm interactively.");
 
   if (options.allowNoChangeset) {
@@ -248,8 +367,6 @@ export async function requirePublishChangesetGate(type, shortName, options = {})
       logSkip("Bypassing pending-changeset gate (interactive confirm).");
       return { ok: true };
     }
-  } else {
-    logInfo("Non-interactive shell: re-run with --allow-no-changeset to bypass.");
   }
   return { ok: false };
 }

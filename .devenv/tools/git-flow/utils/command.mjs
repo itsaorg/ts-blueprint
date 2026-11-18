@@ -46,7 +46,7 @@ import {
   run,
 } from "../../../lib/tool-lib.mjs";
 import { isGitFlowInstalled } from "../isInstalled.mjs";
-import { headBranch } from "./gates.mjs";
+import { headBranch } from "./gates/headBranch.mjs";
 
 /**
  * @typedef {"feature" | "bugfix" | "release" | "hotfix" | "support"} GitFlowType

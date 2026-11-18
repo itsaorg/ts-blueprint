@@ -45,14 +45,17 @@ import {
   parseAheadBehind,
   parseIssueFlagArgs,
 } from "../../.devenv/tools/git-flow/utils/start-gates.mjs";
-import {
-  branchMatchesType,
-  parseAheadBehind as parseGateAheadBehind,
-} from "../../.devenv/tools/git-flow/utils/gates.mjs";
+import { branchMatchesType } from "../../.devenv/tools/git-flow/utils/gates/branchMatchesType.mjs";
+import { parseAheadBehind as parseGateAheadBehind } from "../../.devenv/tools/git-flow/utils/gates/parseAheadBehind.mjs";
 import {
   defaultLabelsForGitFlowType,
   mergeLabelLists,
 } from "../../.devenv/tools/git-flow/utils/labels.mjs";
+import {
+  isChangesetAddAllowedBranch,
+  defaultBumpForGitFlowType,
+} from "../../.devenv/deps/changeset/add.mjs";
+import { isVersionBranch } from "../../.devenv/deps/changeset/version.mjs";
 import { parseTagArgs } from "../../.devenv/tools/git/tag-version.mjs";
 import { assertPackSmokePaths } from "../../.devenv/tools/npm/pack/smoke.mjs";
 
@@ -175,6 +178,24 @@ describe("git-flow gate helpers", () => {
     expect(branchMatchesType("feature/42-x", "feature")).toBe(true);
     expect(branchMatchesType("bugfix/1-y", "feature")).toBe(false);
     expect(parseGateAheadBehind("0\t0")).toEqual({ ahead: 0, behind: 0 });
+  });
+});
+
+describe("changeset branch and bump helpers", () => {
+  it("gates add and version allow-lists", () => {
+    expect(isChangesetAddAllowedBranch("feature/1-x")).toBe(true);
+    expect(isChangesetAddAllowedBranch("release/1.0.0")).toBe(false);
+    expect(isChangesetAddAllowedBranch("main")).toBe(false);
+    expect(isVersionBranch("release/1.0.0")).toBe(true);
+    expect(isVersionBranch("hotfix/1.0.1")).toBe(true);
+    expect(isVersionBranch("feature/1-x")).toBe(false);
+  });
+
+  it("defaults guided bumps by Git Flow type", () => {
+    expect(defaultBumpForGitFlowType("feature")).toBe(null);
+    expect(defaultBumpForGitFlowType("bugfix")).toBe("patch");
+    expect(defaultBumpForGitFlowType("hotfix")).toBe("patch");
+    expect(defaultBumpForGitFlowType("support")).toBe("patch");
   });
 });
 
