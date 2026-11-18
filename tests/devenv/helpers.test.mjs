@@ -25,6 +25,7 @@ import {
   summaryIsFilled,
 } from "../../.devenv/tools/git-flow/utils/edit-draft.mjs";
 import {
+  issueFormChoiceForGitFlowType,
   parseIssueFormYaml,
   parseIssueSlug,
   seedIssueDraftFromFormMeta,
@@ -161,8 +162,19 @@ describe("git-flow start-gate helpers", () => {
     expect(parseAheadBehind("0\t0")).toEqual({ ahead: 0, behind: 0 });
     expect(parseAheadBehind("2 1")).toEqual({ ahead: 2, behind: 1 });
     expect(parseAheadBehind("nope")).toBe(null);
-    expect(mergeStrategyFor("feature")).toBe("squash");
+    expect(mergeStrategyFor("feature")).toBe("merge");
+    expect(mergeStrategyFor("bugfix")).toBe("merge");
     expect(mergeStrategyFor("release")).toBe("merge");
+  });
+
+  it("maps typed starts to matching issue forms", () => {
+    expect(issueFormChoiceForGitFlowType("feature")?.file).toBe("feature_request.yml");
+    expect(issueFormChoiceForGitFlowType("bugfix")?.file).toBe("bug_report.yml");
+    expect(issueFormChoiceForGitFlowType("release")?.file).toBe("chore_docs.yml");
+    expect(issueFormChoiceForGitFlowType("hotfix")?.file).toBe("chore_docs.yml");
+    expect(issueFormChoiceForGitFlowType("support")?.file).toBe("chore_docs.yml");
+    expect(issueFormChoiceForGitFlowType("")).toBe(null);
+    expect(issueFormChoiceForGitFlowType(undefined)).toBe(null);
   });
 
   it("parses --issue from start argv", () => {
@@ -248,6 +260,21 @@ describe("git-flow finish helpers", () => {
       base: "main",
       allowUnapproved: true,
       prNumber: "25",
+      mergeStrategy: undefined,
+      rest: [],
+    });
+    expect(parseFinishArgs(["--merge", "--pr", "26"])).toEqual({
+      base: undefined,
+      allowUnapproved: false,
+      prNumber: "26",
+      mergeStrategy: "merge",
+      rest: [],
+    });
+    expect(parseFinishArgs(["--squash"])).toEqual({
+      base: undefined,
+      allowUnapproved: false,
+      prNumber: undefined,
+      mergeStrategy: "squash",
       rest: [],
     });
   });

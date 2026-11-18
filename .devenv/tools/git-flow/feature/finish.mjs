@@ -3,13 +3,14 @@
 /** ==============================================================
  * 🌟 Feature finish
  * ---------------------------------------------------------------
- * CI green, approving review, issue link, merge (squash) into
- * develop, then delete the topic branch. Solo maintainers:
+ * CI green, approving review, issue link, merge commit (full history)
+ * into develop by default, then delete the topic branch. TTY can pick
+ * squash; `--merge` / `--squash` skip the prompt. Solo maintainers:
  * `--allow-unapproved` or TTY confirm.
  *
  * HOW TO RUN:
  *   npm run gf:feature:finish
- *   npm run gf:feature:finish -- --allow-unapproved --pr 25
+ *   npm run gf:feature:finish -- --allow-unapproved --pr 25 --merge
  *   node .devenv/tools/git-flow/feature/finish.mjs --allow-unapproved
  *
  * ---------------------------------------------------------------
@@ -35,17 +36,18 @@ import { finishAfterMerge, parseBaseArgs } from "../utils/finish-merged.mjs";
 /**
  * Verifies remote merge gates and cleans up the feature branch.
  *
- * @param {{ base?: string, allowUnapproved?: boolean, prNumber?: string }} [options] - Overrides.
+ * @param {{ base?: string, allowUnapproved?: boolean, prNumber?: string, mergeStrategy?: "merge" | "squash" }} [options] - Overrides.
  * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
- * await finishFeature({ allowUnapproved: true });
+ * await finishFeature({ allowUnapproved: true, mergeStrategy: "merge" });
  */
 export async function finishFeature(options = {}) {
   return finishAfterMerge("feature", {
     base: options.base || "develop",
     allowUnapproved: options.allowUnapproved,
     prNumber: options.prNumber,
+    mergeStrategy: options.mergeStrategy,
   });
 }
 
@@ -53,7 +55,7 @@ const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPat
 if (isMain) {
   boxBanner("🌟 feature finish");
   const args = forwardedArgs();
-  const { base, allowUnapproved, prNumber } = parseBaseArgs(args);
+  const { base, allowUnapproved, prNumber, mergeStrategy } = parseBaseArgs(args);
   if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
     process.exit(1);
@@ -62,10 +64,15 @@ if (isMain) {
     logError("Pass --pr <number>.");
     process.exit(1);
   }
+  if (args.includes("--merge") && args.includes("--squash")) {
+    logError("Pass only one of --merge or --squash.");
+    process.exit(1);
+  }
   const result = await finishFeature({
     ...(base ? { base } : {}),
     allowUnapproved,
     prNumber,
+    ...(mergeStrategy ? { mergeStrategy } : {}),
   });
   if (!result.ok) {
     process.exit(1);

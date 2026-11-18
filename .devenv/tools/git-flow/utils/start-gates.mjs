@@ -79,19 +79,18 @@ export function requireCleanWorkingTree() {
 }
 
 /**
- * Merge strategy for finish by Git Flow type.
+ * Default merge strategy for finish (full history for every type).
+ * Callers may override via `--squash` / `--merge` or a TTY prompt.
  *
- * @param {"feature" | "bugfix" | "release" | "hotfix" | "support"} type - Branch type.
+ * @param {"feature" | "bugfix" | "release" | "hotfix" | "support"} [type] - Branch type (unused; kept for call-site compat).
  * @returns {"squash" | "merge"} gh pr merge flag family.
  *
  * @example
- * mergeStrategyFor("feature"); // "squash"
+ * mergeStrategyFor("feature"); // "merge"
  * mergeStrategyFor("release"); // "merge"
  */
 export function mergeStrategyFor(type) {
-  if (type === "feature" || type === "bugfix") {
-    return "squash";
-  }
+  void type;
   return "merge";
 }
 

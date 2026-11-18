@@ -114,7 +114,7 @@ The template applies the type label. Maintainers set Status, Priority, and Git F
 
 Feature and bugfix **start** resolve the issue **before** naming the branch (GitHub assigns numbers only at create time).
 
-On a TTY with no args, start lists open issues and asks you to pick one, or choose **0** to create. Create seeds `.git/ISSUE_EDITMSG` from a Feature / Bug / Chore YAML form, opens your editor, and only after you close the editor runs `gh issue create` with the form’s YAML labels plus the matching Git Flow label (for feature: `✨ Feature Request` and `🌟 Git Flow: Feature`). On a TTY you can add extra labels; defaults are never removed. Publish applies the same Git Flow default when it creates a PR. The branch name becomes `<number>-<slug>` from the created or chosen issue title. Pass an existing `<number>-<slug>` to skip the picker. Non-interactive shells require that explicit name.
+On a TTY with no args, start lists open issues and asks you to pick one, or choose **0** to create. Create seeds `.git/ISSUE_EDITMSG` from the form that matches the typed command (`gf:feature:start` → Feature request, `gf:bugfix:start` → Bug report, release/hotfix/support → Chore or docs) with no form chooser; the raw issue-gate CLI still offers the 1/2/3 picker when no type is set. After the editor closes, `gh issue create` applies the form’s YAML labels plus the matching Git Flow label (for feature: `✨ Feature Request` and `🌟 Git Flow: Feature`). On a TTY you can add extra labels; defaults are never removed. Publish applies the same Git Flow default when it creates a PR. The branch name becomes `<number>-<slug>` from the created or chosen issue title. Pass an existing `<number>-<slug>` to skip the picker. Non-interactive shells require that explicit name.
 
 ```bash
 git checkout develop
@@ -204,14 +204,14 @@ npm run gf:bugfix:publish
 
 ## ✨ How do I finish a feature or bugfix?
 
-Stay on the topic branch. Finish requires a clean tree and a published remote branch, resolves the PR (pick / `--pr`), requires CI green + approving review + issue link when known, **merges** with squash (feature/bugfix) or merge commit (release/hotfix/support), then deletes the topic branch and checks out the base. Solo maintainers:
+Stay on the topic branch. Finish requires a clean tree and a published remote branch, resolves the PR (pick / `--pr`), requires CI green + approving review + issue link when known, then **merges** with a merge commit by default (full history). On a TTY you can pick squash; `--merge` / `--squash` skip the prompt. Then it deletes the topic branch and checks out the base. Solo maintainers:
 
 ```bash
-npm run gf:feature:finish -- --allow-unapproved
+npm run gf:feature:finish -- --allow-unapproved --merge
 ```
 
 ```bash
-npm run gf:feature:finish -- --allow-unapproved --pr 25
+npm run gf:feature:finish -- --allow-unapproved --pr 25 --merge
 ```
 
 ```bash
