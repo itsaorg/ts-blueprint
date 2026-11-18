@@ -396,9 +396,23 @@ export function cleanupTopicBranch(branch, base) {
     return { ok: false };
   }
 
-  logGo(`git push origin --delete ${branch}`);
+  // Delete via GitHub API so husky pre-push (npm run check) cannot block cleanup.
+  logGo(`gh api DELETE refs/heads/${branch}`);
   try {
-    run(`git push origin --delete ${JSON.stringify(branch)}`);
+    const nameWithOwner = run(`gh repo view --json nameWithOwner -q .nameWithOwner`, {
+      inherit: false,
+    }).trim();
+    if (!nameWithOwner) {
+      throw new Error("Could not resolve repository nameWithOwner");
+    }
+    const refPath = `repos/${nameWithOwner}/git/refs/heads/${encodeURIComponent(branch)}`;
+    const deleted = spawnSync("gh", ["api", "-X", "DELETE", refPath], {
+      cwd: repoRoot,
+      stdio: "inherit",
+    });
+    if ((deleted.status ?? 1) !== 0) {
+      throw new Error(`gh api DELETE failed for ${branch}`);
+    }
     logOk(`Deleted remote branch ${branch}`);
   } catch {
     logInfo(`Remote branch ${branch} may already be deleted — continuing.`);

@@ -26,8 +26,6 @@
 #      registries only. This repo uses the public npm registry.
 #    rebase-strategy — the default already rebases. disabled is the only
 #      override, and it is not wanted.
-#    target-branch — the default branch receives version and security updates.
-#      Setting this key would drop labels and commit-message from security PRs.
 #    vendor — bundler and gomod only.
 #    enable-beta-ecosystems — unused by GitHub.
 # =============================================================================
@@ -42,6 +40,8 @@ updates:
   - package-ecosystem: npm
     # 📁 directory: repo-relative path containing the manifest ("/" = root)
     directory: /
+    # 🌿 target-branch: Git Flow integration branch (never main)
+    target-branch: "develop"
     # 🗓️ schedule: how often Dependabot checks
     schedule:
       # ⏱️ interval: weekly | daily | monthly | quarterly | semiannually | yearly | cron
@@ -99,6 +99,8 @@ updates:
   - package-ecosystem: github-actions
     # 📁 directory: "/" scans all workflow files under .github/workflows
     directory: /
+    # 🌿 target-branch: Git Flow integration branch (never main)
+    target-branch: "develop"
     # 🗓️ schedule: same weekly slot as npm
     schedule:
       interval: weekly
