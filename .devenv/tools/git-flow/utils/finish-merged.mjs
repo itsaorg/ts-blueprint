@@ -102,7 +102,7 @@ export function readPackageVersion() {
 }
 
 const PR_JSON_FIELDS =
-  "number,state,mergedAt,reviewDecision,reviews,url,title,body,closingIssuesReferences,statusCheckRollup";
+  "number,state,mergedAt,reviewDecision,reviews,url,title,body,statusCheckRollup";
 
 /**
  * Fetches full PR metadata by number.
