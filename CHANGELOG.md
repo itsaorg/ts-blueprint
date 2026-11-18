@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0
+
+### Minor Changes
+
+- 4e9a595: Default finish to merge commits; auto-pick issue forms on typed starts.
+
 ## 0.0.0
 
 Unreleased. Name reservation publish is 0.0.0; the first feature cut is 0.1.0.
