@@ -45,6 +45,7 @@ export async function finishSupport(options = {}) {
     base: options.base || "main",
     allowUnapproved: options.allowUnapproved,
     prNumber: options.prNumber,
+    mergeStrategy: options.mergeStrategy,
   });
 }
 
@@ -52,7 +53,7 @@ const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPat
 if (isMain) {
   boxBanner("🛟 support finish");
   const args = forwardedArgs();
-  const { base, allowUnapproved, prNumber } = parseBaseArgs(args);
+  const { base, allowUnapproved, prNumber, mergeStrategy } = parseBaseArgs(args);
   if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
     process.exit(1);
@@ -61,10 +62,15 @@ if (isMain) {
     logError("Pass --pr <number>.");
     process.exit(1);
   }
+  if (args.includes("--merge") && args.includes("--squash")) {
+    logError("Pass only one of --merge or --squash.");
+    process.exit(1);
+  }
   const result = await finishSupport({
     ...(base ? { base } : {}),
     allowUnapproved,
     prNumber,
+    ...(mergeStrategy ? { mergeStrategy } : {}),
   });
   if (!result.ok) {
     process.exit(1);

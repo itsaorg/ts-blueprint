@@ -8,7 +8,7 @@
  *   1) Clean working tree; topic branch published on origin
  *   2) Resolve PR for this head (pick / `--pr`); else refuse → publish
  *   3) If open: CI green, approving review, issue link, then merge
- *      (squash for feature/bugfix; merge commit for release/hotfix/support)
+ *      (default: merge commit / full history; TTY or `--squash` / `--merge`)
  *   4) If already merged: approval + issue-link gates still apply
  *   5) release/hotfix version gates; delete topic branch; clear CURRENT_ISSUE
  * Never runs `git flow <type> finish` (local merge skips CI).
@@ -17,8 +17,8 @@
  *   imported by git-flow type finish.mjs modules
  *   node .devenv/tools/git-flow/utils/finish-merged.mjs feature
  *   node .devenv/tools/git-flow/utils/finish-merged.mjs feature --allow-unapproved
- *   node .devenv/tools/git-flow/utils/finish-merged.mjs feature --pr 25
- *   node .devenv/tools/git-flow/utils/finish-merged.mjs support --base main
+ *   node .devenv/tools/git-flow/utils/finish-merged.mjs feature --pr 25 --merge
+ *   node .devenv/tools/git-flow/utils/finish-merged.mjs support --base main --squash
  *
  * ---------------------------------------------------------------
  * Copyright 2025-2026 © Astitv Singh <https://github.com/astitvsingh>.
@@ -64,6 +64,7 @@ import { isOnTypeBranch } from "./gates/isOnTypeBranch.mjs";
 import { remoteBranchExists } from "./gates/remoteBranchExists.mjs";
 import { isGitFlowInstalled } from "../isInstalled.mjs";
 import {
+  askLine,
   defaultBaseFor,
   ghReady,
   listOpenPullRequestsForHead,
@@ -203,17 +204,49 @@ export function requireCiGreen(pr) {
 }
 
 /**
- * Merges a PR with the strategy for the Git Flow type.
+ * Resolves merge vs squash: explicit flag, else TTY prompt (default merge), else type default.
+ *
+ * @param {{ type?: FinishableType, mergeStrategy?: "merge" | "squash" }} [options] - Overrides.
+ * @returns {Promise<"merge" | "squash">} Chosen strategy.
+ *
+ * @example
+ * await resolveMergeStrategy({ mergeStrategy: "squash" }); // "squash"
+ * await resolveMergeStrategy({ type: "feature" }); // "merge" (non-TTY / default)
+ */
+export async function resolveMergeStrategy(options = {}) {
+  if (options.mergeStrategy === "merge" || options.mergeStrategy === "squash") {
+    return options.mergeStrategy;
+  }
+  if (isInteractive()) {
+    logInfo("Merge strategy:");
+    logInfo("1. merge — full commit history (default)");
+    logInfo("2. squash — single commit on the base");
+    const picked = (await askLine("Merge strategy number", "1")).toLowerCase();
+    if (picked === "2" || picked === "squash") {
+      return "squash";
+    }
+    return "merge";
+  }
+  return mergeStrategyFor(options.type);
+}
+
+/**
+ * Merges a PR with the resolved strategy (default: merge commit).
  *
  * @param {string | number} number - PR number.
  * @param {FinishableType} type - Branch type.
- * @returns {{ ok: boolean }} Outcome.
+ * @param {{ mergeStrategy?: "merge" | "squash" }} [options] - Optional strategy override.
+ * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
- * mergePullRequest(25, "feature");
+ * await mergePullRequest(25, "feature");
+ * await mergePullRequest(25, "feature", { mergeStrategy: "squash" });
  */
-export function mergePullRequest(number, type) {
-  const strategy = mergeStrategyFor(type);
+export async function mergePullRequest(number, type, options = {}) {
+  const strategy = await resolveMergeStrategy({
+    type,
+    mergeStrategy: options.mergeStrategy,
+  });
   const flag = strategy === "squash" ? "--squash" : "--merge";
   logGo(`gh pr merge ${number} ${flag} --delete-branch=false`);
   const result = spawnSync("gh", ["pr", "merge", String(number), flag, "--delete-branch=false"], {
@@ -422,12 +455,12 @@ export async function requireApprovedReview(pr, options = {}) {
  * Runs finish SOPs: publish check, PR resolve, CI, approve, merge, cleanup.
  *
  * @param {FinishableType} type - Branch type.
- * @param {{ base?: string, allowUnapproved?: boolean, prNumber?: string }} [options] - Optional overrides.
+ * @param {{ base?: string, allowUnapproved?: boolean, prNumber?: string, mergeStrategy?: "merge" | "squash" }} [options] - Optional overrides.
  * @returns {Promise<{ ok: boolean }>} Outcome.
  *
  * @example
  * await finishAfterMerge("feature");
- * await finishAfterMerge("support", { base: "main", allowUnapproved: true });
+ * await finishAfterMerge("support", { base: "main", allowUnapproved: true, mergeStrategy: "merge" });
  */
 export async function finishAfterMerge(type, options = {}) {
   if (type !== "support" && !isGitFlowInstalled().ok) {
@@ -526,7 +559,13 @@ export async function finishAfterMerge(type, options = {}) {
       logInfo("No issue number on branch or CURRENT_ISSUE — skipping issue-link gate.");
     }
 
-    if (!mergePullRequest(pr.number, type).ok) {
+    if (
+      !(
+        await mergePullRequest(pr.number, type, {
+          mergeStrategy: options.mergeStrategy,
+        })
+      ).ok
+    ) {
       return { ok: false };
     }
     pr = viewPullRequestByNumber(pr.number) || pr;
@@ -566,13 +605,13 @@ export async function finishAfterMerge(type, options = {}) {
 }
 
 /**
- * Parses `--base`, `--allow-unapproved`, and `--pr` from argv.
+ * Parses `--base`, `--allow-unapproved`, `--pr`, `--merge`, and `--squash` from argv.
  *
  * @param {string[]} args - CLI args.
- * @returns {{ base?: string, allowUnapproved: boolean, prNumber?: string, rest: string[] }} Parsed pieces.
+ * @returns {{ base?: string, allowUnapproved: boolean, prNumber?: string, mergeStrategy?: "merge" | "squash", rest: string[] }} Parsed pieces.
  *
  * @example
- * parseBaseArgs(["--base", "main", "--allow-unapproved"]);
+ * parseBaseArgs(["--base", "main", "--allow-unapproved", "--merge"]);
  */
 export function parseBaseArgs(args) {
   const rest = [];
@@ -580,6 +619,8 @@ export function parseBaseArgs(args) {
   let base;
   /** @type {string | undefined} */
   let prNumber;
+  /** @type {"merge" | "squash" | undefined} */
+  let mergeStrategy;
   let allowUnapproved = false;
   for (let i = 0; i < args.length; i += 1) {
     if (args[i] === "--base") {
@@ -596,9 +637,17 @@ export function parseBaseArgs(args) {
       allowUnapproved = true;
       continue;
     }
+    if (args[i] === "--merge") {
+      mergeStrategy = "merge";
+      continue;
+    }
+    if (args[i] === "--squash") {
+      mergeStrategy = "squash";
+      continue;
+    }
     rest.push(args[i]);
   }
-  return { base, allowUnapproved, prNumber, rest };
+  return { base, allowUnapproved, prNumber, mergeStrategy, rest };
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
@@ -611,7 +660,7 @@ if (isMain) {
     logError("Pass a type: feature | bugfix | release | hotfix | support");
     process.exit(1);
   }
-  const { base, allowUnapproved, prNumber } = parseBaseArgs(args.slice(1));
+  const { base, allowUnapproved, prNumber, mergeStrategy } = parseBaseArgs(args.slice(1));
   if (args.includes("--base") && !base) {
     logError("Pass --base <branch>.");
     process.exit(1);
@@ -620,10 +669,15 @@ if (isMain) {
     logError("Pass --pr <number>.");
     process.exit(1);
   }
+  if (args.includes("--merge") && args.includes("--squash")) {
+    logError("Pass only one of --merge or --squash.");
+    process.exit(1);
+  }
   const result = await finishAfterMerge(type, {
     ...(base ? { base } : {}),
     allowUnapproved,
     prNumber,
+    ...(mergeStrategy ? { mergeStrategy } : {}),
   });
   if (!result.ok) {
     process.exit(1);

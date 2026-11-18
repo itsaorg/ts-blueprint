@@ -6,10 +6,11 @@
  * Feature and bugfix starts resolve a GitHub issue first, then
  * return `<number>-<slug>` for `git flow … start`. With no args on
  * a TTY: list open issues and let the user pick, or create a new
- * issue by seeding `.git/ISSUE_EDITMSG` from a YAML issue form
- * (feature / bug / chore), opening the editor, and creating after
- * the editor exits. Power path: pass `<number>-<slug>` to verify
- * an existing issue. Drafts live under `.git/` like COMMIT_EDITMSG.
+ * issue by seeding `.git/ISSUE_EDITMSG` from the YAML form that
+ * matches `gitFlowType` (typed starts skip the form chooser),
+ * opening the editor, and creating after the editor exits. Power
+ * path: pass `<number>-<slug>` to verify an existing issue. Drafts
+ * live under `.git/` like COMMIT_EDITMSG.
  *
  * HOW TO RUN:
  *   imported by feature/start.mjs and bugfix/start.mjs
@@ -64,6 +65,30 @@ export const ISSUE_FORM_CHOICES = [
   { key: "bug", file: "bug_report.yml", chooser: "Bug report" },
   { key: "chore", file: "chore_docs.yml", chooser: "Chore or docs" },
 ];
+
+/**
+ * Maps a typed Git Flow start to its matching issue form (no chooser).
+ *
+ * @param {string} [gitFlowType] - feature | bugfix | release | hotfix | support.
+ * @returns {{ key: string, file: string, chooser: string } | null} Form choice, or null to prompt.
+ *
+ * @example
+ * issueFormChoiceForGitFlowType("feature"); // Feature request entry
+ * issueFormChoiceForGitFlowType(""); // null
+ */
+export function issueFormChoiceForGitFlowType(gitFlowType) {
+  const type = String(gitFlowType ?? "");
+  if (type === "feature") {
+    return ISSUE_FORM_CHOICES.find((choice) => choice.key === "feature") ?? null;
+  }
+  if (type === "bugfix") {
+    return ISSUE_FORM_CHOICES.find((choice) => choice.key === "bug") ?? null;
+  }
+  if (type === "release" || type === "hotfix" || type === "support") {
+    return ISSUE_FORM_CHOICES.find((choice) => choice.key === "chore") ?? null;
+  }
+  return null;
+}
 
 /**
  * Parses `<number>-<slug>` from a feature/bugfix short name.
@@ -395,21 +420,27 @@ function createIssueFromEditmsg(labels, assignees = []) {
 
 /**
  * Interactive create: pick form → seed ISSUE_EDITMSG → editor → gh create.
+ * When `gitFlowType` is set (typed starts), the matching form is used with no chooser.
  *
  * @param {{ gitFlowType?: string }} [options] - Defaults for Git Flow labels.
  * @returns {Promise<{ ok: boolean, name?: string }>} Outcome with resolved branch name.
  */
 export async function createIssueInteractively(options = {}) {
-  logInfo("Choose an issue form to seed the draft:");
-  ISSUE_FORM_CHOICES.forEach((choice, index) => {
-    logInfo(`${index + 1}. ${choice.chooser}`);
-  });
-  const picked = await askLine("Form number", "1");
-  const index = Number(picked) - 1;
-  const choice = ISSUE_FORM_CHOICES[index];
-  if (!choice) {
-    logError("Invalid form choice.");
-    return { ok: false };
+  let choice = issueFormChoiceForGitFlowType(options.gitFlowType);
+  if (choice) {
+    logInfo(`Using ${choice.chooser} form for ${options.gitFlowType} start.`);
+  } else {
+    logInfo("Choose an issue form to seed the draft:");
+    ISSUE_FORM_CHOICES.forEach((entry, index) => {
+      logInfo(`${index + 1}. ${entry.chooser}`);
+    });
+    const picked = await askLine("Form number", "1");
+    const index = Number(picked) - 1;
+    choice = ISSUE_FORM_CHOICES[index];
+    if (!choice) {
+      logError("Invalid form choice.");
+      return { ok: false };
+    }
   }
 
   const yamlPath = path.join(ISSUE_TEMPLATE_DIR, choice.file);
