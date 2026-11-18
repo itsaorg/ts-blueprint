@@ -1,0 +1,5 @@
+{
+  "name": "@itsaorg/ts-blueprint",
+  "entryPoints": ["../src/index.ts"],
+  "out": "../docs"
+}

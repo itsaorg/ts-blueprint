@@ -1,0 +1,30 @@
+# =============================================================================
+# 💬 Discussion template — General
+# =============================================================================
+# 📌 Purpose: starter form when Discussions are enabled for this repository.
+#    Enable Discussions in GitHub Settings → General → Features.
+# =============================================================================
+
+title: "[General] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for open-ended conversation that is **not** a bug, feature request, or security report.
+        Bugs and contracts still belong in Issues (YAML forms). Vulnerabilities use SECURITY.md.
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What are you trying to do or discuss?
+      placeholder: Short background…
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Extra notes, links, or ideas.
+    validations:
+      required: false
