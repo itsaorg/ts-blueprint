@@ -14,6 +14,7 @@ Use **`npm clean-install`** for lockfile installs (same command as the old `npm 
   - [🎫 When do I open which issue?](#-when-do-i-open-which-issue)
   - [📌 What do I do after the issue exists?](#-what-do-i-do-after-the-issue-exists)
   - [🧭 Who owns Start / Publish / Finish?](#-who-owns-start--publish--finish)
+  - [🤖 Where do Dependabot PRs land?](#-where-do-dependabot-prs-land)
   - [🌲 Which Git Flow branch type do I use?](#-which-git-flow-branch-type-do-i-use)
   - [💻 How do I work day to day on a topic branch?](#-how-do-i-work-day-to-day-on-a-topic-branch)
   - [🚀 How do I publish a feature or bugfix (open the PR)?](#-how-do-i-publish-a-feature-or-bugfix-open-the-pr)
@@ -141,6 +142,10 @@ Prefer the npm script over raw `git flow feature start` so the issue gate runs. 
 | **Start**   | Issue pick/create; clean synced base; branch create      | Push, PRs, merge               |
 | **Publish** | Changeset gate; push; PR pick/create (`.git/PR_EDITMSG`) | Merge, branch delete           |
 | **Finish**  | PR resolve; CI; approve gate; `gh pr merge`; cleanup     | Creating issues or opening PRs |
+
+## 🤖 Where do Dependabot PRs land?
+
+Dependabot opens version-update PRs against **`develop`** (see `.github/dependabot.yml` `target-branch`). Merge them like other integration work, then cut a release so bumps reach `main`. Do not retarget Dependabot to `main`.
 
 ## 🌲 Which Git Flow branch type do I use?
 
