@@ -145,7 +145,7 @@ Prefer the npm script over raw `git flow feature start` so the issue gate runs. 
 
 ## 🤖 Where do Dependabot PRs land?
 
-Dependabot reads `.github/dependabot.yml` from the **default branch (`main`) only**. Keep `target-branch: "develop"` on **`main`** (sync from `develop` whenever that file changes). With that config, Dependabot opens version-update PRs against **`develop`**. Merge them like other integration work, then cut a release so bumps reach `main`. Do not retarget Dependabot to `main`.
+Dependabot reads `.github/dependabot.yml` from the **default branch (`main`) only**. Keep `target-branch: "develop"` on **`main`**. Edit the config on a topic branch into **`develop`**, then promote it with a **`release/*` → `main`** cut (or a **`hotfix/*`** if production is blocked)—never a `develop` → `main` sync PR. With that config, Dependabot opens version-update PRs against **`develop`**. Merge them like other integration work, then cut a release so bumps reach `main`. Do not retarget Dependabot to `main`.
 
 ## 🌲 Which Git Flow branch type do I use?
 
