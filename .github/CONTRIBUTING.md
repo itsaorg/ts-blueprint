@@ -258,7 +258,7 @@ The template applies the type label. Do not also invent a label name.
 3. Chore or docs: the YAML form applies `🧹 Chore`. Add `📚 Documentation` by hand when the change is docs and not tooling.
 4. Do not open a public issue for a vulnerability or a conduct report, and do not add a security label. Use `.github/SECURITY.md`.
 5. Maintainers apply Status, Priority, and Git Flow labels. Contributors do not need to set those.
-6. `good first issue` and `help wanted` are the exact names GitHub's Contribute and help-wanted views read (no emoji prefix). Dependabot applies `🔗 Dependencies`, opens branches under `dependabot/`, and targets **`develop`** (never `main`) so bumps follow Git Flow into a normal release. The `target-branch: "develop"` setting must live on **`main`** (Dependabot reads the default branch only); keep it synced from `develop` when the config changes.
+6. `good first issue` and `help wanted` are the exact names GitHub's Contribute and help-wanted views read (no emoji prefix). Dependabot applies `🔗 Dependencies`, opens branches under `dependabot/`, and targets **`develop`** (never `main`) so bumps follow Git Flow into a normal release. The `target-branch: "develop"` setting must live on **`main`** (Dependabot reads the default branch only); change it on `develop` first, then promote via **`release/*` → `main`** (or hotfix)—never a `develop` → `main` sync.
 
 The full set lives in `.github/labels.json`. `npm run gh:label:sync` is exclusive: it upserts that catalog and deletes any remote label not listed.
 
