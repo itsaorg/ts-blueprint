@@ -145,7 +145,7 @@ Prefer the npm script over raw `git flow feature start` so the issue gate runs. 
 
 ## 🤖 Where do Dependabot PRs land?
 
-Dependabot opens version-update PRs against **`develop`** (see `.github/dependabot.yml` `target-branch`). Merge them like other integration work, then cut a release so bumps reach `main`. Do not retarget Dependabot to `main`.
+Dependabot reads `.github/dependabot.yml` from the **default branch (`main`) only**. Keep `target-branch: "develop"` on **`main`** (sync from `develop` whenever that file changes). With that config, Dependabot opens version-update PRs against **`develop`**. Merge them like other integration work, then cut a release so bumps reach `main`. Do not retarget Dependabot to `main`.
 
 ## 🌲 Which Git Flow branch type do I use?
 
@@ -195,7 +195,7 @@ npm run gf:feature:publish
 npm run gf:feature:publish -- --allow-no-changeset
 ```
 
-That runs the pending-changeset gate, pushes, then either picks an existing open PR for this head (or `--pr <n>`) or opens `.git/PR_EDITMSG` (seeded from the PR template, with `Closes #N` from the branch name or `.git/CURRENT_ISSUE`). Fill **Summary** in the editor; empty Summary aborts create. Non-interactive shells must pass `--body-file <path>`:
+That runs the pending-changeset gate, pushes, then either picks an existing open PR for this head (or `--pr <n>`) or opens `.git/PR_EDITMSG` (seeded from the PR template, with `Closes #N` from the branch name or `.git/CURRENT_ISSUE`). On a TTY, create also prompts for PR assignees (same collaborator list as issues; skipped non-interactively). After create (and when attaching an existing open PR), publish links the issue **Development** sidebar via GraphQL `addCloseIssueReferences` (keywords alone do not link when base ≠ default). Fill **Summary** in the editor; empty Summary aborts create. Non-interactive shells must pass `--body-file <path>`:
 
 ```bash
 npm run gf:feature:publish -- --allow-no-changeset --body-file ./pr-body.md
@@ -209,7 +209,7 @@ npm run gf:bugfix:publish
 
 ## ✨ How do I finish a feature or bugfix?
 
-Stay on the topic branch. Finish requires a clean tree and a published remote branch, resolves the PR (pick / `--pr`), requires CI green + approving review + issue link when known, then **merges** with a merge commit by default (full history). On a TTY you can pick squash; `--merge` / `--squash` skip the prompt. Then it deletes the topic branch and checks out the base. Solo maintainers:
+Stay on the topic branch. Finish requires a clean tree and a published remote branch, resolves the PR (pick / `--pr`), requires CI green + approving review + issue link when known, then **merges** with a merge commit by default (full history). On a TTY you can pick squash; `--merge` / `--squash` skip the prompt. After merge it **closes the linked issue** if still open (needed for PRs into `develop` — GitHub only auto-closes on the default branch), deletes the topic branch locally and on origin, and **fails** if the remote ref still exists after delete. Solo maintainers:
 
 ```bash
 npm run gf:feature:finish -- --allow-unapproved --merge
