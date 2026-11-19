@@ -10,7 +10,9 @@
  *   3) If open: CI green, approving review, issue link, then merge
  *      (default: merge commit / full history; TTY or `--squash` / `--merge`)
  *   4) If already merged: approval + issue-link gates still apply
- *   5) release/hotfix version gates; delete topic branch; clear CURRENT_ISSUE
+ *   5) release/hotfix version gates; close linked issue if still open
+ *      (any base, including develop); delete topic branch and **verify**
+ *      remote is gone (fail finish if not); clear CURRENT_ISSUE
  * Never runs `git flow <type> finish` (local merge skips CI).
  *
  * HOW TO RUN:
@@ -60,6 +62,7 @@ import {
   run,
 } from "../../../lib/tool-lib.mjs";
 import { currentBranch, stripTypePrefix } from "./command.mjs";
+import { closeIssueIfOpen, deleteRemoteBranchVerified } from "./dev-links.mjs";
 import { isOnTypeBranch } from "./gates/isOnTypeBranch.mjs";
 import { remoteBranchExists } from "./gates/remoteBranchExists.mjs";
 import { isGitFlowInstalled } from "../isInstalled.mjs";
@@ -371,6 +374,9 @@ export function assertReleaseVersionReady(type, shortName) {
 /**
  * Deletes the topic branch locally and on origin, then checks out base.
  *
+ * Remote delete goes through the GitHub API (husky pre-push cannot
+ * block it) and **must** verify the ref is gone — finish fails if not.
+ *
  * @param {string} branch - Full topic branch name.
  * @param {string} base - Base branch to check out.
  * @returns {{ ok: boolean }} Outcome.
@@ -396,26 +402,8 @@ export function cleanupTopicBranch(branch, base) {
     return { ok: false };
   }
 
-  // Delete via GitHub API so husky pre-push (npm run check) cannot block cleanup.
-  logGo(`gh api DELETE refs/heads/${branch}`);
-  try {
-    const nameWithOwner = run(`gh repo view --json nameWithOwner -q .nameWithOwner`, {
-      inherit: false,
-    }).trim();
-    if (!nameWithOwner) {
-      throw new Error("Could not resolve repository nameWithOwner");
-    }
-    const refPath = `repos/${nameWithOwner}/git/refs/heads/${encodeURIComponent(branch)}`;
-    const deleted = spawnSync("gh", ["api", "-X", "DELETE", refPath], {
-      cwd: repoRoot,
-      stdio: "inherit",
-    });
-    if ((deleted.status ?? 1) !== 0) {
-      throw new Error(`gh api DELETE failed for ${branch}`);
-    }
-    logOk(`Deleted remote branch ${branch}`);
-  } catch {
-    logInfo(`Remote branch ${branch} may already be deleted — continuing.`);
+  if (!deleteRemoteBranchVerified(branch).ok) {
+    return { ok: false };
   }
 
   try {
@@ -605,6 +593,17 @@ export async function finishAfterMerge(type, options = {}) {
   if (!isPullRequestMerged(pr)) {
     logError("PR is still not merged after merge attempt.");
     return { ok: false };
+  }
+
+  if (issueNumber) {
+    if (
+      !closeIssueIfOpen(issueNumber, {
+        prNumber: pr.number,
+        base,
+      }).ok
+    ) {
+      return { ok: false };
+    }
   }
 
   logInfo(`Cleaning up after merge into ${base}…`);
