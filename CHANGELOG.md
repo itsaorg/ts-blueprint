@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+### Patch Changes
+
+- 0f3cb17: Bump lint-staged to 17.6.1 and document Dependabot reaching main via release only.
+
 ## 0.1.0
 
 ### Minor Changes
