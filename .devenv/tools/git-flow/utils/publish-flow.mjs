@@ -11,7 +11,9 @@
  * picks one when several exist; creates via `.git/PR_EDITMSG` when
  * none. Seeds `Closes #N` from the branch name or `.git/CURRENT_ISSUE`.
  * Never merges (finish owns approve/CI/merge). Never runs
- * `git flow <type> finish`.
+ * `git flow <type> finish`. On create: optional assignee picker
+ * (same collaborators as issues) and GraphQL Development link
+ * via `addCloseIssueReferences` when an issue number is known.
  *
  * HOW TO RUN:
  *   imported by git-flow type publish.mjs modules
@@ -78,6 +80,12 @@ import {
 } from "./edit-draft.mjs";
 import { isOnTypeBranch } from "./gates/isOnTypeBranch.mjs";
 import { isGitFlowInstalled } from "../isInstalled.mjs";
+import {
+  findOpenPullRequestNumber,
+  linkIssueToPullRequest,
+  parsePullRequestNumberFromText,
+} from "./dev-links.mjs";
+import { promptIssueAssignees } from "./issue-gate.mjs";
 import { appendLabelArgs, resolveCreateLabels } from "./labels.mjs";
 import { readCurrentIssue } from "./start-gates.mjs";
 
@@ -580,7 +588,9 @@ export function resolvePullRequestBody(options = {}) {
  *
  * Opens `.git/PR_EDITMSG` (or reads `--body-file`), refuses an empty
  * Summary, then creates with `gh pr create --body-file`. Resets the
- * draft to the template after a successful create.
+ * draft to the template after a successful create. Prompts assignees
+ * on a TTY (skipped non-interactively). Links the issue Development
+ * sidebar after create (and when attaching to an existing open PR).
  *
  * @param {object} options - Create options.
  * @param {string} options.headBranch - Current topic branch.
@@ -589,7 +599,7 @@ export function resolvePullRequestBody(options = {}) {
  * @param {string} [options.bodyFile] - Non-interactive body path.
  * @param {string | number} [options.prNumber] - Explicit open PR when several exist.
  * @param {PublishableType | string} [options.gitFlowType] - Type for default PR labels.
- * @returns {{ ok: boolean, created?: boolean, url?: string }} Outcome.
+ * @returns {Promise<{ ok: boolean, created?: boolean, url?: string, number?: string }>} Outcome.
  *
  * @example
  * await ensurePullRequest({ headBranch: "feature/42-x", base: "develop", issueNumber: "42", gitFlowType: "feature" });
@@ -611,7 +621,15 @@ export async function ensurePullRequest(options) {
     return { ok: false };
   }
   if (picked.pr) {
-    return { ok: true, created: false, url: picked.pr.url };
+    if (issueNumber) {
+      linkIssueToPullRequest(issueNumber, picked.pr.number);
+    }
+    return {
+      ok: true,
+      created: false,
+      url: picked.pr.url,
+      number: String(picked.pr.number),
+    };
   }
 
   const resolved = resolvePullRequestBody({ bodyFile, issueNumber });
@@ -635,16 +653,24 @@ export async function ensurePullRequest(options) {
     gitFlowType: gitFlowType || "",
     promptExtras: true,
   });
+  const assignees = await promptIssueAssignees();
   const createArgs = ["pr", "create", "--base", base, "--title", title, "--body-file", PR_EDITMSG];
   appendLabelArgs(createArgs, labels);
+  for (const login of assignees) {
+    createArgs.push("--assignee", login);
+  }
   if (labels.length > 0) {
     logInfo(`PR labels: ${labels.join(", ")}`);
+  }
+  if (assignees.length > 0) {
+    logInfo(`PR assignees: ${assignees.join(", ")}`);
   }
 
   logGo(`gh pr create --base ${base} --title … --body-file .git/PR_EDITMSG`);
   const result = spawnSync("gh", createArgs, {
     cwd: repoRoot,
-    stdio: "inherit",
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "inherit"],
   });
   if ((result.status ?? 1) !== 0) {
     logError("gh pr create failed");
@@ -652,9 +678,30 @@ export async function ensurePullRequest(options) {
     return { ok: false };
   }
 
+  const createOut = String(result.stdout ?? "").trim();
+  if (createOut) {
+    logInfo(createOut);
+  }
+  const createdNumber =
+    parsePullRequestNumberFromText(createOut) || findOpenPullRequestNumber(headBranch);
+
   resetFileToTemplate(PR_EDITMSG, PR_TEMPLATE);
   logOk(`Pull request opened into ${base}`);
-  return { ok: true, created: true };
+  if (issueNumber && createdNumber) {
+    linkIssueToPullRequest(issueNumber, createdNumber);
+  } else if (issueNumber && !createdNumber) {
+    logSkip("Could not parse created PR number; Development link skipped.");
+  }
+  return {
+    ok: true,
+    created: true,
+    ...(createdNumber
+      ? {
+          number: createdNumber,
+          url: createOut.match(/https:\/\/github\.com\/[^\s]+/)?.[0],
+        }
+      : {}),
+  };
 }
 
 /**

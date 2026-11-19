@@ -66,7 +66,7 @@ git pull origin develop
 npm run gf:feature:start
 ```
 
-With no args on a TTY, start lists open issues (or creates one via `.git/ISSUE_EDITMSG` seeded from the Feature request form — typed starts skip the form chooser) and then starts `feature/<number>-<slug>` from that issue. New issues get form + Git Flow labels, optional extra labels, and optional assignees picked from repo collaborators. PRs get the Git Flow default label. Pass an existing name to skip the picker: `npm run gf:feature:start -- 12-add-export`. Finish via `npm run gf:feature:finish` (never `git flow feature finish`) — see [HOW-TO.md](HOW-TO.md).
+With no args on a TTY, start lists open issues (or creates one via `.git/ISSUE_EDITMSG` seeded from the Feature request form — typed starts skip the form chooser) and then starts `feature/<number>-<slug>` from that issue. New issues get form + Git Flow labels, optional extra labels, and optional assignees picked from repo collaborators. After start, the topic branch is linked on the issue **Development** sidebar (`createLinkedBranch`; soft-fail). Publish prompts the same assignee picker for the PR and links the PR via `addCloseIssueReferences`. Finish closes the issue explicitly when base is not the default branch, and verifies remote topic-branch deletion. Pass an existing name to skip the picker: `npm run gf:feature:start -- 12-add-export`. Finish via `npm run gf:feature:finish` (never `git flow feature finish`) — see [HOW-TO.md](HOW-TO.md).
 
 When the change should bump the published package, run `npm run changeset:add` on the topic branch (or let `gf:feature:publish` prompt major|minor and write a canonical pending file). Include the pending `.changeset/*.md` in the same PR. Semver: feature = minor or major; bugfix/hotfix/support guided = patch. Run `npm run changeset:version` only on `release/*` or `hotfix/*` (clean tree) — never on `develop` or `main`. Tags (`v*`) trigger `.github/workflows/release.yml`.
 
@@ -154,7 +154,7 @@ Every development script is ESM (`.mjs`). Git hooks stay in `.husky`. Call packa
 .devenv/utils/clean.mjs      Shared path cleaner
 ```
 
-`tools/` holds runtimes a machine needs. `deps/` holds repo commands such as tsc and prettier. Scripts under `.devenv/tools/**` export functions for import and also run as CLIs. Root `prepare.mjs` / `setup.mjs` orchestrate multi-tool flows. Under `tools/gh/`, use `auth/` (mirrors `gh auth` subcommands), `label/`, `issue/`, `pr/`, plus `setup.mjs` and `isInstalled.mjs`. Under `tools/npm/`, use `auth/` (whoami/login/logout), `publish/` (local/worker/release/deprecate-reservation/trust), plus `setup.mjs` — no `isInstalled` (npm ships with Node). Under `tools/git-flow/`, use `init.mjs`, `setup.mjs`, `isInstalled.mjs`, per-type `start` / `publish` / `finish`, and `utils/` (`command`, `edit-draft`, `issue-gate`, `labels`, `start-gates`, `publish-flow`, `finish-merged`, plus `utils/gates/<fn>.mjs` one boolean gate per file). Changeset CLIs stay under `deps/changeset/`. **Start** picks/creates the issue on a clean synced base. **Publish** guides pending Changesets when needed, pushes, and picks/creates the PR. **Finish** resolves the PR, checks CI + approval, merges, then cleans up (never local `git flow finish`).
+`tools/` holds runtimes a machine needs. `deps/` holds repo commands such as tsc and prettier. Scripts under `.devenv/tools/**` export functions for import and also run as CLIs. Root `prepare.mjs` / `setup.mjs` orchestrate multi-tool flows. Under `tools/gh/`, use `auth/` (mirrors `gh auth` subcommands), `label/`, `issue/`, `pr/`, plus `setup.mjs` and `isInstalled.mjs`. Under `tools/npm/`, use `auth/` (whoami/login/logout), `publish/` (local/worker/release/deprecate-reservation/trust), plus `setup.mjs` — no `isInstalled` (npm ships with Node). Under `tools/git-flow/`, use `init.mjs`, `setup.mjs`, `isInstalled.mjs`, per-type `start` / `publish` / `finish`, and `utils/` (`command`, `edit-draft`, `issue-gate`, `labels`, `start-gates`, `publish-flow`, `finish-merged`, `dev-links`, plus `utils/gates/<fn>.mjs` one boolean gate per file). Changeset CLIs stay under `deps/changeset/`. **Start** picks/creates the issue on a clean synced base and links the topic branch in Development. **Publish** guides pending Changesets when needed, pushes, picks/creates the PR (assignees + Development PR link). **Finish** resolves the PR, checks CI + approval, merges, closes the issue if still open, then cleans up and verifies remote delete (never local `git flow finish`).
 
 ## 🐶 Prepare lifecycle
 
@@ -258,16 +258,16 @@ The template applies the type label. Do not also invent a label name.
 3. Chore or docs: the YAML form applies `🧹 Chore`. Add `📚 Documentation` by hand when the change is docs and not tooling.
 4. Do not open a public issue for a vulnerability or a conduct report, and do not add a security label. Use `.github/SECURITY.md`.
 5. Maintainers apply Status, Priority, and Git Flow labels. Contributors do not need to set those.
-6. `good first issue` and `help wanted` are the exact names GitHub's Contribute and help-wanted views read (no emoji prefix). Dependabot applies `🔗 Dependencies`, opens branches under `dependabot/`, and targets **`develop`** (never `main`) so bumps follow Git Flow into a normal release.
+6. `good first issue` and `help wanted` are the exact names GitHub's Contribute and help-wanted views read (no emoji prefix). Dependabot applies `🔗 Dependencies`, opens branches under `dependabot/`, and targets **`develop`** (never `main`) so bumps follow Git Flow into a normal release. The `target-branch: "develop"` setting must live on **`main`** (Dependabot reads the default branch only); keep it synced from `develop` when the config changes.
 
 The full set lives in `.github/labels.json`. `npm run gh:label:sync` is exclusive: it upserts that catalog and deletes any remote label not listed.
 
 ## 🔀 Open a pull request
 
-Add a pending Changeset (`npm run changeset:add`), then run the matching **publish** script (for example `npm run gf:feature:publish`). That pushes the branch, picks an existing open PR or seeds `.git/PR_EDITMSG` (with `Closes #N` from the branch name or `.git/CURRENT_ISSUE`), opens your editor, and refuses create when **Summary** is still empty. Non-interactive shells use `--body-file <path>`. **Finish** then handles CI, approval, merge, and cleanup. Fill these sections:
+Add a pending Changeset (`npm run changeset:add`), then run the matching **publish** script (for example `npm run gf:feature:publish`). That pushes the branch, picks an existing open PR or seeds `.git/PR_EDITMSG` (with `Closes #N` from the branch name or `.git/CURRENT_ISSUE`), opens your editor, prompts assignees on a TTY, links Development via GraphQL, and refuses create when **Summary** is still empty. Non-interactive shells use `--body-file <path>` (no assignee prompt). **Finish** then handles CI, approval, merge, explicit issue close (for non-default bases), and verified remote cleanup. Fill these sections:
 
 1. **Summary.** Why the change is needed (required; HTML comments alone do not count).
-2. **Linked issues.** `Closes #123` when this pull request finishes that issue.
+2. **Linked issues.** Keep `Closes #123` for default-branch merges (release/hotfix into `main`). Feature/bugfix into `develop` also get a Development link from publish; finish closes the issue if GitHub did not.
 3. **Test plan.** Commands you ran. Code changes should include `npm run check`.
 4. **Checklist.** Conventional Commits, public contract notes, and docs.
 

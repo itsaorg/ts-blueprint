@@ -5,7 +5,8 @@
  * ---------------------------------------------------------------
  * From a clean, synced `develop`: resolve a GitHub issue (picker,
  * create via `.git/ISSUE_EDITMSG`, or explicit `<number>-<slug>`),
- * record `.git/CURRENT_ISSUE`, then `git flow feature start`.
+ * record `.git/CURRENT_ISSUE`, then `git flow feature start`, then
+ * link the topic branch on the issue Development sidebar (soft-fail).
  *
  * HOW TO RUN:
  *   npm run gf:feature:start
@@ -31,6 +32,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logInfo } from "../../../lib/tool-lib.mjs";
 import { runGitFlow } from "../utils/command.mjs";
+import { linkIssueToBranch } from "../utils/dev-links.mjs";
 import { parseIssueSlug, resolveIssueBranchName } from "../utils/issue-gate.mjs";
 import { requireCleanSyncedBase, writeCurrentIssue } from "../utils/start-gates.mjs";
 
@@ -61,7 +63,13 @@ export async function startFeature(args = []) {
 
   logInfo(`Starting feature/${resolved.name}`);
   const started = runGitFlow("feature", "start", [resolved.name]);
-  return { ok: started.ok, name: resolved.name };
+  if (!started.ok) {
+    return { ok: false, name: resolved.name };
+  }
+  if (parsed?.number) {
+    linkIssueToBranch(parsed.number, `feature/${resolved.name}`);
+  }
+  return { ok: true, name: resolved.name };
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
