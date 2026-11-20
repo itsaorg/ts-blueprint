@@ -31,6 +31,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { boxBanner, boxDone, forwardedArgs, logError, logInfo } from "../../../lib/tool-lib.mjs";
 import { runGitFlow } from "../utils/command.mjs";
+import { assertVersionAboveFloor } from "../utils/assertVersionAboveFloor.mjs";
 import {
   parseIssueFlagArgs,
   requireCleanSyncedBase,
@@ -55,6 +56,10 @@ export async function startRelease(args = []) {
   const { issueFlag, rest } = parseIssueFlagArgs(args);
   if (rest.length === 0) {
     logError("Pass <x.y.z>.");
+    return { ok: false };
+  }
+
+  if (!assertVersionAboveFloor(rest[0]).ok) {
     return { ok: false };
   }
 

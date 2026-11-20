@@ -111,10 +111,10 @@ Every `package.json` script name starts with the tool, then an action (`tsc:type
 | `npm run gf:bugfix:start`           | Clean synced `develop`, pick/create issue, start `bugfix/<number>-<slug>`                                              | Yes, local branch (may create a GitHub issue)      |
 | `npm run gf:bugfix:publish`         | Changeset gate, push, pick or create PR into `develop`                                                                 | Yes, remote branch + GitHub PR                     |
 | `npm run gf:bugfix:finish`          | CI + approve + issue link + merge commit (TTY/flags can squash), then delete topic branch                              | Yes, merges PR; deletes local/remote topic branch  |
-| `npm run gf:hotfix:start`           | Start `hotfix/<x.y.z>` from `main`                                                                                     | Yes, local branch                                  |
+| `npm run gf:hotfix:start`           | Start `hotfix/<x.y.z>` from `main` (refuses version ≤ registry/git `v*` floor)                                         | Yes, local branch                                  |
 | `npm run gf:hotfix:publish`         | Pending or versioned gate, push, open/ensure PR into `main`                                                            | Yes, remote branch + GitHub PR                     |
 | `npm run gf:hotfix:finish`          | After merged+approved (+ version gates): delete hotfix branch                                                          | Yes, deletes local/remote hotfix branch            |
-| `npm run gf:release:start`          | Start `release/<x.y.z>` from `develop`                                                                                 | Yes, local branch                                  |
+| `npm run gf:release:start`          | Start `release/<x.y.z>` from `develop` (refuses version ≤ registry/git `v*` floor)                                     | Yes, local branch                                  |
 | `npm run gf:release:publish`        | Pending or versioned gate, push, open/ensure PR into `main`                                                            | Yes, remote branch + GitHub PR                     |
 | `npm run gf:release:finish`         | After merged+approved (+ version gates): delete release branch                                                         | Yes, deletes local/remote release branch           |
 | `npm run gf:support:start`          | Start `support/<name>` from `<base>` (AVH)                                                                             | Yes, local branch                                  |
@@ -126,8 +126,11 @@ Every `package.json` script name starts with the tool, then an action (`tsc:type
 | `npm run node:setup`                | Ensure Node on PATH; soft-check major vs `.nvmrc` (else `engines.node`)                                                | No                                                 |
 | `npm run npm:setup`                 | Ensure npm auth on a TTY (skips CI; never `npm:trust`)                                                                 | Yes, npm login when needed                         |
 | `npm run gf:setup`                  | Ensure Git Flow AVH init for `main`/`develop` (skips if missing)                                                       | Yes, local git-flow config when present            |
-| `npm run npm:publish:local`         | Interactive npm name reservation                                                                                       | Yes, publishes to npm                              |
-| `npm run npm:publish:worker`        | Publish from CI with provenance                                                                                        | Yes, publishes to npm                              |
+| `npm run npm:publish:local`         | Interactive npm name reservation (registry-aware dist-tag)                                                             | Yes, publishes to npm                              |
+| `npm run npm:publish:worker`        | Publish-if-missing from CI with provenance + registry-aware dist-tag (`NPM_DIST_TAG` override)                         | Yes, publishes to npm                              |
+| `npm run npm:list-published-versions` | List versions on the registry for a package name                                                                     | No                                                 |
+| `npm run npm:max-semver`            | Print the highest semver from argv                                                                                     | No                                                 |
+| `npm run npm:resolve-publish-dist-tag` | Resolve `latest` vs `v{major}` dist-tag for the local version                                                      | No                                                 |
 | `npm run npm:release`               | `tsc:build`, then `npm:publish:worker`                                                                                 | Yes, `dist/` and npm                               |
 | `npm run npm:trust`                 | Link Trusted Publishing                                                                                                | Yes, npm trust settings                            |
 | `npm run npm:deprecate:reservation` | Deprecate a name-reservation publish                                                                                   | Yes, npm deprecation message                       |
@@ -135,7 +138,7 @@ Every `package.json` script name starts with the tool, then an action (`tsc:type
 | `npm run gh:label:sync`             | Exclusive sync of `.github/labels.json` with `gh` (upsert catalog; delete remote labels not listed)                    | Yes, GitHub labels                                 |
 | `npm run gh:setup`                  | Ensure `gh` auth, then exclusive label sync                                                                            | Yes, GitHub labels when authenticated              |
 
-Do not run the `npm:*` scripts unless a maintainer asked you to publish or change trust. When Trusted Publishing is configured, it is bound to `.github/workflows/release.yml`.
+Do not run the `npm:*` scripts unless a maintainer asked you to publish or change trust. When Trusted Publishing is configured, it is bound to `.github/workflows/release.yml`. `npm:publish:worker` never attaches `latest` to a version below the registry max (it uses `v{major}` instead). Release/hotfix starts refuse versions that are not strictly above max(npm, local `v*` tags). Solo maintainers under branch protection: comment review + `gh pr merge --admin --merge` when self-approve is blocked.
 
 `docs/` is the TypeDoc site used for GitHub Pages. It is tracked. `clean:docs` and `docify:typedoc` rewrite that tree; after `clean:all`, run `npm run docify:typedoc` and commit `docs/` again before you push Pages content.
 
