@@ -209,7 +209,9 @@ npm run gf:bugfix:publish
 
 ## ✨ How do I finish a feature or bugfix?
 
-Stay on the topic branch. Finish requires a clean tree and a published remote branch, resolves the PR (pick / `--pr`), requires CI green + approving review + issue link when known, then **merges** with a merge commit by default (full history). On a TTY you can pick squash; `--merge` / `--squash` skip the prompt. After merge it **closes the linked issue** if still open (needed for PRs into `develop` — GitHub only auto-closes on the default branch), deletes the topic branch locally and on origin, and **fails** if the remote ref still exists after delete. Solo maintainers:
+Stay on the topic branch. Finish requires a clean tree and a published remote branch, resolves the PR (pick / `--pr`), requires CI green + approving review + issue link when known, then **merges** with a merge commit by default (full history). On a TTY you can pick squash; `--merge` / `--squash` skip the prompt. After merge it **closes the linked issue** if still open (needed for PRs into `develop` — GitHub only auto-closes on the default branch), deletes the topic branch locally and on origin, and **fails** if the remote ref still exists after delete.
+
+Branch protection requires an approving review. GitHub blocks **self-approve** on your own PR: leave an emoji **comment** review, then merge with admin bypass when you are the sole author (`gh pr merge <n> --merge --admin`). Keep required reviews for everyone else’s PRs. Solo maintainers for the finish script gate:
 
 ```bash
 npm run gf:feature:finish -- --allow-unapproved --merge
@@ -226,6 +228,10 @@ npm run gf:bugfix:finish
 ## 📦 How do I cut a release?
 
 Release uses **Changesets for the version bump** and a **git tag to publish**. Feature/bugfix PRs into `develop` should include a Changesets file when the published package should bump. Semver type follows API impact (not branch name): features are usually minor/major; bugfixes and chores are often patch.
+
+`gf:release:start` / `gf:hotfix:start` refuse a version that is not **strictly greater** than the floor of max(npm registry versions, local `v*` tags). Never cut a lower line as `latest` after a higher version was published.
+
+Tag-triggered `npm:publish:worker` picks a dist-tag from registry state: `latest` when the local version is above the registry max; otherwise `v{major}` (e.g. `0.1.1` while `1.0.0` exists → `--tag v0`). Override with `NPM_DIST_TAG`. After the tag push, confirm `npm view <pkg> dist-tags` and the GitHub Release (workflow still creates the Release if publish fails after `check`).
 
 ```bash
 git checkout develop
@@ -275,7 +281,7 @@ git pull origin main
 npm run git:tag:version -- --push
 ```
 
-Pushing the `v*` tag runs `.github/workflows/release.yml` (check → `npm:release` → GitHub Release). Equivalent raw commands: `git tag -a "v$(node -p "require('./package.json').version")" -m "…"` then `git push origin "v…"`.
+Pushing the `v*` tag runs `.github/workflows/release.yml` (check → `npm:release` → GitHub Release). The Release step runs when `check` succeeded even if publish failed. Equivalent raw commands: `git tag -a "v$(node -p "require('./package.json').version")" -m "…"` then `git push origin "v…"`.
 
 **Mandatory:** open a second pull request from `main` into `develop` so integration stays current.
 

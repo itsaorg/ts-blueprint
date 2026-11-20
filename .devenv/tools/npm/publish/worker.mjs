@@ -5,11 +5,14 @@
  * ---------------------------------------------------------------
  * Non-interactive publish-if-missing for CI and release pipelines.
  * Publishes the current `package.json` version only when that
- * exact spec is absent from the registry. Adds `--provenance` on
+ * exact spec is absent from the registry. Resolves an apt dist-tag
+ * from registry state (or `NPM_DIST_TAG`) so lower versions never
+ * fail npm's implicit `latest` rule. Adds `--provenance` on
  * GitHub Actions. Safe to re-run: already-published versions skip.
  *
  * HOW TO RUN:
  *   npm run npm:publish:worker
+ *   NPM_DIST_TAG=v0 npm run npm:publish:worker
  *   node .devenv/tools/npm/publish/worker.mjs
  *
  * ---------------------------------------------------------------
@@ -40,6 +43,8 @@ import {
   readPackageIdentity,
   run,
 } from "../../../lib/tool-lib.mjs";
+import { listPublishedVersions } from "../listPublishedVersions.mjs";
+import { resolvePublishDistTag } from "../resolvePublishDistTag.mjs";
 
 /**
  * Publishes the current package.json version when missing from the registry.
@@ -57,10 +62,15 @@ function main() {
     return;
   }
 
+  const published = listPublishedVersions(name);
+  const resolved = resolvePublishDistTag(version, published);
+  logInfo(`Dist-tag: ${resolved.tag} (${resolved.reason})`);
+
   const provenance = process.env.GITHUB_ACTIONS ? " --provenance" : "";
-  logGo(`Publishing ${spec}${provenance ? " with provenance" : ""}…`);
-  run(`npm publish --access public${provenance}`);
-  logOk(`Published ${spec}.`);
+  const tagFlag = ` --tag ${resolved.tag}`;
+  logGo(`Publishing ${spec}${provenance ? " with provenance" : ""} as ${resolved.tag}…`);
+  run(`npm publish --access public${provenance}${tagFlag}`);
+  logOk(`Published ${spec} (dist-tag ${resolved.tag}).`);
   boxDone("npm:publish:worker");
   process.exitCode = 0;
 }

@@ -45,6 +45,8 @@ import {
   run,
   waitForPackageNameOnRegistry,
 } from "../../../lib/tool-lib.mjs";
+import { listPublishedVersions } from "../listPublishedVersions.mjs";
+import { resolvePublishDistTag } from "../resolvePublishDistTag.mjs";
 
 /**
  * Reserves the package name on the public npm registry when still free.
@@ -96,8 +98,12 @@ async function main() {
   logGo("Building package…");
   run("npm run tsc:build");
 
-  logGo(`Publishing ${name}@${version}…`);
-  run("npm publish --access public");
+  const published = listPublishedVersions(name);
+  const resolved = resolvePublishDistTag(version, published);
+  logInfo(`Dist-tag: ${resolved.tag} (${resolved.reason})`);
+
+  logGo(`Publishing ${name}@${version} as ${resolved.tag}…`);
+  run(`npm publish --access public --tag ${resolved.tag}`);
 
   const after = await waitForPackageNameOnRegistry(name, {
     timeoutMs: 300_000,
