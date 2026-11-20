@@ -1,4 +1,5 @@
-# Temporary ops: publish 1.0.1, archive 0.1.1 under v0, deprecate 1.0.0 via NPM_TOKEN.
+# Temporary ops: archive 0.1.1 under line-v0, deprecate 1.0.0.
+# (npm rejects dist-tag "v0" as a SemVer range.)
 name: ops-archive-deprecate
 
 on:
@@ -13,38 +14,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: v1.0.1
-
-      - uses: ./.github/actions/setup
-
-      - run: npm run tsc:build
-
-      - name: npm publish 1.0.1 latest
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          set -euo pipefail
-          # Prefer setup-node userconfig when present; otherwise home .npmrc
-          CFG="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
-          printf '%s\n' "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" "registry=https://registry.npmjs.org/" > "$CFG"
-          export NPM_CONFIG_USERCONFIG="$CFG"
-          npm whoami
-          if npm view "@itsaorg/ts-blueprint@1.0.1" version >/dev/null 2>&1; then
-            npm dist-tag add @itsaorg/ts-blueprint@1.0.1 latest
-          else
-            npm publish --access public --tag latest
-          fi
-
-      - uses: actions/checkout@v7
-        with:
           ref: v0.1.1
 
       - uses: ./.github/actions/setup
 
       - run: npm run tsc:build
 
-      - name: Publish 0.1.1 with dist-tag v0
+      - name: Publish 0.1.1 with dist-tag line-v0
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
@@ -52,10 +28,11 @@ jobs:
           CFG="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
           printf '%s\n' "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" "registry=https://registry.npmjs.org/" > "$CFG"
           export NPM_CONFIG_USERCONFIG="$CFG"
+          npm whoami
           if npm view "@itsaorg/ts-blueprint@0.1.1" version >/dev/null 2>&1; then
-            npm dist-tag add @itsaorg/ts-blueprint@0.1.1 v0
+            npm dist-tag add @itsaorg/ts-blueprint@0.1.1 line-v0
           else
-            npm publish --access public --tag v0
+            npm publish --access public --tag line-v0
           fi
           npm view @itsaorg/ts-blueprint dist-tags --json
           npm view @itsaorg/ts-blueprint versions --json
