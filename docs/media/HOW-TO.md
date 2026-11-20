@@ -231,7 +231,7 @@ Release uses **Changesets for the version bump** and a **git tag to publish**. F
 
 `gf:release:start` / `gf:hotfix:start` refuse a version that is not **strictly greater** than the floor of max(npm registry versions, local `v*` tags). Never cut a lower line as `latest` after a higher version was published.
 
-Tag-triggered `npm:publish:worker` picks a dist-tag from registry state: `latest` when the local version is above the registry max; otherwise `v{major}` (e.g. `0.1.1` while `1.0.0` exists → `--tag v0`). Override with `NPM_DIST_TAG`. After the tag push, confirm `npm view <pkg> dist-tags` and the GitHub Release (workflow still creates the Release if publish fails after `check`).
+Tag-triggered `npm:publish:worker` picks a dist-tag from registry state: `latest` when the local version is above the registry max; otherwise `line-v{major}` (e.g. `0.1.1` while `1.0.0` exists → `--tag line-v0`; bare `v0` is rejected by npm as a SemVer range). Override with `NPM_DIST_TAG`. After the tag push, confirm `npm view <pkg> dist-tags` and the GitHub Release (workflow still creates the Release if publish fails after `check`).
 
 ```bash
 git checkout develop
