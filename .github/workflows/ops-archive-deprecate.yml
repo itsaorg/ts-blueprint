@@ -1,5 +1,4 @@
-# Temporary ops workflow: publish 1.0.1, archive 0.1.1 under v0, deprecate 1.0.0.
-# Delete after a successful run. Uses NPM_TOKEN (OIDC Trusted Publishing returned 404).
+# Temporary ops: publish 1.0.1, archive 0.1.1 under v0, deprecate 1.0.0 via NPM_TOKEN.
 name: ops-archive-deprecate
 
 on:
@@ -12,50 +11,48 @@ jobs:
   publish-repair:
     runs-on: ubuntu-latest
     steps:
-      - name: Publish 1.0.1 as latest
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           ref: v1.0.1
 
-      - name: Setup for 1.0.1
-        uses: ./.github/actions/setup
+      - uses: ./.github/actions/setup
 
-      - name: Build 1.0.1
-        run: npm run tsc:build
+      - run: npm run tsc:build
 
       - name: npm publish 1.0.1 latest
         env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
-          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > "${HOME}/.npmrc"
+          # Prefer setup-node userconfig when present; otherwise home .npmrc
+          CFG="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          printf '%s\n' "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" "registry=https://registry.npmjs.org/" > "$CFG"
+          export NPM_CONFIG_USERCONFIG="$CFG"
           npm whoami
           if npm view "@itsaorg/ts-blueprint@1.0.1" version >/dev/null 2>&1; then
-            echo "1.0.1 already on registry — ensuring latest dist-tag"
             npm dist-tag add @itsaorg/ts-blueprint@1.0.1 latest
           else
             npm publish --access public --tag latest
           fi
 
-      - name: Checkout v0.1.1 for archive
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           ref: v0.1.1
 
-      - name: Setup for 0.1.1
-        uses: ./.github/actions/setup
+      - uses: ./.github/actions/setup
 
-      - name: Build 0.1.1
-        run: npm run tsc:build
+      - run: npm run tsc:build
 
       - name: Publish 0.1.1 with dist-tag v0
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
-          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > "${HOME}/.npmrc"
+          CFG="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          printf '%s\n' "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" "registry=https://registry.npmjs.org/" > "$CFG"
+          export NPM_CONFIG_USERCONFIG="$CFG"
           if npm view "@itsaorg/ts-blueprint@0.1.1" version >/dev/null 2>&1; then
-            echo "0.1.1 already on registry — ensuring dist-tag v0"
             npm dist-tag add @itsaorg/ts-blueprint@0.1.1 v0
           else
             npm publish --access public --tag v0
@@ -65,9 +62,11 @@ jobs:
 
       - name: Deprecate 1.0.0
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
-          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > "${HOME}/.npmrc"
+          CFG="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          printf '%s\n' "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" "registry=https://registry.npmjs.org/" > "$CFG"
+          export NPM_CONFIG_USERCONFIG="$CFG"
           npm deprecate @itsaorg/ts-blueprint@1.0.0 "Superseded by the Git Flow line. Install @itsaorg/ts-blueprint@>=1.0.1."
           npm view @itsaorg/ts-blueprint@1.0.0 deprecated || true
