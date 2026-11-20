@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1
+
+### Major Changes
+
+- 9c576cf: Harden npm publish dist-tags, version floor on release/hotfix, and realign to 1.0.1 as latest (archive 0.1.1 under v0; deprecate registry 1.0.0).
+
 ## 0.1.1
 
 ### Patch Changes
