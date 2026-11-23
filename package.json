@@ -1,7 +1,7 @@
 {
   "name": "@itsaorg/ts-blueprint",
   "description": "TypeScript library blueprint / GitHub template for Itsa repos",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": {
     "name": "Astitv Singh",
     "url": "https://github.com/astitvsingh"

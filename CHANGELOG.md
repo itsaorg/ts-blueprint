@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.2
+
+### Patch Changes
+
+- 746f949: Use line-v{major} dist-tags (npm rejects bare v0/v1 as SemVer ranges).
+- f572f43: Document Trusted Publishing bind/verify, Dependabot ops checklist, and ephemeral .git publish body-file hygiene.
+
 ## 1.0.1
 
 ### Major Changes
