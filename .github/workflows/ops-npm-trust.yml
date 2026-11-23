@@ -1,0 +1,25 @@
+name: ops-npm-trust
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  trust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          registry-url: https://registry.npmjs.org
+      - name: Bind Trusted Publisher
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          CFG="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          printf '%s\n' "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" "registry=https://registry.npmjs.org/" > "$CFG"
+          export NPM_CONFIG_USERCONFIG="$CFG"
+          npm whoami
+          npm trust github "@itsaorg/ts-blueprint" --file release.yml --repo itsaorg/ts-blueprint --allow-publish -y
