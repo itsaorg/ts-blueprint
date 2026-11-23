@@ -5,8 +5,9 @@
  * ---------------------------------------------------------------
  * Picks the npm dist-tag for `npm publish` given the local version
  * and published registry versions. Empty registry or local greater
- * than max → `latest`. Local less than max → `v{major}` so npm does
- * not refuse a lower version for `latest`. `NPM_DIST_TAG` overrides.
+ * than max → `latest`. Local less than max → `line-v{major}` so npm
+ * does not refuse a lower version for `latest` (bare `v0` / `v1` are
+ * rejected as SemVer ranges). `NPM_DIST_TAG` overrides.
  *
  * HOW TO RUN:
  *   npm run npm:resolve-publish-dist-tag
@@ -26,7 +27,7 @@
  *
  * @example
  * import { resolvePublishDistTag } from "./resolvePublishDistTag.mjs";
- * resolvePublishDistTag("0.1.1", ["1.0.0"]); // "v0"
+ * resolvePublishDistTag("0.1.1", ["1.0.0"]); // "line-v0"
  */
 
 import path from "node:path";
@@ -53,7 +54,7 @@ import { compareSemver, maxSemver, parseSemverCore } from "./maxSemver.mjs";
  *
  * @example
  * resolvePublishDistTag("1.0.1", ["1.0.0"]); // { tag: "latest", … }
- * resolvePublishDistTag("0.1.1", ["1.0.0"]); // { tag: "v0", … }
+ * resolvePublishDistTag("0.1.1", ["1.0.0"]); // { tag: "line-v0", … }
  */
 export function resolvePublishDistTag(localVersion, publishedVersions, options = {}) {
   const override = options.envTag ?? process.env.NPM_DIST_TAG;
@@ -83,7 +84,8 @@ export function resolvePublishDistTag(localVersion, publishedVersions, options =
 
   const core = parseSemverCore(local);
   const major = core ? core[0] : 0;
-  const tag = `v${major}`;
+  // npm rejects tags that are valid SemVer ranges (e.g. "v0", "v1").
+  const tag = `line-v${major}`;
   return {
     tag,
     reason: `local ${local} is below registry max ${max}; use line tag ${tag} (not latest)`,

@@ -12,7 +12,7 @@
  *
  * HOW TO RUN:
  *   npm run npm:publish:worker
- *   NPM_DIST_TAG=v0 npm run npm:publish:worker
+ *   NPM_DIST_TAG=line-v0 npm run npm:publish:worker
  *   node .devenv/tools/npm/publish/worker.mjs
  *
  * ---------------------------------------------------------------

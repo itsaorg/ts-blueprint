@@ -15,6 +15,7 @@ Use **`npm clean-install`** for lockfile installs (same command as the old `npm 
   - [📌 What do I do after the issue exists?](#-what-do-i-do-after-the-issue-exists)
   - [🧭 Who owns Start / Publish / Finish?](#-who-owns-start--publish--finish)
   - [🤖 Where do Dependabot PRs land?](#-where-do-dependabot-prs-land)
+  - [🛡️ How do I bind npm Trusted Publishing?](#️-how-do-i-bind-npm-trusted-publishing)
   - [🌲 Which Git Flow branch type do I use?](#-which-git-flow-branch-type-do-i-use)
   - [💻 How do I work day to day on a topic branch?](#-how-do-i-work-day-to-day-on-a-topic-branch)
   - [🚀 How do I publish a feature or bugfix (open the PR)?](#-how-do-i-publish-a-feature-or-bugfix-open-the-pr)
@@ -147,6 +148,31 @@ Prefer the npm script over raw `git flow feature start` so the issue gate runs. 
 
 Dependabot reads `.github/dependabot.yml` from the **default branch (`main`) only**. Keep `target-branch: "develop"` on **`main`**. Edit the config on a topic branch into **`develop`**, then promote it with a **`release/*` → `main`** cut (or a **`hotfix/*`** if production is blocked)—never a `develop` → `main` sync PR. With that config, Dependabot opens version-update PRs against **`develop`**. Merge them like other integration work, then cut a release so bumps reach `main`. Do not retarget Dependabot to `main`.
 
+Ops checklist:
+
+1. Confirm the live config on **`main`** still has `target-branch: "develop"` (Dependabot ignores the file on other branches for scheduling).
+2. Review and merge Dependabot PRs into **`develop`** with `gh pr merge --merge` (same merge-commit policy as other PRs).
+3. Promote dependency bumps to production only via **`release/*` → `main`** (or **`hotfix/*`** when production is blocked).
+4. Never open a sync PR from `develop` into `main`, and never retarget Dependabot updates at `main`.
+
+## 🛡️ How do I bind npm Trusted Publishing?
+
+Tag-triggered publishes use GitHub Actions OIDC against `.github/workflows/release.yml`. The workflow filename is part of the trust binding—do not rename it without updating npm.
+
+1. Authenticate locally (`npm whoami` must succeed), then run:
+
+```bash
+npm run npm:trust
+```
+
+(Non-interactive: `node .devenv/tools/npm/publish/trust.mjs -y` after you confirm the owner/repo and workflow name.)
+
+2. On the package page at npmjs.com, confirm the Trusted Publisher is this GitHub repo and workflow **`release.yml`**.
+3. Cut a release onto `main`, then `npm run git:tag:version -- --push`. `release.yml` runs `check`, publishes with provenance via OIDC, and creates the GitHub Release (the Release step still runs if publish fails after `check` succeeded).
+4. Verify: `npm view <pkg> dist-tags` and the GitHub Release for the tag.
+
+Emergency fallback when OIDC publish fails (E404/E401) after a green `check`: keep the GitHub Release, then republish that exact version with a **valid** automation token. Confirm `npm whoami` first. Write the token only into a local or runner `.npmrc` / env (`NODE_AUTH_TOKEN` / `NPM_TOKEN`)—never commit tokens or paste them into the repo. Prefer fixing Trusted Publishing so the next tag uses OIDC again; do not wire `NPM_TOKEN` into `release.yml` as the default path.
+
 ## 🌲 Which Git Flow branch type do I use?
 
 | Type       | When                                   | Merges toward                                        |
@@ -195,10 +221,10 @@ npm run gf:feature:publish
 npm run gf:feature:publish -- --allow-no-changeset
 ```
 
-That runs the pending-changeset gate, pushes, then either picks an existing open PR for this head (or `--pr <n>`) or opens `.git/PR_EDITMSG` (seeded from the PR template, with `Closes #N` from the branch name or `.git/CURRENT_ISSUE`). On a TTY, create also prompts for PR assignees (same collaborator list as issues; skipped non-interactively). After create (and when attaching an existing open PR), publish links the issue **Development** sidebar via GraphQL `addCloseIssueReferences` (keywords alone do not link when base ≠ default). Fill **Summary** in the editor; empty Summary aborts create. Non-interactive shells must pass `--body-file <path>`:
+That runs the pending-changeset gate, pushes, then either picks an existing open PR for this head (or `--pr <n>`) or opens `.git/PR_EDITMSG` (seeded from the PR template, with `Closes #N` from the branch name or `.git/CURRENT_ISSUE`). On a TTY, create also prompts for PR assignees (same collaborator list as issues; skipped non-interactively). After create (and when attaching an existing open PR), publish links the issue **Development** sidebar via GraphQL `addCloseIssueReferences` (keywords alone do not link when base ≠ default). Fill **Summary** in the editor; empty Summary aborts create. Non-interactive shells must pass `--body-file <path>`. Prefer an ephemeral path under `.git/` (for example `.git/pr-body.md`); delete it after the PR opens, and never commit it:
 
 ```bash
-npm run gf:feature:publish -- --allow-no-changeset --body-file ./pr-body.md
+npm run gf:feature:publish -- --allow-no-changeset --body-file .git/pr-body.md
 ```
 
 If `gh pr edit` fails with a Projects (classic) / `projectCards` GraphQL error, update title/body with REST `gh api …/pulls/N -X PATCH`. For bugfix:
@@ -231,7 +257,7 @@ Release uses **Changesets for the version bump** and a **git tag to publish**. F
 
 `gf:release:start` / `gf:hotfix:start` refuse a version that is not **strictly greater** than the floor of max(npm registry versions, local `v*` tags). Never cut a lower line as `latest` after a higher version was published.
 
-Tag-triggered `npm:publish:worker` picks a dist-tag from registry state: `latest` when the local version is above the registry max; otherwise `v{major}` (e.g. `0.1.1` while `1.0.0` exists → `--tag v0`). Override with `NPM_DIST_TAG`. After the tag push, confirm `npm view <pkg> dist-tags` and the GitHub Release (workflow still creates the Release if publish fails after `check`).
+Tag-triggered `npm:publish:worker` picks a dist-tag from registry state: `latest` when the local version is above the registry max; otherwise `line-v{major}` (e.g. `0.1.1` while `1.0.0` exists → `--tag line-v0`; bare `v0` is rejected by npm as a SemVer range). Override with `NPM_DIST_TAG`. After the tag push, confirm `npm view <pkg> dist-tags` and the GitHub Release (workflow still creates the Release if publish fails after `check`).
 
 ```bash
 git checkout develop
